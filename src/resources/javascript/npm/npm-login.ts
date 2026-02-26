@@ -6,7 +6,7 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings,
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 import * as fsSync from 'node:fs';
 import fs from 'node:fs/promises';

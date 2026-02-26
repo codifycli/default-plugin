@@ -3,7 +3,7 @@ import { PluginTester, testSpawn } from 'codify-plugin-test';
 import * as path from 'node:path';
 import os from 'node:os';
 import { TestUtils } from '../test-utils.js';
-import { SpawnStatus } from 'codify-plugin-lib';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 describe('Alias resource integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');

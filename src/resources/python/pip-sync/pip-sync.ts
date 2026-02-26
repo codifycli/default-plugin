@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, getPty, RefreshContext, Resource, ResourceSettings } from 'codify-plugin-lib';
+import { CreatePlan, DestroyPlan, getPty, RefreshContext, Resource, ResourceSettings } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 
 import schema from './pip-sync-schema.json'

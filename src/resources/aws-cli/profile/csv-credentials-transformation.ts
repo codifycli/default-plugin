@@ -1,4 +1,4 @@
-import { type InputTransformation, untildify } from 'codify-plugin-lib';
+import { type InputTransformation, untildify } from '@codifycli/plugin-core';
 import * as fsSync from 'node:fs';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';

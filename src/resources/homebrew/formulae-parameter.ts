@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, SpawnStatus, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ArrayParameterSetting, SpawnStatus, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
 import { HomebrewConfig } from './homebrew.js';
 

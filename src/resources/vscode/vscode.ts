@@ -6,7 +6,7 @@ import {
   Resource,
   ResourceSettings,
   Utils
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -137,7 +137,7 @@ export class VscodeResource extends Resource<VscodeConfig> {
         await FileUtils.downloadFile(downloadLink, vscodeDebPath);
 
         await $.spawn('debconf-set-selections <<< "code code/add-microsoft-repo boolean true"', { requiresRoot: true });
-        await $.spawn('apt-get install ./vscode.deb -y', { cwd: tmpDir, requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive' } });
+        await $.spawn('apt-get install ./vscode.deb -y', { cwd: tmpDir, requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' } });
       } finally {
         await fs.rm(tmpDir, { recursive: true, force: true });
       }

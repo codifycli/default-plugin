@@ -1,4 +1,4 @@
-import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty, Utils } from 'codify-plugin-lib';
+import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty, Utils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 
 import { SnapInstallParameter, SnapPackage } from './install-parameter.js';

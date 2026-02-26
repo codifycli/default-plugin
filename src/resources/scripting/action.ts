@@ -1,5 +1,5 @@
-import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, SpawnStatus } from 'codify-plugin-lib';
-import { RefreshContext } from 'codify-plugin-lib/src/resource/resource.js';
+import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
+import { RefreshContext } from '@codifycli/plugin-core/src/resource/resource.js';
 import { OS, StringIndexedObject } from 'codify-schemas';
 
 import schema from './action-schema.json'

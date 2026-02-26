@@ -1,6 +1,6 @@
 {
   "name": "default",
-  "version": "0.17.0-beta4",
+  "version": "0.17.0-beta9",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -23,10 +23,10 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@codifycli/plugin-core": "1.0.0-beta1",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "chalk": "^5.3.0",
-    "codify-plugin-lib": "1.0.182-beta77",
     "codify-schemas": "1.0.86-beta11",
     "debug": "^4.3.4",
     "lodash.isequal": "^4.5.0",

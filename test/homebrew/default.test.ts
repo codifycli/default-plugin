@@ -3,7 +3,7 @@ import { PluginTester, testSpawn } from 'codify-plugin-test';
 import * as path from 'node:path';
 import fs from 'node:fs/promises';
 import { TestUtils } from '../test-utils.js';
-import { SpawnStatus, Utils } from 'codify-plugin-lib';
+import { SpawnStatus, Utils } from '@codifycli/plugin-core';
 
 describe('Homebrew main resource integration tests', { skip: !Utils.isMacOS() }, () => {
   const pluginPath = path.resolve('./src/index.ts');

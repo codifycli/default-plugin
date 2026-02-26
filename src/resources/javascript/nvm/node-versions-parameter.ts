@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from 'codify-plugin-lib';
+import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 
 import { NvmConfig } from './nvm.js';
 

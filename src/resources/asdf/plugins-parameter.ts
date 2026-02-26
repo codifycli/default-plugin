@@ -1,4 +1,4 @@
-import { ArrayStatefulParameter, getPty, Plan, SpawnStatus, StatefulParameter } from 'codify-plugin-lib';
+import { ArrayStatefulParameter, getPty, Plan, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
 
 import { AsdfConfig } from './asdf.js';
 

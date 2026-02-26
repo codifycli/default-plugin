@@ -6,7 +6,7 @@ import {
   Resource,
   ResourceSettings,
   getPty
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 
 import schema from './pip-schema.json';

@@ -1,4 +1,4 @@
-import { ParameterSetting, Plan, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
 import { AptConfig } from './apt.js';
 
@@ -104,7 +104,10 @@ export class AptInstallParameter extends StatefulParameter<AptConfig, Array<AptP
       return p.name;
     }).join(' ');
 
-    await $.spawn(`apt-get install -y ${toInstall}`, { requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive' }});
+    await $.spawn(`apt-get install -y ${toInstall}`, {
+      requiresRoot: true,
+      env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' }
+    });
   }
 
   private async uninstall(packages: Array<AptPackage | string>): Promise<void> {
@@ -121,7 +124,7 @@ export class AptInstallParameter extends StatefulParameter<AptConfig, Array<AptP
       return p.name;
     }).join(' ');
 
-    await $.spawn(`apt-get auto-remove -y  ${toUninstall}`, { requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive' }});
+    await $.spawn(`apt-get auto-remove -y  ${toUninstall}`, { requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' }});
   }
 
   isSamePackage(a: AptPackage | string, b: AptPackage | string): boolean {

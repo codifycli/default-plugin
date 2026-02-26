@@ -7,7 +7,7 @@ import {
   ResourceSettings,
   SpawnStatus,
   getPty
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 import * as fs from 'node:fs/promises';
 import os from 'node:os';

@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, Plan, SpawnStatus, getPty } from 'codify-plugin-lib';
+import { ArrayParameterSetting, ArrayStatefulParameter, Plan, SpawnStatus, getPty } from '@codifycli/plugin-core';
 
 import { TartConfig } from './tart.js';
 

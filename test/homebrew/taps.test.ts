@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { PluginTester, testSpawn } from 'codify-plugin-test';
 import * as path from 'node:path';
 import { TestUtils } from '../test-utils.js';
-import { SpawnStatus, Utils } from 'codify-plugin-lib';
+import { SpawnStatus, Utils } from '@codifycli/plugin-core';
 
 describe('Homebrew taps tests', { skip: !Utils.isMacOS() }, () => {
   const pluginPath = path.resolve('./src/index.ts');

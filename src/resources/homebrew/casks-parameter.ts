@@ -1,4 +1,4 @@
-import { ParameterSetting, Plan, SpawnStatus, StatefulParameter, Utils, getPty } from 'codify-plugin-lib';
+import { ParameterSetting, Plan, SpawnStatus, StatefulParameter, Utils, getPty } from '@codifycli/plugin-core';
 import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';

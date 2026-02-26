@@ -6,7 +6,7 @@ import {
   SpawnStatus,
   Utils,
   getPty,
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';

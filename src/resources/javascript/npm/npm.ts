@@ -1,4 +1,4 @@
-import { Resource, ResourceSettings, getPty } from 'codify-plugin-lib';
+import { Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 
 import { NpmGlobalInstallParameter, NpmPackage } from './global-install.js';
@@ -19,7 +19,8 @@ export class Npm extends Resource<NpmConfig> {
       },
       importAndDestroy: {
         preventDestroy: true,
-      }
+      },
+      dependencies: ['nvm', 'pnpm']
     }
   }
 

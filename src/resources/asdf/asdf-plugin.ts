@@ -6,7 +6,7 @@ import {
   SpawnStatus,
   getPty,
   z
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS } from 'codify-schemas';
 
 import { AsdfPluginVersionsParameter } from './version-parameter.js';

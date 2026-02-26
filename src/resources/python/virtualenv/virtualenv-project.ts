@@ -2,7 +2,7 @@ import {
   CreatePlan, DestroyPlan, ModifyPlan, ParameterChange, RefreshContext, Resource,
   ResourceSettings,
   getPty
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';

@@ -9,7 +9,7 @@ import {
   SpawnStatus,
   getPty,
   z
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS } from 'codify-schemas';
 import fs from 'node:fs/promises';
 
@@ -67,7 +67,7 @@ export class AliasesResource extends Resource<AliasesConfig> {
     }
   }
 
-  override async refresh(parameters: any, context: RefreshContext<AliasesConfig>): Promise<Partial<AliasesConfig> | null> {
+  override async refresh(parameters: AliasesConfig, context: RefreshContext<AliasesConfig>): Promise<Partial<AliasesConfig> | null> {
     const $ = getPty();
 
     const { data, status } = await $.spawnSafe('alias', { interactive: true });
@@ -130,21 +130,21 @@ export class AliasesResource extends Resource<AliasesConfig> {
     const { isStateful } = plan;
     if (isStateful) {
       const aliasesToRemove = pc.previousValue
-        ?.filter((a) => !pc.newValue?.some((c) => c.alias === a.alias)
-          || pc.newValue?.some((c) => c.alias === a.alias && c.value !== a.value)
+        ?.filter((a: AliasDeclaration) => !pc.newValue?.some((c: AliasDeclaration) => c.alias === a.alias)
+          || pc.newValue?.some((c: AliasDeclaration) => c.alias === a.alias && c.value !== a.value)
         );
       const aliasesToAdd = pc.newValue
-        ?.filter((a) => !pc.previousValue?.some((c) => c.alias === a.alias));
+        ?.filter((a: AliasDeclaration) => !pc.previousValue?.some((c: AliasDeclaration) => c.alias === a.alias));
 
       await this.removeAliases(aliasesToRemove);
       await this.addAliases(aliasesToAdd);
     } else {
       const aliasesToRemove = pc.previousValue
-        ?.filter((a) => pc.newValue?.some((c) => c.alias === a.alias && c.value !== a.value));
+        ?.filter((a: AliasDeclaration) => pc.newValue?.some((c: AliasDeclaration) => c.alias === a.alias && c.value !== a.value));
 
       const aliasesToAdd = pc.newValue
-        ?.filter((a) => !pc.previousValue?.some((c) => c.alias === a.alias)
-        || pc.previousValue?.some((c) => c.alias === a.alias && c.value !== a.value));
+        ?.filter((a: AliasDeclaration) => !pc.previousValue?.some((c: AliasDeclaration) => c.alias === a.alias)
+        || pc.previousValue?.some((c: AliasDeclaration) => c.alias === a.alias && c.value !== a.value));
 
       await this.removeAliases(aliasesToRemove);
       await this.addAliases(aliasesToAdd);

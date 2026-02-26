@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PluginTester } from 'codify-plugin-test';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
-import { Utils } from 'codify-plugin-lib';
+import { Utils } from '@codifycli/plugin-core';
 
 describe('Android studios tests', { skip: !Utils.isMacOS() }, async () => {
   const pluginPath = path.resolve('./src/index.ts');

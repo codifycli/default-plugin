@@ -1,4 +1,4 @@
-import { getPty, StatefulParameter, SpawnStatus } from 'codify-plugin-lib';
+import { getPty, StatefulParameter, SpawnStatus } from '@codifycli/plugin-core';
 
 import { GitConfig } from './git-resource.js';
 

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { PluginTester, testSpawn } from 'codify-plugin-test';
 import path from 'node:path';
-import { SpawnStatus } from 'codify-plugin-lib';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 // Example test suite
 describe('nvm tests', () => {

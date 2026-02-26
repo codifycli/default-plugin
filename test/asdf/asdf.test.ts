@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PluginTester, testSpawn, TestUtils } from 'codify-plugin-test';
 import * as path from 'node:path';
 import * as cp from 'child_process'
-import { SpawnStatus } from 'codify-plugin-lib';
+import { SpawnStatus } from '@codifycli/plugin-core';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 

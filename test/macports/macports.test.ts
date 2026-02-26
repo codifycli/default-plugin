@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { PluginTester, testSpawn } from 'codify-plugin-test';
 import * as path from 'node:path';
-import { SpawnStatus, Utils } from 'codify-plugin-lib';
+import { SpawnStatus, Utils } from '@codifycli/plugin-core';
 
 describe('Macports resource integration tests', { skip: !Utils.isMacOS() }, () => {
   const pluginPath = path.resolve('./src/index.ts');

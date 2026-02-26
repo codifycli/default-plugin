@@ -3,7 +3,7 @@ import { PluginTester, testSpawn } from 'codify-plugin-test';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
-import { SpawnStatus } from 'codify-plugin-lib';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 describe('Ssh key tests', () => {
   const pluginPath = path.resolve('./src/index.ts');

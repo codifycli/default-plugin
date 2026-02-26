@@ -1,4 +1,4 @@
-import { Plugin, runPlugin } from 'codify-plugin-lib';
+import { Plugin, runPlugin } from '@codifycli/plugin-core';
 
 import { AndroidStudioResource } from './resources/android/android-studio.js';
 import { AptResource } from './resources/apt/apt.js';

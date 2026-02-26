@@ -1,4 +1,4 @@
-import { getPty, Resource, ResourceSettings, SpawnStatus } from 'codify-plugin-lib';
+import { getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 
 import { GitEmailParameter } from './git-email-paramater.js';

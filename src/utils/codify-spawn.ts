@@ -1,5 +1,5 @@
 import { Ajv } from 'ajv';
-import { SudoError, VerbosityLevel } from 'codify-plugin-lib';
+import { SudoError, VerbosityLevel } from '@codifycli/plugin-core';
 import {
   CommandRequestResponseData, CommandRequestResponseDataSchema,
   IpcMessageV2,

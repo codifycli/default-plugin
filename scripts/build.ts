@@ -1,7 +1,7 @@
 import { JSONSchema } from '@apidevtools/json-schema-ref-parser';
 import { Ajv } from 'ajv';
-import { VerbosityLevel } from 'codify-plugin-lib';
-import { SequentialPty } from 'codify-plugin-lib/dist/pty/seqeuntial-pty';
+import { VerbosityLevel } from '@codifycli/plugin-core';
+import { SequentialPty } from '@codifycli/plugin-core/dist/pty/seqeuntial-pty';
 import { IpcMessage, IpcMessageSchema, MessageStatus, ResourceSchema } from 'codify-schemas';
 import mergeJsonSchemas from 'merge-json-schemas';
 import { ChildProcess, fork } from 'node:child_process';

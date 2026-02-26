@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty } from 'codify-plugin-lib';
+import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -166,7 +166,7 @@ export class DockerResource extends Resource<DockerConfig> {
     // Install prerequisites
     await $.spawn(
       'apt-get install -y ca-certificates curl gnupg lsb-release',
-      { requiresRoot: true }
+      { requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' } }
     );
 
     // Add Docker's official GPG key
@@ -197,7 +197,7 @@ export class DockerResource extends Resource<DockerConfig> {
     await $.spawn('apt-get update', { requiresRoot: true });
     await $.spawn(
       'apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin',
-      { requiresRoot: true }
+      { requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' } }
     );
 
     // Start and enable Docker service

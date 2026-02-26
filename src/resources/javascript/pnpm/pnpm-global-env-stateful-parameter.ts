@@ -1,4 +1,4 @@
-import { ParameterSetting, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ParameterSetting, StatefulParameter, getPty } from '@codifycli/plugin-core';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';

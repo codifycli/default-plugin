@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty } from 'codify-plugin-lib';
+import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 import path from 'node:path';
 

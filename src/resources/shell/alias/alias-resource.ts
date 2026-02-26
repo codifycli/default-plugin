@@ -7,7 +7,7 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 import fs from 'node:fs/promises';
 

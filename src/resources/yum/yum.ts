@@ -1,4 +1,4 @@
-import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty } from 'codify-plugin-lib';
+import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 
 import { YumInstallParameter, YumPackage } from './install-parameter.js';

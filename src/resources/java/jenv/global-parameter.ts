@@ -1,4 +1,4 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from 'codify-plugin-lib';
+import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
 
 import { JenvConfig } from './jenv.js';
 

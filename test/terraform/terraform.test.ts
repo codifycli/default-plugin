@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PluginTester, testSpawn } from 'codify-plugin-test';
 import * as path from 'node:path';
-import { SpawnStatus } from 'codify-plugin-lib';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 const pluginPath = path.resolve('./src/index.ts');
 

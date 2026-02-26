@@ -1,4 +1,4 @@
-import { Resource, ResourceSettings, SpawnStatus, getPty } from 'codify-plugin-lib';
+import { Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 import * as fs from 'node:fs';
 

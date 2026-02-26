@@ -6,7 +6,7 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -32,7 +32,7 @@ export class SshKeyResource extends Resource<SshKeyConfig> {
   getSettings(): ResourceSettings<SshKeyConfig> {
     return {
       id: 'ssh-key',
-      operatingSystems: [OS.Darwin],
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
         comment: { canModify: true },

@@ -1,4 +1,4 @@
-import { ParameterSetting, Plan, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
 import { SnapConfig } from './snap.js';
 

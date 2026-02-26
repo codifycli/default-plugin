@@ -1,4 +1,4 @@
-import { Resource, ResourceSettings, SpawnStatus, Utils, getPty, FileUtils } from 'codify-plugin-lib';
+import { Resource, ResourceSettings, SpawnStatus, Utils, getPty, FileUtils } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';

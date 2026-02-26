@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, Plan, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ArrayParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
 import { PipSyncConfig } from './pip-sync.js';
 

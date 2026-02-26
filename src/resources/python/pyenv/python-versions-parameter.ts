@@ -1,4 +1,4 @@
-import { ArrayStatefulParameter, getPty, SpawnStatus } from 'codify-plugin-lib';
+import { ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 
 import { PyenvConfig } from './pyenv.js';
 

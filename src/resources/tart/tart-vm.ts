@@ -7,7 +7,7 @@ import {
   getPty,
   z,
   ParameterChange, ModifyPlan
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS } from 'codify-schemas';
 
 const schema = z.object({

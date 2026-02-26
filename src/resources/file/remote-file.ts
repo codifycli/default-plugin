@@ -7,7 +7,7 @@ import {
   RefreshContext,
   Resource,
   ResourceSettings
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 import { createHash } from 'node:crypto';
 import * as fsSync from 'node:fs';

@@ -2,7 +2,7 @@ import {
   getPty,
   Resource,
   ResourceSettings
-} from 'codify-plugin-lib';
+} from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';

@@ -1,4 +1,4 @@
-import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty } from 'codify-plugin-lib';
+import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -106,6 +106,7 @@ ${JSON.stringify(releaseInfo, null, 2)}
   override async destroy(): Promise<void> {
     const $ = getPty();
     const installLocationQuery = await $.spawnSafe('which terraform', { interactive: true });
+    console.log('Right after which terraform', installLocationQuery.data);
     if (installLocationQuery.status === SpawnStatus.ERROR) {
       return;
     }

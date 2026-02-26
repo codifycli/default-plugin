@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
 import { TestUtils } from '../test-utils.js';
-import { SpawnStatus } from 'codify-plugin-lib';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 describe('Pyenv resource integration tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
