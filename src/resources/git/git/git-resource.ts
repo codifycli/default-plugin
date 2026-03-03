@@ -1,4 +1,4 @@
-import { getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, Utils, getPty } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from 'codify-schemas';
 
 import { GitEmailParameter } from './git-email-paramater.js';
@@ -33,10 +33,10 @@ export class GitResource extends Resource<GitConfig> {
   }
 
   async create(): Promise<void> {
-    // Git should always be installed with xcode tools. Nothing to do here.
+    await Utils.installViaPkgMgr('git');
   }
 
   async destroy(): Promise<void> {
-    // Don't uninstall git. It will break things.
+    await Utils.uninstallViaPkgMgr('git');
   }
 }
