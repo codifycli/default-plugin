@@ -8,7 +8,7 @@ import {
   z,
   ParameterChange, ModifyPlan
 } from '@codifycli/plugin-core';
-import { OS } from 'codify-schemas';
+import { OS } from '@codifycli/schemas';
 
 const schema = z.object({
   sourceName: z

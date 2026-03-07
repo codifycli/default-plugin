@@ -7,7 +7,7 @@ import {
   Resource,
   ResourceSettings,
 } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fsSync from 'node:fs';
 import fs from 'node:fs/promises';
 import os from 'node:os';

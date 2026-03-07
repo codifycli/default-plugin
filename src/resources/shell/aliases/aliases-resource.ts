@@ -10,7 +10,7 @@ import {
   getPty,
   z
 } from '@codifycli/plugin-core';
-import { OS } from 'codify-schemas';
+import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';

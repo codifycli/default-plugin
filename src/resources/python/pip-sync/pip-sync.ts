@@ -1,5 +1,5 @@
 import { CreatePlan, DestroyPlan, getPty, RefreshContext, Resource, ResourceSettings } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import schema from './pip-sync-schema.json'
 import { RequirementFilesParameter } from './requirement-files-parameter.js';

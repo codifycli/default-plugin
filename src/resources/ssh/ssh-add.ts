@@ -1,5 +1,5 @@
 import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
-import { OS, StringIndexedObject } from 'codify-schemas';
+import { OS, StringIndexedObject } from '@codifycli/schemas';
 import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';

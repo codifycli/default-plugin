@@ -3,7 +3,7 @@ import { PluginTester, testSpawn } from 'codify-plugin-test';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
-import { ParameterOperation, ResourceOperation } from 'codify-schemas';
+import { ParameterOperation, ResourceOperation } from '@codifycli/schemas';
 import { TestUtils } from '../test-utils.js';
 
 describe('Path resource integration tests', async () => {

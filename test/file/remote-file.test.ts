@@ -2,7 +2,7 @@ import { afterAll, afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { PluginTester } from 'codify-plugin-test';
 import * as path from 'node:path';
 import fs from 'node:fs';
-import { ResourceOperation } from 'codify-schemas';
+import { ResourceOperation } from '@codifycli/schemas';
 
 describe('File integration tests', { skip: true }, async () => {
   const pluginPath = path.resolve('./src/index.ts');

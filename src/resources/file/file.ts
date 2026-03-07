@@ -1,5 +1,5 @@
 import { CreatePlan, DestroyPlan, ModifyPlan, ParameterChange, Resource, ResourceSettings, z } from '@codifycli/plugin-core';
-import { OS } from 'codify-schemas';
+import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 

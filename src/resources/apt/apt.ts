@@ -1,5 +1,5 @@
 import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import schema from './apt-schema.json';
 import { AptInstallParameter, AptPackage } from './install-parameter.js';

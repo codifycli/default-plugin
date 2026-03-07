@@ -7,7 +7,7 @@ import {
   ResourceSettings,
   getPty
 } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import schema from './pip-schema.json';
 import { PipInstallFilesParameter } from './install-files.js';

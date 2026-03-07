@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { PluginTester } from 'codify-plugin-test';
 import path from 'node:path';
-import { ResourceOperation } from 'codify-schemas';
+import { ResourceOperation } from '@codifycli/schemas';
 import fs from 'node:fs';
 import os from 'node:os';
 

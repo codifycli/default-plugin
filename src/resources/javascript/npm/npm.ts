@@ -1,5 +1,5 @@
 import { Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import { NpmGlobalInstallParameter, NpmPackage } from './global-install.js';
 import schema from './npm-schema.json'

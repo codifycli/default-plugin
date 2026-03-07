@@ -1,5 +1,5 @@
 import { Resource, ResourceSettings, SpawnStatus, getPty, Utils } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import Schema from './pgcli-schema.json';
 

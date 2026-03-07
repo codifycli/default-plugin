@@ -7,7 +7,7 @@ import {
   getPty,
   z
 } from '@codifycli/plugin-core';
-import { OS } from 'codify-schemas';
+import { OS } from '@codifycli/schemas';
 
 import { AsdfPluginVersionsParameter } from './version-parameter.js';
 

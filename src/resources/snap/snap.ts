@@ -1,5 +1,5 @@
 import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty, Utils } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import { SnapInstallParameter, SnapPackage } from './install-parameter.js';
 import schema from './snap-schema.json';

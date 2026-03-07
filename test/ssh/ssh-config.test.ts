@@ -4,7 +4,7 @@ import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import { PluginProcess } from 'codify-plugin-test/dist/plugin-process';
-import { ResourceOperation } from 'codify-schemas';
+import { ResourceOperation } from '@codifycli/schemas';
 
 describe('Ssh config tests', () => {
   const pluginPath = path.resolve('./src/index.ts');

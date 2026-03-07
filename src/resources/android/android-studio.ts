@@ -1,5 +1,5 @@
 import { CreatePlan, Resource, ResourceSettings, getPty, z } from '@codifycli/plugin-core';
-import { OS } from 'codify-schemas';
+import { OS } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

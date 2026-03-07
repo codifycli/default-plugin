@@ -1,5 +1,5 @@
 import { getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
 import { FileUtils } from '../../../utils/file-utils.js';

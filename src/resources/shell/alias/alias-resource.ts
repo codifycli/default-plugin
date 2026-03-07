@@ -8,7 +8,7 @@ import {
   ResourceSettings,
   SpawnStatus
 } from '@codifycli/plugin-core';
-import { OS, StringIndexedObject } from 'codify-schemas';
+import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';

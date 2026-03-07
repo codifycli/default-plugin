@@ -4,7 +4,7 @@ import {
   CommandRequestResponseData, CommandRequestResponseDataSchema,
   IpcMessageV2,
   MessageCmd,
-} from 'codify-schemas';
+} from '@codifycli/schemas';
 import { nanoid } from 'nanoid';
 import { SpawnOptions, spawn } from 'node:child_process';
 import stripAnsi from 'strip-ansi';

@@ -1,5 +1,5 @@
 import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, Utils } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import schema from './virtualenv-schema.json';
 

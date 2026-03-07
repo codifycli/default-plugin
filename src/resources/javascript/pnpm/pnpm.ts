@@ -1,5 +1,5 @@
 import { CreatePlan, DestroyPlan, RefreshContext, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from 'codify-schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';

@@ -3,7 +3,7 @@ import { PluginTester, testSpawn } from 'codify-plugin-test';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import os from 'node:os';
-import { SpawnStatus } from 'codify-schemas';
+import { SpawnStatus } from '@codifycli/schemas';
 
 describe('Asdf install tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
