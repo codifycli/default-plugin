@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester } from '@codifycli/plugin-test';
 import path from 'node:path';
 import { ResourceOperation } from '@codifycli/schemas';
 import fs from 'node:fs';

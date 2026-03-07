@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester } from '@codifycli/plugin-test';
 import path from 'node:path';
 import { Utils } from '@codifycli/plugin-core';
 

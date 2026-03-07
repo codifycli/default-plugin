@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester } from '@codifycli/plugin-test';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
-import { PluginProcess } from 'codify-plugin-test/dist/plugin-process';
+import { PluginProcess } from '@codifycli/plugin-test/dist/plugin-process';
 import { ResourceOperation } from '@codifycli/schemas';
 
 describe('Ssh config tests', () => {

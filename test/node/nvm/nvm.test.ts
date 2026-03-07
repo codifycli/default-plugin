@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PluginTester, testSpawn } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
 import { SpawnStatus } from '@codifycli/plugin-core';
 

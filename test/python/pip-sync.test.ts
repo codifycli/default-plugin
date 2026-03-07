@@ -1,4 +1,4 @@
-import { PluginTester, testSpawn } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
 import { describe, expect, it } from 'vitest'
 

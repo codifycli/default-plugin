@@ -1,4 +1,4 @@
-import { TestUtils } from 'codify-plugin-test';
+import { TestUtils } from '@codifycli/plugin-test';
 import fs from 'node:fs';
 import path from 'node:path';
 import { beforeAll, afterAll } from 'vitest';

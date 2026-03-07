@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { PluginTester, testSpawn, TestUtils } from 'codify-plugin-test';
+import { PluginTester, testSpawn, TestUtils } from '@codifycli/plugin-test';
 import * as path from 'node:path';
 import * as cp from 'child_process'
 import { SpawnStatus } from '@codifycli/plugin-core';

@@ -195,13 +195,13 @@ Zod is preferred because types are automatically inferred from the schema, preve
 
 ### Integration Tests (`test/**/*.test.ts`)
 - Full lifecycle tests against real system
-- Uses `PluginTester.fullTest()` from `codify-plugin-test`
+- Uses `PluginTester.fullTest()` from `@codifycli/plugin-test`
 - Tests create → modify → destroy flow
 - Includes validation callbacks
 
 **Integration Test Pattern:**
 ```typescript
-import { PluginTester } from 'codify-plugin-test'
+import { PluginTester } from '@codifycli/plugin-test'
 
 await PluginTester.fullTest(pluginPath, [
   { type: 'alias', alias: 'my-alias', value: 'ls -l' }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester } from '@codifycli/plugin-test';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import os from 'node:os';

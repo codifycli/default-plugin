@@ -1,5 +1,5 @@
 import { afterAll, describe, expect, it } from 'vitest';
-import { PluginTester, testSpawn } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';

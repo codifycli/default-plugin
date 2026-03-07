@@ -1,5 +1,5 @@
 import { Shell, SpawnStatus, VerbosityLevel } from '@codifycli/plugin-core';
-import { testSpawn, TestUtils } from 'codify-plugin-test';
+import { testSpawn, TestUtils } from '@codifycli/plugin-test';
 import { Command } from 'commander';
 import { spawn } from 'node:child_process';
 import * as inspector from 'node:inspector';
