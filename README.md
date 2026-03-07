@@ -406,7 +406,8 @@ ISC License - see [LICENSE](LICENSE) file for details.
 
 ## Links
 
-- [Codify CLI](https://codifycli.com) - Main CLI tool
+- [Main Site](https://codifycli.com) - Official website
+- [Codify CLI](https://github.com/codifycli/codify) - Main CLI tool
 - [Plugin Core](https://github.com/codifycli/codify-plugin-core) - Plugin framework
 - [Documentation](https://docs.codifycli.com) - Full documentation
 
