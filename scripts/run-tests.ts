@@ -137,7 +137,6 @@ async function launchPersistentVm(operatingSystem: string) {
   }
 }
 
-
 async function run(cmd: string, debug: boolean, simple = true) {
   const messageBuffer: string[] = [];
 

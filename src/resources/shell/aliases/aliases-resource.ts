@@ -31,7 +31,7 @@ export const schema = z.object({
     }))
     .describe('Aliases to create')
     .optional(),
-  declarationsOnly: z.boolean().optional().default(false),
+  declarationsOnly: z.boolean().optional(),
 })
 
 export type AliasesConfig = z.infer<typeof schema>;

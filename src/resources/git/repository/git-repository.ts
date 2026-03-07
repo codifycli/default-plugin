@@ -1,4 +1,12 @@
-import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
+import {
+  CreatePlan,
+  DestroyPlan,
+  ModifyPlan,
+  ParameterChange,
+  Resource,
+  ResourceSettings,
+  getPty
+} from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from 'codify-schemas';
 import path from 'node:path';
 
@@ -20,7 +28,7 @@ export class GitRepositoryResource extends Resource<GitRepositoryConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
-        repositories: { type: 'array' },
+        repositories: { type: 'array', canModify: true },
         parentDirectory: { type: 'directory' },
         directory: { type: 'directory' },
         autoVerifySSH: { type: 'boolean', default: true, setting: true },
@@ -180,6 +188,44 @@ Please delete ${plan.currentConfig.directory ?? (plan.currentConfig.repositories
       ?.replace('.git', '')
       ?.replace('/', '')
       ?.trim();
+  }
+
+  async modify(pc: ParameterChange<GitRepositoryConfig>, plan: ModifyPlan<GitRepositoryConfig>): Promise<void> {
+    if (pc.name !== 'repositories') {
+      return;
+    }
+
+    const $ = getPty();
+    const currentRepos = plan.currentConfig.repositories || [];
+    const desiredRepos = plan.desiredConfig.repositories || [];
+
+    // Find repositories to add
+    const reposToAdd = desiredRepos.filter(repo => !currentRepos.includes(repo));
+
+    // Find repositories to remove
+    const reposToRemove = currentRepos.filter(repo => !desiredRepos.includes(repo));
+
+    // Handle removals - similar to destroy, we don't want to delete user data. Only in stateful mode.
+    if (reposToRemove.length > 0 && plan.isStateful) {
+      const removedPaths = reposToRemove
+        .map(r => path.resolve(plan.currentConfig.parentDirectory!, this.extractBasename(r)!))
+        .join(', ');
+      throw new Error(`The git-clone resource is not designed to delete folders.\nPlease delete ${removedPaths} manually and re-apply`);
+    }
+
+    // Clone new repositories
+    if (reposToAdd.length > 0 && plan.desiredConfig.parentDirectory) {
+      const parentDirectory = path.resolve(plan.desiredConfig.parentDirectory);
+      await FileUtils.createDirIfNotExists(parentDirectory);
+
+      for (const repository of reposToAdd) {
+        if (plan.desiredConfig.autoVerifySSH) {
+          await this.autoVerifySSHForFirstAttempt(repository);
+        }
+
+        await $.spawn(`git clone ${repository}`, { cwd: parentDirectory });
+      }
+    }
   }
 
   private async autoVerifySSHForFirstAttempt(url: string): Promise<void> {
