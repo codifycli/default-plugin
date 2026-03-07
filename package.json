@@ -1,7 +1,7 @@
 {
   "name": "default",
   "version": "1.0.0-beta1",
-  "description": "",
+  "description": "Default plugin for Codify - provides 50+ declarative resources for managing development tools and system configuration across macOS and Linux",
   "main": "dist/index.js",
   "scripts": {
     "init": "scripts/init.sh",
