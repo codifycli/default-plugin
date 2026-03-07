@@ -3,7 +3,7 @@
 [![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)](https://nodejs.org)
 
-The default plugin for [Codify](https://github.com/kevinwang5658/codify-cli) - a declarative system configuration tool that manages your development environment as code.
+The default plugin for [Codify](https://codifycli.com) - a declarative system configuration tool that manages your development environment as code.
 
 ## What is Codify?
 
@@ -406,14 +406,14 @@ ISC License - see [LICENSE](LICENSE) file for details.
 
 ## Links
 
-- [Codify CLI](https://github.com/kevinwang5658/codify-cli) - Main CLI tool
-- [Plugin Core](https://github.com/kevinwang5658/codify-plugin-core) - Plugin framework
-- [Documentation](https://codify.dev) - Full documentation (if available)
+- [Codify CLI](https://codifycli.com) - Main CLI tool
+- [Plugin Core](https://github.com/codifycli/codify-plugin-core) - Plugin framework
+- [Documentation](https://docs.codifycli.com) - Full documentation
 
 ## Support
 
-- Open an [issue](https://github.com/kevinwang5658/codify-homebrew-plugin/issues) for bug reports
-- Submit [pull requests](https://github.com/kevinwang5658/codify-homebrew-plugin/pulls) for contributions
+- Open an [issue](https://github.com/codifycli/default-plugin/issues) for bug reports
+- Submit [pull requests](https://github.com/codifycli/default-plugin/pulls) for contributions
 - Star the project if you find it useful!
 
 ---
