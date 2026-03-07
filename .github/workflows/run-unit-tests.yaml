@@ -21,4 +21,4 @@ jobs:
           node-version: '22.x'
           cache: 'npm'
       - run: npm ci
-      - run: npm run test -- test/git/**.*.test.ts
+      - run: npm run test -- test/git/*.test.ts
