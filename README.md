@@ -82,7 +82,7 @@ This plugin provides **50+ resources** for managing common development tools and
 First, install the Codify CLI:
 
 ```bash
-npm install -g codify-cli
+/bin/bash -c "$(curl -fsSL https://releases.codifycli.com/install.sh)"
 ```
 
 ### Basic Usage
@@ -128,7 +128,7 @@ That's it! Codify will install the packages, configure git, and set up your shel
   {
     "type": "homebrew",
     "formulae": ["git", "postgresql", "redis"],
-    "casks": ["visual-studio-code", "docker"]
+    "casks": ["docker"]
   },
   {
     "type": "nvm",
@@ -144,12 +144,7 @@ That's it! Codify will install the packages, configure git, and set up your shel
     ]
   },
   {
-    "type": "vscode",
-    "extensions": [
-      "dbaeumer.vscode-eslint",
-      "esbenp.prettier-vscode",
-      "ms-vscode.vscode-typescript-next"
-    ]
+    "type": "vscode"
   }
 ]
 ```
