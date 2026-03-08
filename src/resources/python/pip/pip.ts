@@ -6,10 +6,9 @@ import {
   Resource,
   ResourceSettings,
   getPty
-} from 'codify-plugin-lib';
-import { ResourceConfig } from 'codify-schemas';
+} from '@codifycli/plugin-core';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import schema from './pip-schema.json';
 import { PipInstallFilesParameter } from './install-files.js';
 
@@ -29,6 +28,7 @@ export class Pip extends Resource<PipResourceConfig> {
   getSettings(): ResourceSettings<PipResourceConfig> {
     return {
       id: 'pip',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
         install: {
@@ -129,6 +129,7 @@ export class Pip extends Resource<PipResourceConfig> {
   async destroy(plan: DestroyPlan<PipResourceConfig>): Promise<void> {}
 
   private async pipInstall(packages: Array<PipListResult | string>, virtualEnv?: string): Promise<void> {
+    const $ = getPty();
     const packagesToInstall = packages.map((p) => {
       if (typeof p === 'string') {
         return p;
@@ -141,12 +142,14 @@ export class Pip extends Resource<PipResourceConfig> {
       return `${p.name}===${p.version}`;
     });
 
-    await codifySpawn(
-      Pip.withVirtualEnv(`pip install ${packagesToInstall.join(' ')}`, virtualEnv)
+    await $.spawn(
+      Pip.withVirtualEnv(`pip install ${packagesToInstall.join(' ')}`, virtualEnv),
+      { interactive: true }
     )
   }
 
   private async pipUninstall(packages: Array<PipListResult | string>, virtualEnv?: string): Promise<void> {
+    const $ = getPty();
     const packagesToUninstall = packages.map((p) => {
       if (typeof p === 'string') {
         return p;
@@ -155,8 +158,9 @@ export class Pip extends Resource<PipResourceConfig> {
       return p.name;
     });
 
-    await codifySpawn(
-      Pip.withVirtualEnv(`pip uninstall -y ${packagesToUninstall.join(' ')}`, virtualEnv)
+    await $.spawn(
+      Pip.withVirtualEnv(`pip uninstall -y ${packagesToUninstall.join(' ')}`, virtualEnv),
+      { interactive: true }
     )
   }
 

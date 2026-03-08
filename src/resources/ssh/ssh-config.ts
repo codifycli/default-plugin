@@ -1,13 +1,13 @@
 import {
+  getPty,
   Resource,
   ResourceSettings
-} from 'codify-plugin-lib';
-import { StringIndexedObject } from 'codify-schemas';
+} from '@codifycli/plugin-core';
+import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { codifySpawn } from '../../utils/codify-spawn.js';
 import { FileUtils } from '../../utils/file-utils.js';
 import { SshConfigHostsParameter } from './ssh-config-hosts-parameter.js';
 import Schema from './ssh-config-schema.json';
@@ -36,6 +36,7 @@ export class SshConfigFileResource extends Resource<SshConfig> {
   getSettings(): ResourceSettings<SshConfig> {
     return {
       id: 'ssh-config',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       isSensitive: true,
       parameterSettings: {
@@ -65,13 +66,13 @@ export class SshConfigFileResource extends Resource<SshConfig> {
     const filePath = path.resolve(folderPath, 'config');
 
     if (!(await FileUtils.dirExists(folderPath))) {
-      await codifySpawn('mkdir .ssh', { cwd: os.homedir() })
-      await codifySpawn('chmod 700 .ssh', { cwd: os.homedir() })
+      await fs.mkdir(path.join(os.homedir(), '.ssh'));
+      await fs.chmod(path.join(os.homedir(), '.ssh'), 0o700);
     }
 
     if (!(await FileUtils.fileExists(filePath))) {
-      await codifySpawn('touch config', { cwd: folderPath })
-      await codifySpawn('chmod 600 config', { cwd: folderPath })
+      await fs.writeFile(path.join(os.homedir(), '.ssh', 'config'), '');
+      await fs.chmod(path.join(os.homedir(), '.ssh', 'config'), 0o600);
     }
   }
 

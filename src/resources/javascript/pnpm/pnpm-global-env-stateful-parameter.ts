@@ -1,7 +1,6 @@
-import { ParameterSetting, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ParameterSetting, StatefulParameter, getPty } from '@codifycli/plugin-core';
 import fs from 'node:fs/promises';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { FileUtils } from '../../../utils/file-utils.js';
 import { PnpmConfig } from './pnpm.js';
 
@@ -26,15 +25,18 @@ export class PnpmGlobalEnvStatefulParameter extends StatefulParameter<PnpmConfig
   }
 
   async add(valueToAdd: string): Promise<void> {
-    await codifySpawn(`pnpm env use --global ${valueToAdd}`);
+    const $ = getPty();
+    await $.spawn(`pnpm env use --global ${valueToAdd}`, { interactive: true });
   }
 
   async modify(newValue: string): Promise<void> {
-    await codifySpawn(`pnpm env use --global ${newValue}`)
+    const $ = getPty();
+    await $.spawn(`pnpm env use --global ${newValue}`, { interactive: true })
   }
 
   async remove(): Promise<void> {
-    const { data: path } = await codifySpawn('echo $PNPM_HOME/nodejs')
+    const $ = getPty();
+    const { data: path } = await $.spawn('echo $PNPM_HOME/nodejs', { interactive: true })
     await fs.rm(path!, { recursive: true, force: true });
   }
 }

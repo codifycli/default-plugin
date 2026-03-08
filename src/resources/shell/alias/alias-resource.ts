@@ -5,14 +5,12 @@ import {
   ModifyPlan,
   ParameterChange,
   Resource,
-  ResourceSettings
-} from 'codify-plugin-lib';
-import { StringIndexedObject } from 'codify-schemas';
+  ResourceSettings,
+  SpawnStatus
+} from '@codifycli/plugin-core';
+import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
-import os from 'node:os';
-import path from 'node:path';
 
-import { SpawnStatus, codifySpawn } from '../../../utils/codify-spawn.js';
 import { FileUtils } from '../../../utils/file-utils.js';
 import { Utils } from '../../../utils/index.js';
 import Schema from './alias-schema.json';
@@ -26,9 +24,13 @@ export class AliasResource extends Resource<AliasConfig> {
   getSettings(): ResourceSettings<AliasConfig> {
     return {
       id: 'alias',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
         value: { canModify: true }
+      },
+      importAndDestroy: {
+        preventImport: true,
       },
       allowMultiple: {
         identifyingParameters: ['alias'],
@@ -50,42 +52,38 @@ export class AliasResource extends Resource<AliasConfig> {
       .find((l) => {
         const firstEqualIndex = l.indexOf('=');
         const name = l.slice(0, firstEqualIndex);
-        return name === desired;
+        return name.endsWith(desired!);
       });
 
     if (!matchedAlias) {
       return null;
     }
 
-    const firstEqualIndex = matchedAlias.indexOf('=');
-    const name = matchedAlias.slice(0, firstEqualIndex);
-    const value = matchedAlias.slice(firstEqualIndex + 1);
-
-    let processedValue = value.trim()
-    if ((processedValue.startsWith('\'') && processedValue.endsWith('\'')) || (processedValue.startsWith('"') && processedValue.endsWith('"'))) {
-      processedValue = processedValue.slice(1, -1)
+    const aliasMatch = matchedAlias.match(/^(?:alias\s+)?([^=]+)='?(.*?)'?$/);
+    if (!aliasMatch) {
+      return null;
     }
+
+    const name = aliasMatch[1].trim();
+    const value = aliasMatch[2].trim();
 
     return {
       alias: name,
-      value: processedValue,
+      value,
     }
   }
 
   override async create(plan: CreatePlan<AliasConfig>): Promise<void> {
-    const zshrcPath = path.join(os.homedir(), '.zshrc');
+    const shellRcPath = Utils.getPrimaryShellRc();
 
-    if (!(await FileUtils.fileExists(zshrcPath))) {
-      await fs.writeFile(zshrcPath, '', { encoding: 'utf8' });
+    if (!(await FileUtils.fileExists(shellRcPath))) {
+      await fs.writeFile(shellRcPath, '', { encoding: 'utf8' });
     }
 
     const { alias, value } = plan.desiredConfig;
     const aliasString = this.aliasString(alias, value);
 
-    const file = await fs.readFile(zshrcPath, 'utf8');
-    const fileWithAlias = FileUtils.appendToFileWithSpacing(file, aliasString);
-
-    await fs.writeFile(zshrcPath, fileWithAlias, { encoding: 'utf8' });
+    await FileUtils.addToStartupFile(aliasString);
   }
 
   async modify(pc: ParameterChange<AliasConfig>, plan: ModifyPlan<AliasConfig>): Promise<void> {
@@ -131,11 +129,7 @@ export class AliasResource extends Resource<AliasConfig> {
   }
 
   private async findAlias(alias: string, value: string): Promise<{ path: string; contents: string; } | null> {
-    const paths = [
-      path.join(os.homedir(), '.zshrc'),
-      path.join(os.homedir(), '.zprofile'),
-      path.join(os.homedir(), '.zshenv'),
-    ];
+    const paths = Utils.getShellRcFiles();
 
     const aliasString = this.aliasString(alias, value);
     const aliasStringShort = this.aliasStringShort(alias, value);

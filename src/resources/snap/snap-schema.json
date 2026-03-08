@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://www.codifycli.com/snap.json",
+  "$comment": "https://docs.codifycli.com/core-resources/snap/",
+  "title": "Snap resource",
+  "description": "Manage snap packages on Linux systems.",
+  "type": "object",
+  "properties": {
+    "install": {
+      "type": "array",
+      "description": "Installs packages using snap.",
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "channel": {
+                "type": "string",
+                "description": "The channel to install from (e.g., stable, edge, beta, candidate)"
+              },
+              "classic": {
+                "type": "boolean",
+                "description": "Install the snap in classic mode (with full system access)"
+              }
+            },
+            "required": ["name"]
+          }
+        ]
+      }
+    }
+  },
+  "additionalProperties": false
+}

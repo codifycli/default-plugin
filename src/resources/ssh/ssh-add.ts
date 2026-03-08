@@ -1,8 +1,7 @@
-import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings } from 'codify-plugin-lib';
-import { StringIndexedObject } from 'codify-schemas';
+import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { OS, StringIndexedObject } from '@codifycli/schemas';
 import path from 'node:path';
 
-import { SpawnStatus, codifySpawn } from '../../utils/codify-spawn.js';
 import { FileUtils } from '../../utils/file-utils.js';
 import Schema from './ssh-add-schema.json'
 
@@ -17,6 +16,7 @@ export class SshAddResource extends Resource<SshAddConfig> {
   getSettings(): ResourceSettings<SshAddConfig> {
     return {
       id: 'ssh-add',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
         path: {
@@ -41,8 +41,6 @@ export class SshAddResource extends Resource<SshAddConfig> {
       return null;
     }
 
-    await $.spawnSafe('eval "$(ssh-agent -s)"')
-
     const { data: keyFingerprint, status: keygenStatus } = await $.spawnSafe(`ssh-keygen -lf ${sshPath}`);
     if (keygenStatus === SpawnStatus.ERROR) {
       return null;
@@ -65,7 +63,7 @@ export class SshAddResource extends Resource<SshAddConfig> {
     
     let appleUseKeychain: boolean | undefined;
     if (parameters.appleUseKeychain) {
-      appleUseKeychain = await this.isKeyLoadedInKeychain(sshPath);
+      appleUseKeychain = Utils.isMacOS() ? (await this.isKeyLoadedInKeychain(sshPath)) : parameters.appleUseKeychain;
     }
 
     return {
@@ -76,20 +74,44 @@ export class SshAddResource extends Resource<SshAddConfig> {
 
   async create(plan: CreatePlan<SshAddConfig>): Promise<void> {
     const { appleUseKeychain, path } = plan.desiredConfig;
+    const $ = getPty();
 
-    await codifySpawn('eval "$(ssh-agent -s)"')
-    await codifySpawn(`/usr/bin/ssh-add ${appleUseKeychain ? '--apple-use-keychain ' : ''}${path}`, { requestsTTY: true })
+    if (Utils.isLinux()) {
+      if ((await $.spawnSafe('ssh-agent -l')).status === SpawnStatus.ERROR) {
+        await FileUtils.addToStartupFile('eval "$(ssh-agent -s)"');
+      }
+
+      await FileUtils.addToStartupFile('ssh-add ' + path);
+    }
+
+    if (Utils.isMacOS()) {
+      await $.spawn(`/usr/bin/ssh-add ${appleUseKeychain && Utils.isMacOS() ? '--apple-use-keychain ' : ''}${path}`, {
+        interactive: true,
+        stdin: true
+      });
+    }
   }
 
   async destroy(plan: DestroyPlan<SshAddConfig>): Promise<void> {
     const { path } = plan.currentConfig;
 
-    await codifySpawn('eval "$(ssh-agent -s)"')
-    await codifySpawn(`/usr/bin/ssh-add -d ${path}`)
+    if (Utils.isLinux()) {
+      await FileUtils.removeLineFromStartupFile('ssh-add ' + path);
+    }
+
+
+    const $ = getPty();
+    await $.spawnSafe(`/usr/bin/ssh-add -d ${path}`, { interactive: true });
   }
 
   private async isKeyLoadedInKeychain(keyPath: string): Promise<boolean> {
-    const { data: keychainKeys, status } = await codifySpawn('/usr/bin/ssh-add --apple-load-keychain', { throws: false });
+    if (!Utils.isMacOS()) {
+      return false;
+    }
+
+
+   const $ = getPty();
+    const { data: keychainKeys, status } = await $.spawnSafe('/usr/bin/ssh-add --apple-load-keychain', { interactive: true });
     if (status === SpawnStatus.ERROR) {
       return false;
     }

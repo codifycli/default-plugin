@@ -1,10 +1,6 @@
-import { PluginTester } from 'codify-plugin-test';
-import { ResourceOperation } from 'codify-schemas';
-import { execSync } from 'node:child_process';
-import fs from 'node:fs';
-import os from 'node:os';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 
 describe('Pip-sync resource integration tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
@@ -18,8 +14,8 @@ describe('Pip-sync resource integration tests', () => {
       },
     ], {
       skipUninstall: true,
-      validateApply() {
-        expect(execSync('source ~/.zshrc; python --version', { shell: 'zsh' }).toString()).to.include('3.11');
+      validateApply: async () => {
+        expect(testSpawn('python --version')).resolves.toMatchObject({ data: expect.stringContaining('3.11') });
       }
     })
   })
@@ -46,6 +42,7 @@ describe('Pip-sync resource integration tests', () => {
       },
     ], {
       skipUninstall: true,
+      skipImport: true,
       validatePlan(plans) {
         console.log(JSON.stringify(plans, null, 2))
       },

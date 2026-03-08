@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { describe, expect, it } from 'vitest';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import cp from 'child_process';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 describe('Test docker', async () => {
   const pluginPath = path.resolve('./src/index.ts');
@@ -11,11 +11,11 @@ describe('Test docker', async () => {
       { type: 'docker' },
     ], {
       validateApply: async () => {
-        expect(() => cp.execSync('source ~/.zshrc; which aws;')).to.not.throw;
+        expect(await testSpawn('which docker')).toMatchObject({ status: SpawnStatus.SUCCESS });
 
       },
       validateDestroy: async () => {
-        expect(() => cp.execSync('source ~/.zshrc; which aws;')).to.throw;
+        expect(await testSpawn('which docker')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     })
   })

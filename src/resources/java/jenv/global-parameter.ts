@@ -1,6 +1,5 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from 'codify-plugin-lib';
+import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { JenvConfig } from './jenv.js';
 
 export class JenvGlobalParameter extends StatefulParameter<JenvConfig, string>{
@@ -23,14 +22,17 @@ export class JenvGlobalParameter extends StatefulParameter<JenvConfig, string>{
   }
 
   override async add(valueToAdd: string): Promise<void> {
-    await codifySpawn(`jenv global ${valueToAdd}`)
+    const $ = getPty();
+    await $.spawn(`jenv global ${valueToAdd}`, { interactive: true })
   }
 
   override async modify(newValue: string): Promise<void> {
-    await codifySpawn(`jenv global ${newValue}`)
+    const $ = getPty();
+    await $.spawn(`jenv global ${newValue}`, { interactive: true })
   }
 
   override async remove(): Promise<void> {
-    await codifySpawn('jenv global system')
+    const $ = getPty();
+    await $.spawn('jenv global system', { interactive: true })
   }
 }

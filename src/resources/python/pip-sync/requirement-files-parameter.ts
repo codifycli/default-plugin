@@ -1,6 +1,5 @@
-import { ArrayParameterSetting, Plan, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ArrayParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { PipSyncConfig } from './pip-sync.js';
 
 export class RequirementFilesParameter extends StatefulParameter<PipSyncConfig, string[]> {
@@ -26,23 +25,26 @@ export class RequirementFilesParameter extends StatefulParameter<PipSyncConfig, 
   }
 
   async add(valueToAdd: string[], plan: Plan<PipSyncConfig>): Promise<void> {
-    await codifySpawn(
+    const $ = getPty();
+    await $.spawn(
       this.appendVirtualEnv(`pip-sync ${valueToAdd.join(' ')}`, plan.desiredConfig?.virtualEnv),
-      { cwd: plan.desiredConfig?.cwd ?? undefined }
+      { cwd: plan.desiredConfig?.cwd ?? undefined, interactive: true }
     )
   }
-  
+
   async modify(newValue: string[], _: string[], plan: Plan<PipSyncConfig>): Promise<void> {
-    await codifySpawn(
+    const $ = getPty();
+    await $.spawn(
       this.appendVirtualEnv(`pip-sync ${newValue.join(' ')}`, plan.desiredConfig?.virtualEnv),
-      { cwd: plan.desiredConfig?.cwd ?? undefined }
+      { cwd: plan.desiredConfig?.cwd ?? undefined, interactive: true }
     )
   }
-  
+
   async remove(valueToRemove: string[], plan: Plan<PipSyncConfig>): Promise<void> {
-    await codifySpawn(
+    const $ = getPty();
+    await $.spawn(
       this.appendVirtualEnv(`pip-sync ${valueToRemove.join(' ')}`, plan.currentConfig?.virtualEnv),
-      { cwd: plan.currentConfig?.cwd ?? undefined }
+      { cwd: plan.currentConfig?.cwd ?? undefined, interactive: true }
     )
   }
 

@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester } from '@codifycli/plugin-test';
 import path from 'node:path';
-import { ResourceOperation } from 'codify-schemas';
-import fs from 'node:fs';
+import { ResourceOperation } from '@codifycli/schemas';
+import fs, { existsSync } from 'node:fs';
 import os from 'node:os';
 
 const pluginPath = path.resolve('./src/index.ts');
@@ -11,7 +11,7 @@ describe('Action tests', () => {
 
   it('Can run an action if the condition returns as non-zero', { timeout: 300000 }, async () => {
     await PluginTester.fullTest(pluginPath, [
-      { type: 'action', condition: '[ -d ~/tmp ]', action: 'mkdir ~/tmp; touch ~/tmp/testFile' }
+      { type: 'action', condition: '[ -d ~/my-random-dir-1234 ]', action: 'mkdir -p ~/my-random-dir-1234' }
     ], {
       skipUninstall: true,
       skipImport: true,
@@ -19,9 +19,7 @@ describe('Action tests', () => {
         expect(plans[0]).toMatchObject({
           operation: ResourceOperation.CREATE,
         })
-
-        const dir = fs.readdirSync(path.resolve(os.homedir(), 'tmp'))
-        expect(dir[0]).to.eq('testFile')
+        expect(fs.existsSync(path.resolve(os.homedir(), 'my-random-dir-1234'))).to.be.true;
       }
     })
   })

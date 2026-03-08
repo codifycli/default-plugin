@@ -1,20 +1,20 @@
 import { Ajv } from 'ajv';
-import { SudoError, VerbosityLevel } from 'codify-plugin-lib';
+import { SudoError, VerbosityLevel } from '@codifycli/plugin-core';
 import {
-  IpcMessage,
+  CommandRequestResponseData, CommandRequestResponseDataSchema,
   IpcMessageV2,
   MessageCmd,
-  SudoRequestResponseData,
-  SudoRequestResponseDataSchema
-} from 'codify-schemas';
+} from '@codifycli/schemas';
 import { nanoid } from 'nanoid';
 import { SpawnOptions, spawn } from 'node:child_process';
 import stripAnsi from 'strip-ansi';
 
+import { Utils } from './index.js';
+
 const ajv = new Ajv({
   strict: true,
 });
-const validateSudoRequestResponse = ajv.compile(SudoRequestResponseDataSchema);
+const validateSudoRequestResponse = ajv.compile(CommandRequestResponseDataSchema);
 
 export enum SpawnStatus {
   SUCCESS = 'success',
@@ -111,14 +111,19 @@ async function internalSpawn(
     // in the response.
     const env = { ...process.env, ...opts.env, TERM_PROGRAM: 'codify', COMMAND_MODE: 'unix2003', COLORTERM: 'truecolor' }
 
+    // Detect shell and appropriate rc file
+    const shell = process.env.SHELL || '/bin/bash';
+    const shellName = shell.includes('zsh') ? 'zsh' : 'bash';
+    const shellRc = Utils.getPrimaryShellRc();
+
     // Source start up shells to emulate a users environment vs. a non-interactive non-login shell script
     // Ignore all stdin
     // If tty is requested then we'll need to sleep 1 to avoid race conditions. This is because if the terminal updates async after the tty message is
     // displayed then it'll disappear. By adding sleep 1 it'll allow ink.js to finish all the updates before the tty message is shown
-    const _process = spawn(`source ~/.zshrc; ${ opts.requestsTTY ? 'sleep 1;' : '' }${cmd}`, [], {
+    const _process = spawn(`source ${shellRc}; ${ opts.requestsTTY ? 'sleep 1;' : '' }${cmd}`, [], {
       ...opts,
       stdio: ['ignore', 'pipe', 'pipe'],
-      shell: 'zsh',
+      shell: shellName,
       env
     });
     
@@ -168,14 +173,14 @@ async function externalSpawnWithSudo(
           throw new Error(`Invalid response for sudo request: ${JSON.stringify(validateSudoRequestResponse.errors, null, 2)}`);
         }
 
-        resolve(data.data as unknown as SudoRequestResponseData);
+        resolve(data.data as unknown as CommandRequestResponseData);
       }
     }
 
     process.on('message', listener);
 
     process.send!(<IpcMessageV2>{
-      cmd: MessageCmd.SUDO_REQUEST,
+      cmd: MessageCmd.COMMAND_REQUEST,
       data: {
         command: cmd,
         options: opts ?? {},

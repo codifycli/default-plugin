@@ -10,6 +10,13 @@
       "type": "string",
       "description": "Remote repository to clone repo from."
     },
+    "repositories": {
+      "type": "array",
+      "description": "Remote repositories to clone. This is a convenience property for cloning multiple repositories at once.",
+      "items": {
+        "type": "string"
+      }
+    },
     "parentDirectory": {
       "type": "string",
       "description": "Parent directory to clone into. The folder name will use default git semantics which extracts the last part of the clone url. Only one of parentDirectory or directory can be specified"
@@ -26,6 +33,6 @@
   "additionalProperties": false,
   "oneOf": [
     { "required": ["repository", "directory"] },
-    { "required": ["repository", "parentDirectory"] }
+    { "required": ["repositories", "parentDirectory"] }
   ]
 }

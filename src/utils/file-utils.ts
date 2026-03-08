@@ -3,6 +3,8 @@ import * as fs from 'node:fs/promises';
 import os, { homedir } from 'node:os';
 import path from 'node:path';
 
+import { Utils } from './index.js';
+
 const SPACE_REGEX = /^\s*$/
 
 export class FileUtils {
@@ -11,7 +13,11 @@ export class FileUtils {
       addTrailingSpacer(line)
     );
 
-    await fs.appendFile(path.join(FileUtils.homeDir(), '.zshrc'), lineToInsert)
+    const shellRc = Utils.getPrimaryShellRc()
+
+    console.log(`Adding to ${path.basename(shellRc)}: ${lineToInsert}`)
+
+    await fs.appendFile(shellRc, lineToInsert)
 
     function addLeadingSpacer(line: string): string {
       return line.startsWith('\n')
@@ -26,25 +32,26 @@ export class FileUtils {
     }
   }
 
-  static async addAllToStartupFile(lines: string[]): Promise<void> {
-    const formattedLines = '\n' + lines.join('\n') + '\n';
+  static async addAllToStartupFile(lines: (string | undefined)[]): Promise<void> {
+    const formattedLines = '\n' + lines.filter(Boolean).join('\n') + '\n';
+    const shellRc = Utils.getPrimaryShellRc();
 
-    console.log(`Adding to .zshrc:
+    console.log(`Adding to ${path.basename(shellRc)}:
 ${lines.join('\n')}`)
 
-    await fs.appendFile(path.join(FileUtils.homeDir(), '.zshrc'), formattedLines)
+    await fs.appendFile(shellRc, formattedLines)
   }
 
-  static async addPathToZshrc(value: string, prepend: boolean): Promise<void> {
-    const zshFile = path.join(os.homedir(), '.zshrc');
-    console.log(`Saving path: ${value} to $HOME/.zshrc`);
+  static async addPathToPrimaryShellRc(value: string, prepend: boolean): Promise<void> {
+    const shellRc = Utils.getPrimaryShellRc();
+    console.log(`Saving path: ${value} to ${shellRc}`);
 
     if (prepend) {
-      await fs.appendFile(zshFile, `\nexport PATH=$PATH:${value};`, { encoding: 'utf8' });
+      await fs.appendFile(shellRc, `\nexport PATH=$PATH:${value};`, { encoding: 'utf8' });
       return;
     }
 
-    await fs.appendFile(zshFile, `\nexport PATH=${value}:$PATH;`, { encoding: 'utf8' });
+    await fs.appendFile(shellRc, `\nexport PATH=${value}:$PATH;`, { encoding: 'utf8' });
   }
 
   static async dirExists(path: string): Promise<boolean> {
@@ -152,8 +159,8 @@ ${lines.join('\n')}`)
     console.log(`Removed line: ${search} from ${filePath}`)
   }
 
-  static async removeLineFromZshrc(search: RegExp | string): Promise<void> {
-    return FileUtils.removeLineFromFile(path.join(homedir(), '.zshrc'), search);
+  static async removeLineFromStartupFile(search: RegExp | string): Promise<void> {
+    return FileUtils.removeLineFromFile(Utils.getPrimaryShellRc(), search);
   }
 
   // Append the string to the end of a file ensuring at least 1 lines of space between.

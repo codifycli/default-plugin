@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { describe, expect, it } from 'vitest';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
 import fs from 'node:fs';
 import os from 'node:os';
-import { execSync } from 'child_process';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 describe('Ssh key tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
@@ -15,18 +15,23 @@ describe('Ssh key tests', () => {
         passphrase: '',
       }
     ], {
-      validateApply: () => {
+      validateApply: async () => {
         expect(fs.existsSync(path.resolve(os.homedir(), '.ssh', 'id_ed25519'))).to.be.true;
         expect(fs.existsSync(path.resolve(os.homedir(), '.ssh', 'id_ed25519.pub'))).to.be.true;
 
-        expect(execSync(`ls -l ${path.resolve(os.homedir(), '.ssh', 'id_ed25519')}`).toString('utf-8'))
-          .to.include('-rw-------  1 admin') // 600 permissions. Only owner can read and write
+        expect(await testSpawn(`ls -l ${path.resolve(os.homedir(), '.ssh', 'id_ed25519')}`))
+          .toMatchObject({
+            data: expect.stringContaining('-rw-------')
+          }) // 600 permissions. Only owner can read and write
 
-        expect(execSync(`ls -l ${path.resolve(os.homedir(), '.ssh', 'id_ed25519.pub')}`).toString('utf-8'))
-          .to.include('-rw-r--r--  1 admin ') // 644 permissions. Only owner can read and write. Everyone else can read.
+        expect(await testSpawn(`ls -l ${path.resolve(os.homedir(), '.ssh', 'id_ed25519.pub')}`))
+          .toMatchObject({
+            data: expect.stringContaining('-rw-r--r--')
+          }) // 644 permissions. Only owner can read and write. Everyone else can read.
 
-        expect(() => execSync(`ssh-keygen -y -f ${path.resolve(os.homedir(), '.ssh', 'id_ed25519')}`))
-          .to.not.throw;
+        expect(await testSpawn(`ssh-keygen -y -f ${path.resolve(os.homedir(), '.ssh', 'id_ed25519')}`)).toMatchObject({
+          status: SpawnStatus.SUCCESS,
+        })
       },
       testModify: {
         modifiedConfigs: [{

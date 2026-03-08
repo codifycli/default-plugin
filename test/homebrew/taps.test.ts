@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { execSync } from 'child_process';
+import { TestUtils } from '../test-utils.js';
+import { SpawnStatus, Utils } from '@codifycli/plugin-core';
 
-describe('Homebrew taps tests', () => {
+describe('Homebrew taps tests', { skip: !Utils.isMacOS() }, () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   it('Can install homebrew and add a tap', { timeout: 300000 }, async () => {
@@ -12,30 +13,22 @@ describe('Homebrew taps tests', () => {
       type: 'homebrew',
       taps: ['cirruslabs/cli'],
     }], {
-      validateApply: () => {
-        expect(execSync('source ~/.zshrc; brew tap')
-          .toString('utf-8')
-          .trim()
-          .split(/\n/)
-        ).to.includes('cirruslabs/cli')
+      validateApply: async () => {
+        expect(await testSpawn('brew tap')).toMatchObject({ data: expect.stringContaining('cirruslabs/cli') });
       },
       testModify: {
         modifiedConfigs: [{
           type: 'homebrew',
           taps: ['hashicorp/tap'],
         }],
-        validateModify: () => {
-          const taps = execSync('source ~/.zshrc; brew tap')
-            .toString('utf-8')
-            .trim()
-            .split(/\n/)
-
-          expect(taps).to.includes('cirruslabs/cli')
-          expect(taps).to.includes('hashicorp/tap')
+        validateModify: async () => {
+          const taps = (await testSpawn('brew tap')).data;
+          expect(taps).toContain('cirruslabs/cli');
+          expect(taps).toContain('hashicorp/tap');
         },
       },
-      validateDestroy: () => {
-        expect(() => execSync('source ~/.zshrc; which brew')).to.throw;
+      validateDestroy: async () => {
+        expect(await testSpawn('which brew')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     });
   });

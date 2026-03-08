@@ -1,9 +1,6 @@
-import { ArrayParameterSetting, getPty, SpawnStatus, StatefulParameter } from 'codify-plugin-lib';
+import { ArrayParameterSetting, SpawnStatus, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../utils/codify-spawn.js';
 import { HomebrewConfig } from './homebrew.js';
-
-const SUDO_ASKPASS_PATH = '~/Library/Caches/codify/homebrew/sudo_prompt.sh'
 
 export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[]> {
   getSettings(): ArrayParameterSetting {
@@ -59,12 +56,16 @@ export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[
       return;
     }
 
-    const result = await codifySpawn(`HOMEBREW_NO_AUTO_UPDATE=1 SUDO_ASKPASS=${SUDO_ASKPASS_PATH} brew install --formula ${formulae.join(' ')}`)
+    const $ = getPty();
+    const result = await $.spawnSafe(`brew install --formulae ${formulae.join(' ')}`, {
+      interactive: true,
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+    })
 
     if (result.status === SpawnStatus.SUCCESS) {
       console.log(`Installed formula: ${formulae.join(' ')}`);
     } else {
-      throw new Error(`Failed to install formula: ${formulae}. ${JSON.stringify(result.data, null, 2)}`)
+      throw new Error(`Failed to install formula: ${formulae.join(' ')}. ${JSON.stringify(result.data, null, 2)}`)
     }
   }
 
@@ -73,7 +74,11 @@ export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[
       return;
     }
 
-    const result = await codifySpawn(`SUDO_ASKPASS=${SUDO_ASKPASS_PATH} brew uninstall ${formulae.join(' ')}`)
+    const $ = getPty();
+    const result = await $.spawnSafe(`HOMEBREW_NO_AUTO_UPDATE=1 brew uninstall ${formulae.join(' ')}`, {
+      interactive: true,
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+    })
 
     if (result.status === SpawnStatus.SUCCESS) {
       console.log(`Uninstalled formulae: ${formulae.join(' ')}`);

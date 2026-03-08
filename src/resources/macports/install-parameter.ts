@@ -1,6 +1,5 @@
-import { ParameterSetting, Plan, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../utils/codify-spawn.js';
 import { MacportsConfig } from './macports.js';
 
 export interface PortPackage {
@@ -66,6 +65,7 @@ export class MacportsInstallParameter extends StatefulParameter<MacportsConfig, 
   }
 
   private async install(packages: Array<PortPackage | string>): Promise<void> {
+    const $ = getPty();
     const toInstall = packages.map((p) => {
       if (typeof p === 'string') {
         return p;
@@ -74,14 +74,15 @@ export class MacportsInstallParameter extends StatefulParameter<MacportsConfig, 
       if (p.version) {
         return `${p.name} ${p.version}`;
       }
-      
+
       return p.name;
     }).join(' ');
 
-    await codifySpawn(`port install ${toInstall}`, { requiresRoot: true });
+    await $.spawn(`port install ${toInstall}`, { requiresRoot: true, interactive: true });
   }
 
   private async uninstall(packages: Array<PortPackage | string>): Promise<void> {
+    const $ = getPty();
     const toInstall = packages.map((p) => {
       if (typeof p === 'string') {
         return p;
@@ -90,7 +91,7 @@ export class MacportsInstallParameter extends StatefulParameter<MacportsConfig, 
       return p.name;
     }).join(' ');
 
-    await codifySpawn(`port uninstall ${toInstall}`, { requiresRoot: true });
+    await $.spawn(`port uninstall ${toInstall}`, { requiresRoot: true, interactive: true });
   }
   
   isSamePackage(a: PortPackage | string, b: PortPackage | string): boolean {

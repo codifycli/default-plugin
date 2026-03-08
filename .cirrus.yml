@@ -12,17 +12,35 @@ run_dev_task:
   run_script:
     - sleep 2000
 
-integration_test_dev_task:
+integration_test_dev_macos_task:
+  timeout_in: 120m
   macos_instance:
     image: codify-test-vm
+    cpu: 4
+    memory: 6124
+    storage: 100
   node_modules_cache:
     folder: node_modules
     fingerprint_script: cat package-lock.json
     populate_script: npm ci
   test_script:
+    - zsh -i -c "npm run test:integration -- --disable-console-intercept $DEBUG --no-file-parallelism"
+
+integration_test_dev_linux_task:
+# trick cirrus CI to use tart here to run a linux instance
+  macos_instance:
+    image: codify-test-vm-linux
+#  node_modules_cache:
+#    folder: node_modules
+#    fingerprint_script: cat package-lock.json
+#    populate_script: npm ci
+  test_script:
+#    - adduser --disabled-password --gecos '' newuser
+#    - su - newuser
+    - npm ci
     - npm run test:integration -- --disable-console-intercept $DEBUG --no-file-parallelism
 
-integration_individual_test_task:
+integration_individual_test_macos_task:
   macos_instance:
     image: codify-test-vm
   node_modules_cache:
@@ -31,4 +49,19 @@ integration_individual_test_task:
     populate_script: npm ci
   test_script:
     - echo $FILE_NAME
+    - zsh -i -c "npm run test -- $FILE_NAME --disable-console-intercept $DEBUG --no-file-parallelism"
+
+integration_individual_test_linux_task:
+  # trick cirrus CI to use tart here to run a linux instance
+  macos_instance:
+    image: codify-test-vm-linux
+#  node_modules_cache:
+#    folder: node_modules
+#    fingerprint_script: cat package-lock.json
+#    populate_script: npm ci
+  test_script:
+#    - chown -R node /tmp/cirrus-ci/working-dir
+#    - su node -c "npm install"
+    - echo $FILE_NAME
+    - npm ci
     - npm run test -- $FILE_NAME --disable-console-intercept $DEBUG --no-file-parallelism

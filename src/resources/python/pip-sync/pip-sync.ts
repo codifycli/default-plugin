@@ -1,7 +1,6 @@
-import { CreatePlan, DestroyPlan, RefreshContext, Resource, ResourceSettings, getPty } from 'codify-plugin-lib';
-import { ResourceConfig } from 'codify-schemas';
+import { CreatePlan, DestroyPlan, getPty, RefreshContext, Resource, ResourceSettings } from '@codifycli/plugin-core';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import schema from './pip-sync-schema.json'
 import { RequirementFilesParameter } from './requirement-files-parameter.js';
 
@@ -15,6 +14,7 @@ export class PipSync extends Resource<PipSyncConfig> {
   getSettings(): ResourceSettings<PipSyncConfig> {
     return {
       id: 'pip-sync',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
         requirementFiles: { type: 'stateful', definition: new RequirementFilesParameter() },
@@ -44,11 +44,13 @@ export class PipSync extends Resource<PipSyncConfig> {
   }
 
   async create(plan: CreatePlan<PipSyncConfig>): Promise<void> {
-    await codifySpawn(PipSync.withVirtualEnv('pip install pip-tools', plan.desiredConfig.virtualEnv), { cwd: plan.desiredConfig.cwd ?? undefined })
+    const $ = getPty();
+    await $.spawn(PipSync.withVirtualEnv('pip install pip-tools', plan.desiredConfig.virtualEnv), { cwd: plan.desiredConfig.cwd ?? undefined, interactive: true })
   }
 
   async destroy(plan: DestroyPlan<PipSyncConfig>): Promise<void> {
-    await codifySpawn(PipSync.withVirtualEnv('pip uninstall -y pip-tools', plan.currentConfig.virtualEnv), { cwd: plan.currentConfig.cwd ?? undefined })
+    const $ = getPty();
+    await $.spawn(PipSync.withVirtualEnv('pip uninstall -y pip-tools', plan.currentConfig.virtualEnv), { cwd: plan.currentConfig.cwd ?? undefined, interactive: true })
   }
 
   static withVirtualEnv(command: string, virtualEnv?: string, ): string {

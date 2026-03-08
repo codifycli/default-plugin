@@ -1,7 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { describe, expect, it } from 'vitest';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { execSync } from 'node:child_process';
 import * as fs from 'node:fs/promises';
 
 describe('Aws profile tests', async () => {
@@ -9,7 +8,6 @@ describe('Aws profile tests', async () => {
 
   it('Can add a aws-cli profile', { timeout: 300000 }, async () => {
     await PluginTester.fullTest(pluginPath, [
-      { type: 'homebrew' },
       { type: 'aws-cli' },
       {
         type: 'aws-profile',
@@ -21,7 +19,7 @@ describe('Aws profile tests', async () => {
     ], {
       skipUninstall: true,
       validateApply: async () => {
-        validateProfile({
+        await validateProfile({
           name: 'default',
           region: 'us-west-2',
           output: 'json',
@@ -52,14 +50,14 @@ describe('Aws profile tests', async () => {
     ], {
       skipUninstall: true,
       validateApply: async () => {
-        validateProfile({
+        await validateProfile({
           name: 'default',
           region: 'us-east-2',
           output: 'text',
           accessKeyId: 'keyId2',
           secretAccessKey: 'secretAccessKey2'
         })
-        validateProfile({
+        await validateProfile({
           name: 'codify2',
           region: 'us-east-1',
           output: 'json',
@@ -87,7 +85,7 @@ AKIA,zhKpjk
       }
     ], {
       validateApply: async () => {
-        validateProfile({
+        await validateProfile({
           name: 'codify3',
           region: 'us-east-1',
           output: 'json',
@@ -96,34 +94,33 @@ AKIA,zhKpjk
         })
       },
       validateDestroy: async () => {
-        const profiles = execSync('source ~/.zshrc; aws configure list-profiles')
-        const profileList = profiles.toString('utf-8').trim().split(/\n/);
-        expect(profileList).to.not.include('codify3');
+        const { data: profiles } = await testSpawn('aws configure list-profiles')
+        expect(profiles).to.not.include('codify3');
       }
     });
   })
 
-  function validateProfile(profile: {
+  async function validateProfile(profile: {
     name: string;
     region: string;
     output: string;
     accessKeyId: string;
     secretAccessKey: string;
   }) {
-    const profiles = execSync('source ~/.zshrc; aws configure list-profiles')
-    expect(profiles.toString('utf-8')).to.include(profile.name);
+    const { data: profiles } = await testSpawn('aws configure list-profiles')
+    expect(profiles).to.include(profile.name);
 
-    const region = execSync(`source ~/.zshrc; aws configure get region --profile ${profile.name}`);
-    expect(region.toString('utf-8').trim()).to.equal(profile.region);
+    const { data: region } = await testSpawn(`aws configure get region --profile ${profile.name}`);
+    expect(region).to.equal(profile.region);
 
-    const output = execSync(`source ~/.zshrc; aws configure get output --profile ${profile.name}`);
-    expect(output.toString('utf-8').trim()).to.equal(profile.output);
+    const { data: output } = await testSpawn(`aws configure get output --profile ${profile.name}`);
+    expect(output).to.equal(profile.output);
 
-    const accessKeyId = execSync(`source ~/.zshrc; aws configure get aws_access_key_id --profile ${profile.name}`);
-    expect(accessKeyId.toString('utf-8').trim()).to.equal(profile.accessKeyId);
+    const { data: accessKeyId } = await testSpawn(`aws configure get aws_access_key_id --profile ${profile.name}`);
+    expect(accessKeyId).to.equal(profile.accessKeyId);
 
-    const secretAccessKey = execSync(`source ~/.zshrc; aws configure get aws_secret_access_key --profile ${profile.name}`);
-    expect(secretAccessKey.toString('utf-8').trim()).to.equal(profile.secretAccessKey);
+    const { data: secretAccessKey } = await testSpawn(`aws configure get aws_secret_access_key --profile ${profile.name}`);
+    expect(secretAccessKey).to.equal(profile.secretAccessKey);
   }
 
 })

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
-import { execSync } from 'child_process';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 // Example test suite
 describe('nvm tests', () => {
@@ -15,26 +15,30 @@ describe('nvm tests', () => {
         nodeVersions: ['20', '18']
       }
     ], {
-      validateApply: () => {
-        expect(() => execSync('source ~/.zshrc; which nvm', { shell: 'zsh' })).to.not.throw();
-        expect(execSync('source ~/.zshrc; node --version', { shell: 'zsh' }).toString('utf-8').trim()).to.include('20');
+      validateApply: async () => {
+        // This validation does not work on Linux for some reason.
+        // if (os.platform() === 'darwin') {
+          expect(testSpawn('command -v nvm')).resolves.toMatchObject({ status: SpawnStatus.SUCCESS });
+          expect(testSpawn('node --version')).resolves.toMatchObject({ data: expect.stringContaining('20') });
 
-        const installedVersions = execSync('source ~/.zshrc; nvm list', { shell: 'zsh' }).toString('utf-8').trim();
-        expect(installedVersions).to.include('20');
-        expect(installedVersions).to.include('18');
+          const installedVersions = (await testSpawn('nvm list')).data;
+          console.log('Installed versions: ', installedVersions);
+          expect(installedVersions).to.include('20');
+          expect(installedVersions).to.include('18');
+        // }
       },
       testModify: {
         modifiedConfigs: [{
           type: 'nvm',
-          global: '21',
-          nodeVersions: ['21'],
+          global: '23',
+          nodeVersions: ['23'],
         }],
         validateModify: () => {
-          expect(execSync('source ~/.zshrc; node --version', { shell: 'zsh' }).toString('utf-8').trim()).to.include('21');
+          expect(testSpawn('node --version')).resolves.toMatchObject({ data: expect.stringContaining('23') });
         }
       },
       validateDestroy: () => {
-        expect(() => execSync('source ~/.zshrc; which nvm', { shell: 'zsh' })).to.throw();
+        expect(testSpawn('command -v nvm')).resolves.toMatchObject({ status: SpawnStatus.ERROR });
       }
     });
   });

@@ -1,18 +1,18 @@
 import {
   CreatePlan,
   DestroyPlan,
-  getPty,
   ModifyPlan,
   ParameterChange,
   Resource,
-  ResourceSettings
-} from 'codify-plugin-lib';
-import { StringIndexedObject } from 'codify-schemas';
+  ResourceSettings,
+  SpawnStatus,
+  getPty
+} from '@codifycli/plugin-core';
+import { OS, StringIndexedObject } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { SpawnStatus, codifySpawn } from '../../../utils/codify-spawn.js';
 import Schema from './aws-profile-schema.json'
 import { CSVCredentialsTransformation } from './csv-credentials-transformation.js';
 
@@ -32,6 +32,7 @@ export class AwsProfileResource extends Resource<AwsProfileConfig> {
   getSettings(): ResourceSettings<AwsProfileConfig> {
     return {
       id: 'aws-profile',
+      operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['aws-cli'],
       schema: Schema,
       parameterSettings: {
@@ -127,8 +128,10 @@ export class AwsProfileResource extends Resource<AwsProfileConfig> {
   }
 
   override async create(plan: CreatePlan<AwsProfileConfig>): Promise<void> {
+    const $ = getPty();
+
     // Assert that aws-cli is installed
-    await codifySpawn('which aws')
+    await $.spawn('which aws', { interactive: true })
 
     const {
       awsAccessKeyId,
@@ -190,7 +193,7 @@ export class AwsProfileResource extends Resource<AwsProfileConfig> {
   private async getAwsConfigureValueOrNull(key: string, profile: string): Promise<string | undefined> {
     const $ = getPty();
 
-    const { data, status } = await $.spawnSafe(`aws configure get ${key} --profile ${profile}`);
+    const { data, status } = await $.spawnSafe(`aws configure get ${key} --profile ${profile}`, { interactive: true });
     if (status === SpawnStatus.ERROR) {
       return undefined;
     }
@@ -199,6 +202,7 @@ export class AwsProfileResource extends Resource<AwsProfileConfig> {
   }
 
   private async setAwsConfigureValue(key: string, value: number | string, profile: string): Promise<void> {
-    await codifySpawn(`aws configure set ${key} ${value} --profile ${profile}`);
+    const $ = getPty();
+    await $.spawn(`aws configure set ${key} ${value} --profile ${profile}`, { interactive: true });
   }
 }

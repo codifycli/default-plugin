@@ -1,21 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { execSync } from 'child_process';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 const pluginPath = path.resolve('./src/index.ts');
 
 describe('Terraform tests', async () => {
-
   it('Can install the latest terraform in the default location', { timeout: 300000 }, async () => {
     await PluginTester.fullTest(pluginPath, [{
       type: "terraform"
     }], {
-      validateApply: () => {
-        expect(() => execSync('source ~/.zshrc; terraform -v')).to.not.throw();
+      validateApply: async () => {
+        expect(await testSpawn('terraform -v')).toMatchObject({ status: SpawnStatus.SUCCESS });
       },
-      validateDestroy: () => {
-        expect(() => execSync('source ~/.zshrc; terraform -v')).to.throw();
+      validateDestroy: async () => {
+        expect(await testSpawn('terraform -v')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     })
   })
@@ -25,11 +24,11 @@ describe('Terraform tests', async () => {
       type: "terraform",
       directory: '~/path/to/bin'
     }], {
-      validateApply: () => {
-        expect(() => execSync('source ~/.zshrc; terraform -v')).to.not.throw();
+      validateApply: async () => {
+        expect(await testSpawn('terraform -v')).toMatchObject({ status: SpawnStatus.SUCCESS });
       },
-      validateDestroy: () => {
-        expect(() => execSync('source ~/.zshrc; terraform -v')).to.throw();
+      validateDestroy: async () => {
+        expect(await testSpawn('terraform -v')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     })
   })
@@ -40,11 +39,11 @@ describe('Terraform tests', async () => {
       version: '1.4.2',
     }], {
       skipUninstall: true,
-      validateApply: () => {
-        expect(execSync('source ~/.zshrc; terraform -v').toString('utf-8')).to.include('1.4.2')
+      validateApply: async () => {
+        expect((await testSpawn('terraform -v')).data).to.include('1.4.2')
       },
-      validateDestroy: () => {
-        expect(() => execSync('source ~/.zshrc; terraform -v')).to.throw();
+      validateDestroy: async () => {
+        expect(await testSpawn('terraform -v')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     })
   })
@@ -54,11 +53,11 @@ describe('Terraform tests', async () => {
       type: "terraform",
       version: '1.5.2',
     }], {
-      validateApply: () => {
-        expect(execSync('source ~/.zshrc; terraform -v').toString('utf-8')).to.include('1.5.2')
+      validateApply: async () => {
+        expect((await testSpawn('terraform -v')).data).to.include('1.5.2')
       },
-      validateDestroy: () => {
-        expect(() => execSync('source ~/.zshrc; terraform -v')).to.throw();
+      validateDestroy: async () => {
+        expect(await testSpawn('terraform -v')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     })
   })

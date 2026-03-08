@@ -4,13 +4,11 @@ import {
   Resource,
   ResourceSettings,
   getPty
-} from 'codify-plugin-lib';
-import { ResourceConfig } from 'codify-schemas';
+} from '@codifycli/plugin-core';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 
 export interface WaitGithubSshKeyConfig extends ResourceConfig {}
 
@@ -18,6 +16,7 @@ export class WaitGithubSshKey extends Resource<WaitGithubSshKeyConfig> {
   getSettings(): ResourceSettings<WaitGithubSshKeyConfig> {
     return {
       id: 'wait-github-ssh-key',
+      operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: [
         'ssh-key',
         'ssh-add',
@@ -84,7 +83,8 @@ For additional information visit: ${chalk.underline('https://docs.github.com/en/
   }
 
   private async isConnectedToGithub(): Promise<boolean> {
-    const { data: githubConnectionStatus } = await codifySpawn('ssh -o StrictHostKeychecking=no -T git@github.com 2>&1', { throws: false })
+    const $ = getPty();
+    const { data: githubConnectionStatus } = await $.spawnSafe('ssh -o StrictHostKeychecking=no -T git@github.com 2>&1')
     return githubConnectionStatus.includes('You\'ve successfully authenticated, but GitHub does not provide shell access.')
   }
 }

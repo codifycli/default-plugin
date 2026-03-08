@@ -1,11 +1,11 @@
-import { CreatePlan, DestroyPlan, RefreshContext, Resource, ResourceSettings, getPty } from 'codify-plugin-lib';
-import { ResourceConfig } from 'codify-schemas';
+import { CreatePlan, DestroyPlan, RefreshContext, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { FileUtils } from '../../../utils/file-utils.js';
+import { Utils } from '../../../utils/index.js';
 import { PnpmGlobalEnvStatefulParameter } from './pnpm-global-env-stateful-parameter.js';
 import schema from './pnpm-schema.json';
 
@@ -18,6 +18,7 @@ export class Pnpm extends Resource<PnpmConfig> {
   getSettings(): ResourceSettings<PnpmConfig> {
     return {
       id: 'pnpm',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
         version: { type: 'version' },
@@ -45,20 +46,22 @@ export class Pnpm extends Resource<PnpmConfig> {
   }
 
   async create(plan: CreatePlan<PnpmConfig>): Promise<void> {
+    const $ = getPty();
     const specificVersion = plan.desiredConfig.version;
 
     specificVersion
-      ? await codifySpawn(`curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=${specificVersion} sh -`)
-      : await codifySpawn('curl -fsSL https://get.pnpm.io/install.sh | sh -')
+      ? await $.spawn(`curl -fsSL https://get.pnpm.io/install.sh | env PNPM_VERSION=${specificVersion} sh -`, { interactive: true })
+      : await $.spawn('curl -fsSL https://get.pnpm.io/install.sh | sh -', { interactive: true })
   }
 
   async destroy(plan: DestroyPlan<PnpmConfig>): Promise<void> {
-    const { data: pnpmLocation } = await codifySpawn('which pnpm');
+    const $ = getPty();
+    const { data: pnpmLocation } = await $.spawn('which pnpm', { interactive: true });
     if (pnpmLocation.trim().toLowerCase() !== path.join(os.homedir(), 'Library', 'pnpm', 'pnpm').trim().toLowerCase()) {
       throw new Error('pnpm was installed outside of Codify. Please uninstall manually and re-run Codify');
     }
 
-    const { data: pnpmHome } = await codifySpawn('echo $PNPM_HOME', { throws: false });
+    const { data: pnpmHome } = await $.spawnSafe('echo $PNPM_HOME', { interactive: true });
     if (!pnpmHome) {
       throw new Error('$PNPM_HOME variable is not set. Unable to determine how to uninstall pnpm. Please uninstall manually and re-run Codify.')
     }
@@ -66,13 +69,14 @@ export class Pnpm extends Resource<PnpmConfig> {
     await fs.rm(pnpmHome, { recursive: true, force: true });
     console.log('Successfully uninstalled pnpm');
 
-    await FileUtils.removeLineFromZshrc('# pnpm')
-    await FileUtils.removeLineFromZshrc(`export PNPM_HOME="${os.homedir()}/Library/pnpm"`)
-    await FileUtils.removeFromFile(path.join(os.homedir(), '.zshrc'),
+    const shellRc = Utils.getPrimaryShellRc();
+    await FileUtils.removeLineFromStartupFile('# pnpm')
+    await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${os.homedir()}/Library/pnpm"`)
+    await FileUtils.removeFromFile(shellRc,
 `case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac`)
-    await FileUtils.removeLineFromZshrc('# pnpm end')
+    await FileUtils.removeLineFromStartupFile('# pnpm end')
   }
 }

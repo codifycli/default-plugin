@@ -1,6 +1,5 @@
-import { ParameterSetting, Plan, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { PipResourceConfig } from './pip.js';
 
 export class PipInstallFilesParameter extends StatefulParameter<PipResourceConfig, Array<string>> {
@@ -30,28 +29,31 @@ export class PipInstallFilesParameter extends StatefulParameter<PipResourceConfi
       return;
     }
 
-    await codifySpawn(`pip install ${valueToAdd.map((v) => `-r ${v}`).join(' ')}`)
+    const $ = getPty();
+    await $.spawn(`pip install ${valueToAdd.map((v) => `-r ${v}`).join(' ')}`, { interactive: true })
   }
 
   async modify(newValue: string[], previousValue: string[], plan: Plan<PipResourceConfig>): Promise<void> {
+    const $ = getPty();
     const toInstall = newValue.filter((n) => !previousValue.includes(n));
     const toUninstall = previousValue.filter((p) => !newValue.includes(p));
 
     if (toUninstall.length > 0) {
-      await codifySpawn(`pip uninstall ${toUninstall.map((v) => `-r ${v}`).join(' ')}`)
+      await $.spawn(`pip uninstall ${toUninstall.map((v) => `-r ${v}`).join(' ')}`, { interactive: true })
     }
 
     if (toInstall.length > 0) {
-      await codifySpawn(`pip install ${toInstall.map((v) => `-r ${v}`).join(' ')}`)
+      await $.spawn(`pip install ${toInstall.map((v) => `-r ${v}`).join(' ')}`, { interactive: true })
     }
   }
-  
+
   async remove(valueToRemove: string[], plan: Plan<PipResourceConfig>): Promise<void> {
     if (valueToRemove.length === 0) {
       return;
     }
 
-    await codifySpawn(`pip uninstall ${valueToRemove.map((v) => `-r ${v}`).join(' ')}`)
+    const $ = getPty();
+    await $.spawn(`pip uninstall ${valueToRemove.map((v) => `-r ${v}`).join(' ')}`, { interactive: true })
   }
 
 }

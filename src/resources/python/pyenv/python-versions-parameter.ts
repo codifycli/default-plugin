@@ -1,6 +1,5 @@
-import { ArrayStatefulParameter, getPty } from 'codify-plugin-lib';
+import { ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 
-import { codifySpawn, SpawnStatus } from '../../../utils/codify-spawn.js';
 import { PyenvConfig } from './pyenv.js';
 
 export class PythonVersionsParameter extends ArrayStatefulParameter<PyenvConfig, string> {
@@ -35,10 +34,12 @@ export class PythonVersionsParameter extends ArrayStatefulParameter<PyenvConfig,
   }
 
   override async addItem(version: string): Promise<void> {
-    await codifySpawn(`pyenv install ${version}`);
+    const $ = getPty();
+    await $.spawn(`pyenv install ${version} -s`, { interactive: true });
   }
 
   override async removeItem(version: string): Promise<void> {
-    await codifySpawn(`pyenv uninstall ${version}`);
+    const $ = getPty();
+    await $.spawn(`pyenv uninstall ${version} -f`, { interactive: true });
   }
 }

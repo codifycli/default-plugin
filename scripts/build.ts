@@ -1,13 +1,13 @@
 import { JSONSchema } from '@apidevtools/json-schema-ref-parser';
 import { Ajv } from 'ajv';
-import { IpcMessage, IpcMessageSchema, MessageStatus, ResourceSchema } from 'codify-schemas';
+import { VerbosityLevel } from '@codifycli/plugin-core';
+import { SequentialPty } from '@codifycli/plugin-core/dist/pty/seqeuntial-pty';
+import { IpcMessage, IpcMessageSchema, MessageStatus, ResourceSchema } from '@codifycli/schemas';
 import mergeJsonSchemas from 'merge-json-schemas';
 import { ChildProcess, fork } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import * as url from 'node:url';
-
-import { codifySpawn } from '../src/utils/codify-spawn.js';
 
 const ajv = new Ajv({
   strict: true
@@ -36,8 +36,11 @@ function sendMessageAndAwaitResponse(process: ChildProcess, message: IpcMessage)
   });
 }
 
-await codifySpawn('rm -rf ./dist')
-await codifySpawn('npm run rollup -- -f es');
+VerbosityLevel.set(3);
+const $ = new SequentialPty();
+
+await $.spawn('rm -rf ./dist')
+await $.spawn('npm run rollup -- -f es', { interactive: true });
 
 const plugin = fork(
   './dist/index.js',
@@ -89,8 +92,8 @@ const mergedSchemas = [...schemasMap.entries()].map(([type, schema]) => {
   });
 
 
-await codifySpawn('rm -rf ./dist')
-await codifySpawn('npm run rollup'); // re-run rollup without building for es
+await $.spawn('rm -rf ./dist')
+await $.spawn('npm run rollup', { interactive: true }); // re-run rollup without building for es
 
 console.log('Generated JSON Schemas for all resources')
 
@@ -100,8 +103,7 @@ fs.writeFileSync(schemaOutputPath, JSON.stringify(mergedSchemas, null, 2));
 
 console.log('Successfully wrote schema to ./dist/schemas.json')
 
-// eslint-disable-next-line n/no-process-exit,unicorn/no-process-exit
-process.exit(0)
 
-
+plugin.kill(9);
+process.exit(0);
 

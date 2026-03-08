@@ -1,12 +1,10 @@
-import { getPty, Resource, ResourceSettings, SpawnStatus } from 'codify-plugin-lib';
-import { ResourceConfig } from 'codify-schemas';
+import { Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { FileUtils } from '../../../utils/file-utils.js';
 import { JenvGlobalParameter } from './global-parameter.js';
 import {
-  JAVA_VERSION_INTEGER,
   JenvAddParameter,
   OPENJDK_SUPPORTED_VERSIONS
 } from './java-versions-parameter.js';
@@ -21,6 +19,7 @@ export class JenvResource extends Resource<JenvConfig> {
   getSettings(): ResourceSettings<JenvConfig> {
     return {
       id: 'jenv',
+      operatingSystems: [OS.Darwin],
       schema: Schema,
       dependencies: ['homebrew'],
       parameterSettings: {
@@ -69,32 +68,35 @@ export class JenvResource extends Resource<JenvConfig> {
   }
 
   override async create(): Promise<void> {
+    const $ = getPty();
     await this.assertBrewInstalled()
 
-    const jenvQuery = await codifySpawn('which jenv', { throws: false })
+    const jenvQuery = await $.spawnSafe('which jenv', { interactive: true })
     if (jenvQuery.status === SpawnStatus.ERROR) {
-      await codifySpawn('brew install jenv')
+      await $.spawn('brew install jenv', { interactive: true })
     }
 
-    const jenvDoctor = await codifySpawn('jenv doctor')
+    const jenvDoctor = await $.spawn('jenv doctor', { interactive: true })
     if (jenvDoctor.data.includes('Jenv is not loaded in')) {
       await FileUtils.addToStartupFile('export PATH="$HOME/.jenv/bin:$PATH"')
       await FileUtils.addToStartupFile('eval "$(jenv init -)"')
 
-      await codifySpawn('eval "$(jenv init -)"')
-      await codifySpawn('jenv enable-plugin export')
+      await $.spawn('eval "$(jenv init -)"', { interactive: true })
+      await $.spawn('jenv enable-plugin export', { interactive: true })
     }
   }
 
   override async destroy(): Promise<void> {
-    await codifySpawn('rm -rf $HOME/.jenv');
+    const $ = getPty();
+    await $.spawn('rm -rf $HOME/.jenv');
 
-    await FileUtils.removeLineFromZshrc('export PATH="$HOME/.jenv/bin:$PATH"')
-    await FileUtils.removeLineFromZshrc('eval "$(jenv init -)"')
+    await FileUtils.removeLineFromStartupFile('export PATH="$HOME/.jenv/bin:$PATH"')
+    await FileUtils.removeLineFromStartupFile('eval "$(jenv init -)"')
   }
 
   private async assertBrewInstalled(): Promise<void> {
-    const brewCheck = await codifySpawn('which brew', { throws: false });
+    const $ = getPty();
+    const brewCheck = await $.spawnSafe('which brew', { interactive: true });
     if (brewCheck.status === SpawnStatus.ERROR) {
       throw new Error(
         `Homebrew is not installed. Cannot install jenv without Homebrew installed.

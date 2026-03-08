@@ -1,6 +1,5 @@
-import { ArrayStatefulParameter, getPty, Plan, SpawnStatus } from 'codify-plugin-lib';
+import { ArrayStatefulParameter, getPty, Plan, SpawnStatus } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../utils/codify-spawn.js';
 import { AsdfPluginConfig } from './asdf-plugin.js';
 
 export class AsdfPluginVersionsParameter extends ArrayStatefulParameter<AsdfPluginConfig, string> {
@@ -14,22 +13,24 @@ export class AsdfPluginVersionsParameter extends ArrayStatefulParameter<AsdfPlug
     }
 
     const latest = desired?.includes('latest')
-      ? (await codifySpawn(`asdf latest ${config.plugin}`)).data.trim()
+      ? (await $.spawn(`asdf latest ${config.plugin}`)).data.trim()
       : null;
 
     return versions.data.split(/\n/)
       .map((l) => l.trim())
-      .map((l) => l.replaceAll('*', ''))
+      .map((l) => l.replaceAll( '*', ''))
       .map((l) => l.trim() === latest ? 'latest' : l)
       .filter(Boolean);
   }
 
   async addItem(item: string, plan: Plan<AsdfPluginConfig>): Promise<void> {
-    await codifySpawn(`asdf install ${plan.desiredConfig?.plugin} ${item}`);
+    const pty = getPty();
+    await pty.spawn(`asdf install ${plan.desiredConfig?.plugin} ${item}`, { interactive: true });
   }
 
   async removeItem(item: string, plan: Plan<AsdfPluginConfig>): Promise<void> {
-    await codifySpawn(`asdf uninstall ${plan.currentConfig?.plugin} ${item}`);
+    const pty = getPty();
+    await pty.spawn(`asdf uninstall ${plan.currentConfig?.plugin} ${item}`, { interactive: true });
   }
 
 }

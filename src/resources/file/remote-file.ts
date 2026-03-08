@@ -7,8 +7,8 @@ import {
   RefreshContext,
   Resource,
   ResourceSettings
-} from 'codify-plugin-lib';
-import { ResourceConfig } from 'codify-schemas';
+} from '@codifycli/plugin-core';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 import { createHash } from 'node:crypto';
 import * as fsSync from 'node:fs';
 import fs from 'node:fs/promises';
@@ -31,6 +31,7 @@ export class RemoteFileResource extends Resource<FileConfig> {
   getSettings(): ResourceSettings<FileConfig> {
     return {
       id: 'remote-file',
+      operatingSystems: [OS.Darwin, OS.Linux],
       allowMultiple: true,
       schema,
       parameterSettings: {

@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
-import { execSync } from 'child_process';
+import { SpawnStatus } from '@codifycli/plugin-core';
 
 // Example test suite
 describe('Npm tests', () => {
@@ -19,11 +19,12 @@ describe('Npm tests', () => {
         globalInstall: ['pnpm'],
       }
     ], {
-      validateApply: () => {
-        expect(() => execSync('source ~/.zshrc; which nvm', { shell: 'zsh' })).to.not.throw();
-        expect(execSync('source ~/.zshrc; node --version', { shell: 'zsh' }).toString('utf-8').trim()).to.include('20');
+      validateApply: async () => {
+        expect(await testSpawn('which nvm')).toMatchObject({ status: SpawnStatus.SUCCESS });
+        expect(await testSpawn('node --version')).toMatchObject({ status: SpawnStatus.SUCCESS });
+        expect(await testSpawn('nvm list')).toMatchObject({ status: SpawnStatus.SUCCESS });
 
-        const installedVersions = execSync('source ~/.zshrc; nvm list', { shell: 'zsh' }).toString('utf-8').trim();
+        const { data: installedVersions } = await testSpawn('nvm list')
         expect(installedVersions).to.include('20');
         expect(installedVersions).to.include('18');
       },

@@ -1,13 +1,12 @@
-import { ArrayStatefulParameter, getPty, Plan, StatefulParameter } from 'codify-plugin-lib';
+import { ArrayStatefulParameter, getPty, Plan, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
 
-import { codifySpawn, SpawnStatus } from '../../utils/codify-spawn.js';
 import { AsdfConfig } from './asdf.js';
 
 export class AsdfPluginsParameter extends ArrayStatefulParameter<AsdfConfig, string> {
   async refresh(desired: null | string[]): Promise<null | string[]> {
     const $ = getPty();
 
-    const plugins = await $.spawnSafe('asdf plugin list ')
+    const plugins = await $.spawnSafe('asdf plugin list')
     if (plugins.status === SpawnStatus.ERROR) {
       return null;
     }
@@ -19,10 +18,12 @@ export class AsdfPluginsParameter extends ArrayStatefulParameter<AsdfConfig, str
   }
 
   async addItem(item: string, plan: Plan<AsdfConfig>): Promise<void> {
-    await codifySpawn(`asdf plugin add ${item}`);
+    const pty = getPty();
+    await pty.spawn(`asdf plugin add ${item}`, { interactive: true });
   }
 
   async removeItem(item: string, plan: Plan<AsdfConfig>): Promise<void> {
-    await codifySpawn(`asdf plugin remove ${item}`);
+    const pty = getPty();
+    await pty.spawn(`asdf plugin remove ${item}`, { interactive: true });
   }
 }

@@ -1,8 +1,7 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty } from 'codify-plugin-lib';
+import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 import fs from 'node:fs/promises';
 import semver from 'semver';
 
-import { SpawnStatus, codifySpawn } from '../../../utils/codify-spawn.js';
 import { FileUtils } from '../../../utils/file-utils.js';
 import { Utils } from '../../../utils/index.js';
 import { JenvConfig } from './jenv.js';
@@ -93,13 +92,14 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
           throw new Error(`Unsupported version of java specified. Only [${OPENJDK_SUPPORTED_VERSIONS.join(', ')}] is supported`)
         }
 
+        const $ = getPty();
         const openjdkName = (parsedVersion === 22) ? 'openjdk' : `openjdk@${parsedVersion}`;
-        const { status } = await codifySpawn(`brew list --formula -1 ${openjdkName}`, { throws: false });
+        const { status } = await $.spawnSafe(`brew list --formula -1 ${openjdkName}`, { interactive: true });
 
         // That version is not currently installed with homebrew. Let's install it
         if (status === SpawnStatus.ERROR) {
           console.log(`Homebrew detected. Attempting to install java version ${openjdkName} automatically using homebrew`)
-          await codifySpawn(`brew install ${openjdkName}`)
+          await $.spawn(`brew install ${openjdkName}`, { interactive: true })
         }
 
         location = (await this.getHomebrewInstallLocation(openjdkName))!;
@@ -117,8 +117,9 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
       }
     }
 
+    const $ = getPty();
     try {
-      await codifySpawn(`jenv add ${location}`, { throws: true });
+      await $.spawn(`jenv add ${location}`, { interactive: true });
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('jenv: cannot rehash')) {
         await this.rehash();
@@ -130,6 +131,7 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
   }
 
   override async removeItem(param: string): Promise<void> {
+    const $ = getPty();
     const isHomebrewInstalled = await Utils.isHomebrewInstalled();
 
     if (isHomebrewInstalled && param.startsWith('/opt/homebrew/Cellar/openjdk@')) {
@@ -143,18 +145,19 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
 
       const location = await this.getHomebrewInstallLocation(openjdkName);
       if (location) {
-        await codifySpawn(`jenv remove ${location}`)
-        await codifySpawn(`brew uninstall ${openjdkName}`)
+        await $.spawn(`jenv remove ${location}`, { interactive: true })
+        await $.spawn(`brew uninstall ${openjdkName}`, { interactive: true })
       }
 
       return
     }
 
-    await codifySpawn(`jenv remove ${param}`);
+    await $.spawn(`jenv remove ${param}`, { interactive: true });
   }
 
   private async getHomebrewInstallLocation(openjdkName: string): Promise<null | string> {
-    const { data: installInfo } = await codifySpawn(`brew list --formula -1 ${openjdkName}`)
+    const $ = getPty();
+    const { data: installInfo } = await $.spawn(`brew list --formula -1 ${openjdkName}`, { interactive: true })
 
     // Example: /opt/homebrew/Cellar/openjdk@17/17.0.11/libexec/
     const libexec = installInfo
@@ -171,7 +174,8 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
   }
 
   private async rehash(): Promise<void> {
-    const { data: output } = await codifySpawn('jenv rehash', { throws: false })
+    const $ = getPty();
+    const { data: output } = await $.spawnSafe('jenv rehash', { interactive: true })
 
     if (output.includes('jenv: cannot rehash')) {
       const existingShims = output.match(/jenv: cannot rehash: (.*) exists/)?.at(1);
@@ -180,7 +184,7 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
       }
 
       await fs.rename(existingShims, `${existingShims}-${nanoid(4)}`);
-      await codifySpawn('jenv rehash', { throws: true })
+      await $.spawn('jenv rehash', { interactive: true })
     }
   }
 }

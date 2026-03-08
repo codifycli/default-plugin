@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester } from '@codifycli/plugin-test';
 import * as path from 'node:path';
 import * as fs from 'node:fs/promises';
-import os from 'node:os';
+import { Utils } from '@codifycli/plugin-core';
 
-describe('Android studios tests', async () => {
+describe('Android studios tests', { skip: !Utils.isMacOS() }, async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   it('Can install the latest Android studios', { timeout: 300000 }, async () => {

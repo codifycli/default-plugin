@@ -1,11 +1,8 @@
-import { getPty, ParameterSetting, Plan, SpawnStatus, StatefulParameter } from 'codify-plugin-lib';
+import { ParameterSetting, Plan, SpawnStatus, StatefulParameter, Utils, getPty } from '@codifycli/plugin-core';
 import path from 'node:path';
 
-import { codifySpawn } from '../../utils/codify-spawn.js';
 import { FileUtils } from '../../utils/file-utils.js';
 import { HomebrewConfig } from './homebrew.js';
-
-const SUDO_ASKPASS_PATH = '~/Library/Caches/codify/homebrew/sudo_prompt.sh'
 
 export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> {
 
@@ -45,7 +42,7 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
 
       // This serves a secondary purpose as well. It checks that each cask to install is valid (alerting the user
       // in the plan instead of in the apply)
-      const casksWithConflicts = await this.findConflicts(notInstalledCasks);
+      const casksWithConflicts = await this.findConflictsOnMacOs(notInstalledCasks);
       if (casksWithConflicts.length > 0) {
         // To avoid errors, we pretend that those programs were already installed by homebrew (even though it was installed outside)
         if (config?.skipAlreadyInstalledCasks) {
@@ -84,7 +81,8 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
       return;
     }
 
-    const conflicts = await this.findConflicts(casks);
+    const $ = getPty();
+    const conflicts = await this.findConflictsOnMacOs(casks);
     const casksToInstall = casks.filter((c) => !conflicts.includes(c))
 
     if (conflicts.length > 0) {
@@ -99,7 +97,11 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
       return;
     }
 
-    const result = await codifySpawn(`HOMEBREW_NO_AUTO_UPDATE=1 SUDO_ASKPASS=${SUDO_ASKPASS_PATH} brew install --casks ${casksToInstall.join(' ')}`, { throws: false })
+    const result = await $.spawnSafe(`brew install --casks ${casksToInstall.join(' ')}`, {
+      interactive: true,
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+    })
+
     if (result.status === SpawnStatus.SUCCESS) {
       // Casks can't detect if a program was installed by other means. If it returns this message, throw an error
       if (result.data.includes('It seems there is already an App at')) {
@@ -117,7 +119,11 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
       return;
     }
 
-    const result = await codifySpawn(`SUDO_ASKPASS=${SUDO_ASKPASS_PATH} brew uninstall ${casks.join(' ')}`, { throws: false })
+    const $ = getPty();
+    const result = await $.spawnSafe(`brew uninstall ${casks.join(' ')}`, {
+      interactive: true,
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+    })
 
     if (result.status === SpawnStatus.SUCCESS) {
       console.log(`Uninstalled casks: ${casks.join(' ')}`);
@@ -126,15 +132,21 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
     }
   }
 
-  private async findConflicts(casks: string[]): Promise<string[]> {
-    const $ = getPty();
-
-    let result: string;
-    if ($) {
-      result = (await $.spawnSafe(`brew info -q --json=v2 ${casks.map((c) => `"${c}"`).join(' ')}`)).data.replaceAll('\n', '')
-    } else {
-      result = (await codifySpawn(`brew info -q --json=v2 ${casks.map((c) => `"${c}"`).join(' ')}`)).data.replaceAll('\n', '')
+  private async findConflictsOnMacOs(casks: string[]): Promise<string[]> {
+    if (!Utils.isMacOS()) {
+      return [];
     }
+
+
+    const $ = getPty();
+    const result = (await $.spawn(
+      `brew info -q --json=v2 ${casks.map((c) => `"${c}"`).join(' ')}`, {
+        interactive: true,
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+      })
+    )
+      .data
+      .replaceAll('\n', '')
 
     const brewInfo = JSON.parse(result);
     const casksWithConflicts = new Array<string>();

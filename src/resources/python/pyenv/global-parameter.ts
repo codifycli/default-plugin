@@ -1,6 +1,5 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from 'codify-plugin-lib';
+import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { PyenvConfig } from './pyenv.js';
 
 export class PyenvGlobalParameter extends StatefulParameter<PyenvConfig, string>{
@@ -23,14 +22,17 @@ export class PyenvGlobalParameter extends StatefulParameter<PyenvConfig, string>
   }
 
   override async add(valueToAdd: string): Promise<void> {
-    await codifySpawn(`pyenv global ${valueToAdd}`)
+    const $ = getPty();
+    await $.spawn(`pyenv global ${valueToAdd}`, { interactive: true })
   }
 
   override async modify(newValue: string): Promise<void> {
-    await codifySpawn(`pyenv global ${newValue}`)
+    const $ = getPty();
+    await $.spawn(`pyenv global ${newValue}`, { interactive: true })
   }
 
   override async remove(): Promise<void> {
-    await codifySpawn('pyenv global system')
+    const $ = getPty();
+    await $.spawn('pyenv global system', { interactive: true })
   }
 }

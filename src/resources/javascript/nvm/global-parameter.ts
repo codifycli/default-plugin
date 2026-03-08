@@ -1,6 +1,5 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from 'codify-plugin-lib';
+import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { NvmConfig } from './nvm.js';
 
 export class NvmGlobalParameter extends StatefulParameter<NvmConfig, string>{
@@ -24,11 +23,13 @@ export class NvmGlobalParameter extends StatefulParameter<NvmConfig, string>{
   }
 
   override async add(valueToAdd: string): Promise<void> {
-    await codifySpawn(`nvm alias default ${valueToAdd}`)
+    const $ = getPty();
+    await $.spawn(`nvm alias default ${valueToAdd}`, { interactive: true })
   }
 
   override async modify(newValue: string): Promise<void> {
-    await codifySpawn(`nvm alias default ${newValue}`)
+    const $ = getPty();
+    await $.spawn(`nvm alias default ${newValue}`, { interactive: true })
   }
 
   override async remove(valueToRemove: string): Promise<void> {

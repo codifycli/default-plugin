@@ -1,6 +1,5 @@
-import { getPty, StatefulParameter } from 'codify-plugin-lib';
+import { getPty, StatefulParameter, SpawnStatus } from '@codifycli/plugin-core';
 
-import { SpawnStatus, codifySpawn } from '../../../utils/codify-spawn.js';
 import { GitConfig } from './git-resource.js';
 
 export class GitNameParameter extends StatefulParameter<GitConfig, string> {
@@ -13,14 +12,17 @@ export class GitNameParameter extends StatefulParameter<GitConfig, string> {
   }
 
   async add(valueToAdd: string): Promise<void> {
-    await codifySpawn(`git config --global user.name "${valueToAdd}"`)
+    const $ = getPty();
+    await $.spawn(`git config --global user.name "${valueToAdd}"`)
   }
 
   async modify(newValue: string): Promise<void> {
-    await codifySpawn(`git config --global user.name "${newValue}"`)
+    const $ = getPty();
+    await $.spawn(`git config --global user.name "${newValue}"`)
   }
 
   async remove(): Promise<void> {
-    await codifySpawn('git config --global --unset user.name')
+    const $ = getPty();
+    await $.spawn('git config --global --unset user.name')
   }
 }

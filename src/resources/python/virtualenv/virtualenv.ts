@@ -1,8 +1,6 @@
-import { CreatePlan, DestroyPlan, RefreshContext, Resource, ResourceSettings, getPty } from 'codify-plugin-lib';
-import { ResourceConfig } from 'codify-schemas';
+import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, Utils } from '@codifycli/plugin-core';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
-import { Utils } from '../../../utils/index.js';
 import schema from './virtualenv-schema.json';
 
 export interface VirtualenvConfig extends ResourceConfig {}
@@ -12,6 +10,7 @@ export class Virtualenv extends Resource<VirtualenvConfig> {
   getSettings(): ResourceSettings<VirtualenvConfig> {
     return {
       id: 'virtualenv',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       dependencies: ['homebrew'],
     }
@@ -25,19 +24,10 @@ export class Virtualenv extends Resource<VirtualenvConfig> {
   }
 
   async create(plan: CreatePlan<VirtualenvConfig>): Promise<void> {
-    if (!(await Utils.isHomebrewInstalled())) {
-      throw new Error('Homebrew must be installed in order to use the virtualenv resource');
-    }
-
-    await codifySpawn('HOMEBREW_NO_AUTO_UPDATE=1 brew install virtualenv');
+    await Utils.installViaPkgMgr('virtualenv');
   }
 
   async destroy(plan: DestroyPlan<VirtualenvConfig>): Promise<void> {
-    const installLocation = await codifySpawn('which virtualenv');
-    if (!installLocation.data.includes('homebrew')) {
-      throw new Error('virtualenv resource was installed outside of Codify. Please uninstall manually and re-run Codify');
-    }
-
-    await codifySpawn('HOMEBREW_NO_AUTO_UPDATE=1 brew uninstall virtualenv');
+    await Utils.uninstallViaPkgMgr('virtualenv');
   }
 }

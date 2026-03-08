@@ -1,4 +1,4 @@
-import { ParameterSetting, Plan, StatefulParameter } from 'codify-plugin-lib';
+import { ParameterSetting, Plan, StatefulParameter } from '@codifycli/plugin-core';
 import isEqual from 'lodash.isequal';
 import fs from 'node:fs/promises';
 import os from 'node:os';

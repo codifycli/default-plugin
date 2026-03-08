@@ -1,6 +1,5 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty } from 'codify-plugin-lib';
+import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 
-import { SpawnStatus, codifySpawn } from '../../../utils/codify-spawn.js';
 import { NvmConfig } from './nvm.js';
 
 export class NvmNodeVersionsParameter extends ArrayStatefulParameter<NvmConfig, string> {
@@ -50,10 +49,12 @@ export class NvmNodeVersionsParameter extends ArrayStatefulParameter<NvmConfig, 
   }
 
   override async addItem(version: string): Promise<void> {
-    await codifySpawn(`nvm install ${version}`);
+    const $ = getPty();
+    await $.spawn(`nvm install ${version}`, { interactive: true });
   }
 
   override async removeItem(version: string): Promise<void> {
-    await codifySpawn(`nvm uninstall ${version}`);
+    const $ = getPty();
+    await $.spawn(`nvm uninstall ${version}`, { interactive: true });
   }
 }

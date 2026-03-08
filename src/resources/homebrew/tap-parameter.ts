@@ -1,6 +1,5 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from 'codify-plugin-lib';
+import { ParameterSetting, SpawnStatus, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../utils/codify-spawn.js'
 import { HomebrewConfig } from './homebrew.js';
 
 export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
@@ -45,7 +44,11 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
       return;
     }
 
-    await codifySpawn(`HOMEBREW_NO_AUTO_UPDATE=1 brew tap ${taps.join(' ')}`)
+    const $ = getPty();
+    await $.spawn(`brew tap ${taps.join(' ')}`, {
+      interactive: true,
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
+    })
   }
 
   private async uninstallTaps(taps: string[]): Promise<void> {
@@ -53,7 +56,11 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
       return;
     }
 
-    await codifySpawn(`brew untap ${taps.join(' ')}`)
+    const $ = getPty();
+    await $.spawn(`brew untap ${taps.join(' ')}`, {
+      interactive: true,
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
+    })
   }
 
 }

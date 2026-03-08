@@ -1,10 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { PluginTester } from 'codify-plugin-test';
+import { describe, expect, it } from 'vitest'
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { execSync } from 'child_process';
 import fs from 'node:fs';
 import os from 'node:os';
-import { ResourceOperation } from 'codify-schemas';
 
 describe('Pip resource integration tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
@@ -18,8 +16,8 @@ describe('Pip resource integration tests', () => {
       },
     ], {
       skipUninstall: true,
-      validateApply: () => {
-        expect(execSync('source ~/.zshrc; python --version', { shell: 'zsh' }).toString()).to.include('3.11');
+      validateApply: async () => {
+        expect((await testSpawn('python --version')).data).to.include('3.11');
       }
     })
   })
@@ -42,9 +40,9 @@ describe('Pip resource integration tests', () => {
       validatePlan: (plans) => {
         console.log(JSON.stringify(plans, null, 2))
       },
-      validateApply: () => {
-        const installedDependencies = execSync('source ~/.zshrc; pip list --format=json --disable-pip-version-check', { shell: 'zsh' }).toString()
-        const parsed = JSON.parse(installedDependencies) as Array<{ name: string; version: string; }>;
+      validateApply: async () => {
+        const installedDependencies = await testSpawn('pip list --format=json --disable-pip-version-check');
+        const parsed = JSON.parse(installedDependencies.data) as Array<{ name: string; version: string; }>;
 
         expect(parsed.some((p) => p.name === 'ffmpeg')).to.be.true;
         expect(parsed.some((p) => p.name === 'qoverage' && p.version === '0.1.12')).to.be.true;

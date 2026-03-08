@@ -1,6 +1,5 @@
-import { ParameterSetting, Plan, StatefulParameter, getPty } from 'codify-plugin-lib';
+import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import { NpmConfig } from './npm.js';
 
 export interface NpmPackage {
@@ -74,6 +73,7 @@ export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Arra
   }
 
   async install(packages: Array<NpmPackage | string>): Promise<void> {
+    const $ = getPty();
     const installStatements = packages.map((p) => {
       if (typeof p === 'string') {
         return p;
@@ -86,10 +86,11 @@ export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Arra
       return p.name;
     })
 
-    await codifySpawn(`npm install --global ${installStatements.join(' ')}`);
+    await $.spawn(`npm install --global ${installStatements.join(' ')}`, { interactive: true });
   }
 
   async uninstall(packages: Array<NpmPackage | string>): Promise<void> {
+    const $ = getPty();
     const uninstallStatements = packages.map((p) => {
       if (typeof p === 'string') {
         return p;
@@ -98,7 +99,7 @@ export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Arra
       return p.name;
     })
 
-    await codifySpawn(`npm uninstall --global ${uninstallStatements.join(' ')}`);
+    await $.spawn(`npm uninstall --global ${uninstallStatements.join(' ')}`, { interactive: true });
   }
 
 

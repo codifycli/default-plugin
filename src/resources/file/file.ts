@@ -1,21 +1,28 @@
-import { CreatePlan, DestroyPlan, ModifyPlan, ParameterChange, Resource, ResourceSettings } from 'codify-plugin-lib';
-import { StringIndexedObject } from 'codify-schemas';
+import { CreatePlan, DestroyPlan, ModifyPlan, ParameterChange, Resource, ResourceSettings, z } from '@codifycli/plugin-core';
+import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';
-import schema from './file-schema.json'
 
-export interface FileConfig extends StringIndexedObject {
-  path: string;
-  contents: string;
-  onlyCreate: boolean;
-}
+const schema = z.object({
+    path: z.string().describe('The location of the file.'),
+    contents: z.string().describe('The contents of the file.'),
+    onlyCreate: z
+      .boolean()
+      .describe(
+        'Forces the resource to only create the file if it doesn\'t exist but don\'t detect any content changes.'
+      )
+      .optional()
+  })
+
+type FileConfig = z.infer<typeof schema>;
 
 export class FileResource extends Resource<FileConfig> {
   getSettings(): ResourceSettings<FileConfig> {
     return {
       id: 'file',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
         path: { type: 'directory' },

@@ -1,9 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
 import fs from 'node:fs';
-import os from 'node:os';
-import { codifySpawn } from '../../../src/utils/codify-spawn';
+import { TestUtils } from '../../test-utils.js';
 
 describe('Pnpm tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
@@ -13,8 +12,8 @@ describe('Pnpm tests', () => {
       { type: 'pnpm' },
     ], {
       validateDestroy: async () => {
-        const zshFile = fs.readFileSync(path.join(os.homedir(), '.zshrc'), 'utf8')
-        expect(zshFile.trim()).to.eq('');
+        const shellRcFile = fs.readFileSync(TestUtils.getPrimaryShellRc(), 'utf8')
+        expect(shellRcFile.trim()).to.eq('');
       }
     })
   })
@@ -24,12 +23,12 @@ describe('Pnpm tests', () => {
       { type: 'pnpm', globalEnvNodeVersion: '20' },
     ], {
       validateApply: async () => {
-        const result = await codifySpawn('node -v');
-        expect(result.data.trim()).to.include('20')
+        const result = await testSpawn('node -v');
+        expect(result.data).to.include('20')
       },
       validateDestroy: async () => {
-        const zshFile = fs.readFileSync(path.join(os.homedir(), '.zshrc'), 'utf8')
-        expect(zshFile.trim()).to.eq('');
+        const shellRcFile = fs.readFileSync(TestUtils.getPrimaryShellRc(), 'utf8')
+        expect(shellRcFile.trim()).to.eq('');
       }
     })
   })

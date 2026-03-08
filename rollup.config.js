@@ -8,13 +8,16 @@ export default {
   input: 'src/index.ts',
   output: {
     dir:'dist',
-    format: 'cjs'
+    format: 'cjs',
+    inlineDynamicImports: true,
   },
   external: ['@homebridge/node-pty-prebuilt-multiarch'],
   plugins: [
     json(),
     nodeResolve({ exportConditions: ['node'] }),
-    typescript(),
+    typescript({ 
+      exclude: ['**/*.test.ts', '**/*.d.ts', 'test']
+    }),
     commonjs(),
     terser()
   ]

@@ -1,8 +1,7 @@
-import { getPty, Resource, ResourceSettings, SpawnStatus } from 'codify-plugin-lib';
-import { ResourceConfig } from 'codify-schemas';
+import { getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
-import { codifySpawn } from '../../../utils/codify-spawn.js';
 import Schema from './git-lfs-schema.json';
 
 export interface GitLfsConfig extends ResourceConfig {
@@ -13,6 +12,7 @@ export class GitLfsResource extends Resource<GitLfsConfig> {
   getSettings(): ResourceSettings<GitLfsConfig> {
     return {
       id: 'git-lfs',
+      operatingSystems: [OS.Darwin],
       schema: Schema,
       dependencies: ['homebrew'],
     }
@@ -36,27 +36,23 @@ export class GitLfsResource extends Resource<GitLfsConfig> {
 
   // FYI: This create might be called if git-lfs is installed but not initialized.
   override async create(): Promise<void> {
-    await this.assertBrewInstalled();
+    const $ = getPty();
+    await Utils.installViaPkgMgr('git-lfs');
 
-    const gitLfsCheck = await codifySpawn('git lfs', { throws: false });
-    if (gitLfsCheck.status === SpawnStatus.ERROR) {
-      await codifySpawn('brew install git-lfs');
-    }
-
-    await codifySpawn('git lfs install', { cwd: os.homedir() });
+    await $.spawn('git lfs install', { cwd: os.homedir(), interactive: true });
   }
 
   override async destroy(): Promise<void> {
-    await this.assertBrewInstalled();
+    const $ = getPty();
+    await $.spawn('git lfs uninstall', { cwd: os.homedir(), interactive: true });
 
-    await codifySpawn('git lfs uninstall', { cwd: os.homedir() });
-    await codifySpawn('brew uninstall git-lfs');
+    await Utils.uninstallViaPkgMgr('git-lfs');
   }
 
   private async checkIfGitLfsIsInstalled(): Promise<boolean> {
     const $ = getPty();
 
-    const gitLfsStatus = await $.spawn('git lfs env', { cwd: os.homedir() });
+    const gitLfsStatus = await $.spawn('git lfs env', { cwd: os.homedir(), interactive: true, disableWrapping: true });
     const lines = gitLfsStatus.data.split('\n');
 
     // When git lfs exists but git lfs install hasn't been called then git lfs env returns:
@@ -68,19 +64,5 @@ export class GitLfsResource extends Resource<GitLfsConfig> {
       .includes('""');
 
     return !emptyLfsLines;
-  }
-
-  private async assertBrewInstalled(): Promise<void> {
-    const brewCheck = await codifySpawn('which brew', { throws: false });
-    if (brewCheck.status === SpawnStatus.ERROR) {
-      throw new Error(
-        `Homebrew is not installed. Cannot install git-lfs without Homebrew installed.
-
-Brew can be installed using Codify:
-{
-  "type": "homebrew",
-}`
-      );
-    }
   }
 }

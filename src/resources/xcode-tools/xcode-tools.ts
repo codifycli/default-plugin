@@ -1,10 +1,8 @@
-import { Resource, ResourceSettings, getPty } from 'codify-plugin-lib';
-import { StringIndexedObject } from 'codify-schemas';
+import { Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { compare, coerce } from 'semver';
-
-import { SpawnStatus, codifySpawn } from '../../utils/codify-spawn.js';
+import { coerce, compare } from 'semver';
 
 interface XCodeToolsConfig extends StringIndexedObject {}
 
@@ -13,6 +11,7 @@ export class XcodeToolsResource extends Resource<XCodeToolsConfig> {
   getSettings(): ResourceSettings<XCodeToolsConfig> {
     return {
       id: 'xcode-tools',
+      operatingSystems: [OS.Darwin],
       importAndDestroy: {
         preventImport: true,
       }
@@ -33,7 +32,8 @@ export class XcodeToolsResource extends Resource<XCodeToolsConfig> {
   }
 
   override async create(): Promise<void> {
-    await codifySpawn('touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;');
+    const $ = getPty();
+    await $.spawn('touch /tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress;');
 
     try {
       /* Example response:
@@ -42,10 +42,10 @@ export class XcodeToolsResource extends Resource<XCodeToolsConfig> {
        * * Label: Command Line Tools for Xcode-15.3
        *         Title: Command Line Tools for Xcode, Version: 15.3, Size: 707501KiB, Recommended: YES,
        */
-      const { data } = await codifySpawn('softwareupdate -l');
+      const { data } = await $.spawn('softwareupdate -l', { interactive: true });
 
       // This regex will only match the label because it doesn't match commas.
-      const labelRegex = /(Command Line Tools[^,]*\d+\.\d+)/g
+      const labelRegex = /(Command Line Tools[^,]*\d+\.\d+?)(?=\s+)/g
       const xcodeToolsVersion = data.match(labelRegex);
 
       if (!xcodeToolsVersion || xcodeToolsVersion.length === 0 || !xcodeToolsVersion[0]) {
@@ -67,7 +67,7 @@ export class XcodeToolsResource extends Resource<XCodeToolsConfig> {
           return compare(coerce(currentVer)!, coerce(prevVer)!) > 0 ? current : prev;
         }) : xcodeToolsVersion.at(0)!;
 
-      await codifySpawn(`softwareupdate -i "${latestVersion}" --verbose`, { requiresRoot: true });
+      await $.spawn(`softwareupdate -i "${latestVersion}" --verbose`, { requiresRoot: true, interactive: true });
 
     } finally {
       await fs.rm('/tmp/.com.apple.dt.CommandLineTools.installondemand.in-progress', { force: true, recursive: true });
@@ -75,7 +75,8 @@ export class XcodeToolsResource extends Resource<XCodeToolsConfig> {
   }
 
   override async destroy(): Promise<void> {
-    const { data: installFolder, status } = await codifySpawn('xcode-select -p', { throws: false });
+    const $ = getPty();
+    const { data: installFolder, status } = await $.spawnSafe('xcode-select -p');
     if (status === SpawnStatus.ERROR || !installFolder) {
       return;
     }
@@ -87,11 +88,12 @@ export class XcodeToolsResource extends Resource<XCodeToolsConfig> {
       return;
     }
 
-    await codifySpawn('rm -rf /Library/Developer/CommandLineTools', { requiresRoot: true });
+    await $.spawn('rm -rf /Library/Developer/CommandLineTools', { requiresRoot: true });
   }
 
   private async attemptGUIInstall(): Promise<void> {
     console.warn('Unable to find installable xcode tools version. Defaulting to xcode-select --install');
-    await codifySpawn('xcode-select --install');
+    const $ = getPty();
+    await $.spawn('xcode-select --install', { interactive: true, stdin: true });
   }
 }

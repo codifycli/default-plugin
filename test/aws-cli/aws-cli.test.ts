@@ -1,22 +1,24 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
 import cp from 'child_process';
+import { TestUtils } from '../test-utils.js';
+import { SpawnStatus, Utils } from '@codifycli/plugin-core';
 
 describe('Test aws-cli', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   it('Can install aws-cli', { timeout: 300000 }, async () => {
     await PluginTester.fullTest(pluginPath, [
-      { type: 'homebrew' },
       { type: 'aws-cli' },
     ], {
+      // skipUninstall: true,
       validateApply: async () => {
-        expect(() => cp.execSync('source ~/.zshrc; which aws;')).to.not.throw;
+        expect(await testSpawn('which aws')).toMatchObject({ status: SpawnStatus.SUCCESS });
 
       },
       validateDestroy: async () => {
-        expect(() => cp.execSync('source ~/.zshrc; which aws;')).to.throw;
+        expect(await testSpawn('which aws')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     })
   })

@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://www.codifycli.com/npm-login.json",
+  "$comment": "https://docs.codifycli.com/core-resources/javascript/npm-login/",
+  "title": "Npm login resource",
+  "description": "Manage npm login/authentication in ~/.npmrc, including scoped registry mapping and tokens.",
+  "type": "object",
+  "properties": {
+    "authToken": {
+      "type": "string",
+      "description": "The npm auth token used for authenticating with the registry. If not provided, then web login is assumed"
+    },
+    "scope": {
+      "type": "string",
+      "description": "Optional npm scope (e.g. @myorg) to bind to a specific registry.",
+      "pattern": "^@.+\\.?"
+    },
+    "registry": {
+      "type": "string",
+      "description": "Registry URL to use for authentication and optional scope mapping."
+    }
+  },
+  "required": ["authToken"],
+  "additionalProperties": false
+}

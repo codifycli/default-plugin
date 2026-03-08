@@ -1,18 +1,17 @@
 import {
   CreatePlan,
   DestroyPlan,
+  getPty,
   ModifyPlan,
   ParameterChange,
   Resource,
-  ResourceSettings,
-  getPty
-} from 'codify-plugin-lib';
-import { StringIndexedObject } from 'codify-schemas';
+  ResourceSettings
+} from '@codifycli/plugin-core';
+import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { codifySpawn } from '../../utils/codify-spawn.js';
 import { FileUtils } from '../../utils/file-utils.js';
 import Schema from './ssh-key-schema.json';
 
@@ -33,6 +32,7 @@ export class SshKeyResource extends Resource<SshKeyConfig> {
   getSettings(): ResourceSettings<SshKeyConfig> {
     return {
       id: 'ssh-key',
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
         comment: { canModify: true },
@@ -127,10 +127,11 @@ export class SshKeyResource extends Resource<SshKeyConfig> {
 
   override async create(plan: CreatePlan<SshKeyConfig>): Promise<void> {
     const folderPath = path.resolve(os.homedir(), '.ssh')
+    const $ = getPty();
 
     if (!(await FileUtils.dirExists(folderPath))) {
-      await codifySpawn('mkdir .ssh', { cwd: os.homedir() })
-      await codifySpawn('chmod 700 .ssh', { cwd: os.homedir() })
+      await fs.mkdir(folderPath);
+      await fs.chmod(folderPath, 0o700);
     }
 
     const command = [
@@ -148,26 +149,26 @@ export class SshKeyResource extends Resource<SshKeyConfig> {
       command.push(`-b ${plan.desiredConfig.bits}`);
     }
 
-    await codifySpawn(command.join(' '), { cwd: plan.desiredConfig.folder })
+    await $.spawn(command.join(' '), { cwd: plan.desiredConfig.folder })
   }
 
   override async modify(pc: ParameterChange<SshKeyConfig>, plan: ModifyPlan<SshKeyConfig>): Promise<void> {
+    const $ = getPty();
     if (pc.name === 'comment') {
-      await codifySpawn(`ssh-keygen -f ${plan.desiredConfig.fileName} -c -C "${pc.newValue}"`, { cwd: plan.desiredConfig.folder! })
+      await $.spawn(`ssh-keygen -f ${plan.desiredConfig.fileName} -c -C "${pc.newValue}"`, { cwd: plan.desiredConfig.folder! })
       return;
     }
 
     // Passphrase can't be called in stateless mode because we don't know what the previous password is
     if (pc.name === 'passphrase') {
-      await codifySpawn(`ssh-keygen -f ${plan.desiredConfig.fileName} -N ${pc.newValue} -P ${pc.previousValue} -p`)
-      
+      await $.spawn(`ssh-keygen -f ${plan.desiredConfig.fileName} -N ${pc.newValue} -P ${pc.previousValue} -p`, { cwd: plan.desiredConfig.folder! })
     }
   }
 
   override async destroy(plan: DestroyPlan<SshKeyConfig>): Promise<void> {
     const keyPath = path.join(plan.currentConfig.folder!, plan.currentConfig.fileName!);
 
-    await codifySpawn(`rm ${keyPath}`)
-    await codifySpawn(`rm ${keyPath}.pub`)
+    await fs.rm(keyPath);
+    await fs.rm(`${keyPath}.pub`);
   }
 }

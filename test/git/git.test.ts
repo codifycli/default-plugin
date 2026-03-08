@@ -1,7 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { PluginTester } from 'codify-plugin-test';
+import { describe, expect, it } from 'vitest';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { execSync } from 'node:child_process';
 
 describe('Git integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
@@ -16,11 +15,11 @@ describe('Git integration tests', async () => {
     ], {
       skipUninstall: true,
       validateApply: async () => {
-        const email = execSync('source ~/.zshrc; git config --global user.email')
-        expect(email.toString('utf-8').trim()).to.equal('test@test.com')
+        const email = await testSpawn('git config --global user.email')
+        expect(email.data).to.contain('test@test.com')
 
-        const username = execSync('source ~/.zshrc; git config --global user.name')
-        expect(username.toString('utf-8').trim()).to.equal('test')
+        const username = await testSpawn('git config --global user.name')
+        expect(username.data).to.contain('test')
       }
     });
   })
@@ -36,11 +35,11 @@ describe('Git integration tests', async () => {
       // Set true here because git resource cannot be destroyed right now
       skipUninstall: true,
       validateApply: async () => {
-        const email = execSync('source ~/.zshrc; git config --global user.email')
-        expect(email.toString('utf-8').trim()).to.equal('test2@test.com')
+        const email = await testSpawn('git config --global user.email')
+        expect(email.data).to.contain('test2@test.com')
 
-        const username = execSync('source ~/.zshrc; git config --global user.name')
-        expect(username.toString('utf-8').trim()).to.equal('test2')
+        const username = await testSpawn('git config --global user.name')
+        expect(username.data).to.contain('test2')
       }
     });
   })

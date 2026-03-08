@@ -7,5 +7,6 @@ export default defineConfig({
       process.stdout.write(log);
     },
     watch: false,
+    setupFiles: ['./test/setup.ts'],
   },
 })

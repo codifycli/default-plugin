@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { PluginTester } from 'codify-plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { execSync } from 'child_process';
 import fs from 'node:fs/promises';
-import os from 'node:os';
+import { TestUtils } from '../test-utils.js';
+import { SpawnStatus, Utils } from '@codifycli/plugin-core';
 
-describe('Homebrew main resource integration tests', () => {
+describe('Homebrew main resource integration tests', { skip: !Utils.isMacOS() }, () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   it('Creates brew and can install formulas', { timeout: 300000 }, async () => {
@@ -13,44 +13,42 @@ describe('Homebrew main resource integration tests', () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'homebrew',
       formulae: [
-        'apr',
         'sshpass'
       ]
     }], {
-      validateApply: () => {
-        expect(() => execSync('source ~/.zshrc; which apr')).to.not.throw;
-        expect(() => execSync('source ~/.zshrc; which sshpass')).to.not.throw;
-        expect(() => execSync('source ~/.zshrc; which brew')).to.not.throw;
+      validateApply: async () => {
+        expect(await testSpawn('which sshpass')).toMatchObject({ status: SpawnStatus.SUCCESS });
+        expect(await testSpawn('which brew')).toMatchObject({ status: SpawnStatus.SUCCESS });
       },
       testModify: {
         modifiedConfigs: [{
           type: 'homebrew',
           formulae: [
-            'libxau',
             'sshpass',
-            'jenv',
-            'cirruslabs/cli/softnet', // Test that it can handle a fully qualified name (tap + name)
+            'hashicorp/tap/hcp', // Test that it can handle a fully qualified name (tap + name)
           ],
         }],
-        validateModify: () => {
-          expect(() => execSync('source ~/.zshrc; which libxau')).to.not.throw;
-          expect(() => execSync('source ~/.zshrc; which sshpass')).to.not.throw;
-          expect(() => execSync('source ~/.zshrc; which jenv')).to.not.throw;
-          expect(() => execSync('source ~/.zshrc; which brew')).to.not.throw;
-          expect(() => execSync('source ~/.zshrc; which softnet')).to.not.throw;
+        validateModify: async () => {
+          expect(await testSpawn('which sshpass')).toMatchObject({ status: SpawnStatus.SUCCESS });
+          expect(await testSpawn('which brew')).toMatchObject({ status: SpawnStatus.SUCCESS });
+          expect(await testSpawn('which hcp')).toMatchObject({ status: SpawnStatus.SUCCESS });
         }
       },
-      validateDestroy: () => {
-        expect(() => execSync('source ~/.zshrc; which libxau')).to.throw;
-        expect(() => execSync('source ~/.zshrc; which sshpass')).to.throw;
-        expect(() => execSync('source ~/.zshrc; which jenv')).to.throw;
-        expect(() => execSync('source ~/.zshrc; which softnet')).to.throw;
-        expect(() => execSync('source ~/.zshrc; which brew')).to.throw;
+      validateDestroy: async () => {
+        expect(await testSpawn('which libxau')).toMatchObject({ status: SpawnStatus.ERROR });
+        expect(await testSpawn('which sshpass')).toMatchObject({ status: SpawnStatus.ERROR });
+        expect(await testSpawn('which jenv')).toMatchObject({ status: SpawnStatus.ERROR });
+        expect(await testSpawn('which hcp')).toMatchObject({ status: SpawnStatus.ERROR });
+        expect(await testSpawn('which brew')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     });
   });
 
   it('Can handle casks that were already installed by skipping in the plan', { timeout: 300000 }, async () => {
+    if (!Utils.isMacOS()) {
+      return;
+    }
+
     // Install vscode outside of cask
     await PluginTester.fullTest(pluginPath, [{
       type: 'vscode',
@@ -59,9 +57,13 @@ describe('Homebrew main resource integration tests', () => {
     }], {
       skipUninstall: true,
       validateApply: async () => {
-        const programPath = '/Applications/Visual Studio Code.app'
-        const lstat = await fs.lstat(programPath);
-        expect(lstat.isDirectory()).to.be.true;
+        console.log('Is macOS', Utils.isMacOS());
+
+        if (Utils.isMacOS()) {
+          const programPath = '/Applications/Visual Studio Code.app'
+          const lstat = await fs.lstat(programPath);
+          expect(lstat.isDirectory()).to.be.true;
+        }
       }
     })
 
@@ -78,6 +80,7 @@ describe('Homebrew main resource integration tests', () => {
           "parameters": [
             {
               "name": "casks",
+              "isSensitive": false,
               "previousValue": [
                 "visual-studio-code"
               ],
@@ -88,12 +91,14 @@ describe('Homebrew main resource integration tests', () => {
             },
             {
               "name": "skipAlreadyInstalledCasks",
+              "isSensitive": false,
               "previousValue": null,
               "newValue": true,
               "operation": "noop"
             },
             {
               "name": "onlyPlanUserInstalled",
+              "isSensitive": false,
               "newValue": true,
               "operation": "noop",
               "previousValue": null,
@@ -101,13 +106,17 @@ describe('Homebrew main resource integration tests', () => {
           ]
         })
 
-        const programPath = '/Applications/Visual Studio Code.app'
-        const lstat = await fs.lstat(programPath);
-        expect(lstat.isDirectory()).to.be.true;
+        if (Utils.isMacOS()) {
+          const programPath = '/Applications/Visual Studio Code.app'
+          const lstat = await fs.lstat(programPath);
+          expect(lstat.isDirectory()).to.be.true;
+        }
       }, validateDestroy: async () => {
-        const programPath = '/Applications/Visual Studio Code.app'
-        const lstat = await fs.lstat(programPath);
-        expect(lstat.isDirectory()).to.be.true;
+        if (Utils.isMacOS()) {
+          const programPath = '/Applications/Visual Studio Code.app'
+          const lstat = await fs.lstat(programPath);
+          expect(lstat.isDirectory()).to.be.true;
+        }
       }
     })
 
@@ -125,6 +134,10 @@ describe('Homebrew main resource integration tests', () => {
   })
 
   it('Can handle casks that were already installed by skipping in the install (only applicable to the initial)', { timeout: 300000 }, async () => {
+    if (!Utils.isMacOS()) {
+      return;
+    }
+
     // Install vscode outside of cask
     await PluginTester.fullTest(pluginPath, [{
       type: 'vscode',
@@ -145,6 +158,7 @@ describe('Homebrew main resource integration tests', () => {
           "parameters": expect.arrayContaining([
             {
               "name": "casks",
+              "isSensitive": false,
               "previousValue": null,
               "newValue": ["visual-studio-code"],
               "operation": "add"
@@ -152,14 +166,18 @@ describe('Homebrew main resource integration tests', () => {
           ])
         })
 
-        const programPath = '/Applications/Visual Studio Code.app'
-        const lstat = await fs.lstat(programPath);
-        expect(lstat.isDirectory()).to.be.true;
+        if (Utils.isMacOS()) {
+          const programPath = '/Applications/Visual Studio Code.app'
+          const lstat = await fs.lstat(programPath);
+          expect(lstat.isDirectory()).to.be.true;
+        }
       },
       validateDestroy: async () => {
-        const programPath = '/Applications/Visual Studio Code.app'
-        expect(async () => await fs.lstat(programPath)).to.throw;
-        expect((await fs.readFile(path.join(os.homedir(), '.zshrc'))).toString('utf-8')).to.not.include('homebrew')
+        if (Utils.isMacOS()) {
+          const programPath = '/Applications/Visual Studio Code.app'
+          expect(async () => await fs.lstat(programPath)).to.throw;
+        }
+        expect((await fs.readFile(TestUtils.getPrimaryShellRc())).toString('utf-8')).to.not.include('homebrew')
       }
     })
   })

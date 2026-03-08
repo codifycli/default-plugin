@@ -1,9 +1,8 @@
-import { type InputTransformation } from 'codify-plugin-lib';
+import { type InputTransformation, untildify } from '@codifycli/plugin-core';
 import * as fsSync from 'node:fs';
 import * as fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { untildify } from '../../../utils/untildify.js';
 import { AwsProfileConfig } from './aws-profile.js';
 
 export const CSVCredentialsTransformation: InputTransformation = {
