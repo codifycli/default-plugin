@@ -125,27 +125,29 @@ That's it! Codify will install the packages, configure git, and set up your shel
 
 ```json
 [
-  {
-    "type": "homebrew",
-    "formulae": ["git", "postgresql", "redis"],
-    "casks": ["docker"]
-  },
-  {
-    "type": "nvm",
-    "nodeVersions": ["20.0.0", "18.0.0"],
-    "defaultVersion": "20.0.0"
-  },
-  {
-    "type": "git-repository",
-    "parentDirectory": "~/projects",
-    "repositories": [
-      "git@github.com:myorg/frontend.git",
-      "git@github.com:myorg/backend.git"
-    ]
-  },
-  {
-    "type": "vscode"
-  }
+   {
+      "type": "homebrew",
+      "formulae": ["postgresql@18", "redis"]
+   },
+   {
+      "type": "nvm",
+      "nodeVersions": ["20.0.0", "18.0.0"],
+      "global": "20.0.0"
+   },
+   {
+      "type": "git-repository",
+      "parentDirectory": "~/projects",
+      "repositories": [
+         "git@github.com:myorg/frontend.git",
+         "git@github.com:myorg/backend.git"
+      ]
+   },
+   {
+      "type": "vscode"
+   },
+   {
+      "type": "docker"
+   }
 ]
 ```
 
@@ -153,24 +155,21 @@ That's it! Codify will install the packages, configure git, and set up your shel
 
 ```json
 [
-  {
-    "type": "homebrew",
-    "formulae": ["python", "jupyter"]
-  },
-  {
-    "type": "pyenv",
-    "pythonVersions": ["3.11.0", "3.10.0"],
-    "global": "3.11.0"
-  },
-  {
-    "type": "pip",
-    "packages": ["pandas", "numpy", "matplotlib", "scikit-learn"]
-  },
-  {
-    "type": "venv-project",
-    "directory": "~/data-science",
-    "pythonVersion": "3.11.0"
-  }
+   {
+      "type": "pyenv",
+      "pythonVersions": ["3.11.0", "3.10.0"],
+      "global": "3.11.0"
+   },
+   {
+      "type": "pip",
+      "install": ["pandas", "numpy", "matplotlib", "scikit-learn"]
+   },
+   {
+      "type": "venv-project",
+      "envDir": ".venv",
+      "cwd": "~/data-science",
+      "automaticallyInstallRequirementsTxt": true
+   }
 ]
 ```
 
@@ -178,24 +177,27 @@ That's it! Codify will install the packages, configure git, and set up your shel
 
 ```json
 [
-  {
-    "type": "homebrew",
-    "formulae": ["terraform", "kubectl", "helm", "aws-cli"]
-  },
-  {
-    "type": "aws-profile",
-    "profileName": "production",
-    "region": "us-east-1"
-  },
-  {
-    "type": "docker",
-    "install": true
-  },
-  {
-    "type": "ssh-key",
-    "path": "~/.ssh/id_ed25519",
-    "type": "ed25519"
-  }
+   {
+      "type": "homebrew",
+      "formulae": ["kubernetes-cli", "helm"]
+   },
+   { "type": "aws-cli" },
+   {
+      "type": "aws-profile",
+      "profile": "production",
+      "awsAccessKeyId": "AKIA...",
+      "awsSecretAccessKey": "TOP_SECRET"
+   },
+   {
+      "type": "docker"
+   },
+   {
+      "type": "ssh-key",
+      "passphrase": ""
+   },
+   {
+      "type": "terraform"
+   }
 ]
 ```
 
@@ -203,28 +205,22 @@ That's it! Codify will install the packages, configure git, and set up your shel
 
 ```json
 [
-  {
-    "type": "aliases",
-    "aliases": [
-      { "alias": "g", "value": "git" },
-      { "alias": "d", "value": "docker" },
-      { "alias": "k", "value": "kubectl" },
-      { "alias": "tf", "value": "terraform" }
-    ]
-  },
-  {
-    "type": "path",
-    "paths": [
-      "/usr/local/bin",
-      "$HOME/.local/bin",
-      "$HOME/scripts"
-    ]
-  },
-  {
-    "type": "action",
-    "name": "update-system",
-    "script": "brew update && brew upgrade"
-  }
+   {
+      "type": "aliases",
+      "aliases": [
+         { "alias": "g", "value": "git" },
+         { "alias": "d", "value": "docker" },
+         { "alias": "k", "value": "kubectl" },
+         { "alias": "tf", "value": "terraform" }
+      ]
+   },
+   {
+      "type": "path",
+      "paths": [
+         "$HOME/.local/bin",
+         "$HOME/scripts"
+      ]
+   }
 ]
 ```
 
