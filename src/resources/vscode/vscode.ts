@@ -17,8 +17,7 @@ import Schema from './vscode-schema.json';
 
 const VSCODE_APPLICATION_NAME = 'Visual Studio Code.app';
 
-const DOWNLOAD_URL_BASE = 'https://code.visualstudio.com/sha/download';
-const DOWNLOAD_LINK_MACOS = 'https://code.visualstudio.com/sha/download?build=stable&os=darwin-universal';
+const DOWNLOAD_URL = (platform: string) => `https://update.code.visualstudio.com/latest/${platform}/stable`;
 
 export interface VscodeConfig extends ResourceConfig {
   directory: string;
@@ -109,7 +108,7 @@ export class VscodeResource extends Resource<VscodeConfig> {
 
     try {
       // Download vscode
-      await $.spawn(`curl -H "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36" -SL "${DOWNLOAD_LINK_MACOS}" -o vscode.zip`, { cwd: temporaryDir });
+      await $.spawn(`curl -H "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36" -SL "${DOWNLOAD_URL('darwin-universal')}" -o vscode.zip`, { cwd: temporaryDir });
       await $.spawn('unzip -q vscode.zip', { cwd: temporaryDir });
 
       // Move VSCode to the applications folder
@@ -129,7 +128,7 @@ export class VscodeResource extends Resource<VscodeConfig> {
     const isArm = await Utils.isArmArch();
 
     if (Utils.isDebianBased()) {
-      const downloadLink = DOWNLOAD_URL_BASE + (isArm ? '?build=stable&os=linux-deb-arm64' : '?build=stable&os=linux-deb-x64');
+      const downloadLink = DOWNLOAD_URL(isArm ? 'linux-deb-arm64' : 'linux-deb-x64');
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-'));
       const vscodeDebPath = path.join(tmpDir, 'vscode.deb');
 
