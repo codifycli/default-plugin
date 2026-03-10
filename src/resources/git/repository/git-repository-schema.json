@@ -33,6 +33,7 @@
   "additionalProperties": false,
   "oneOf": [
     { "required": ["repository", "directory"] },
+    { "required": ["repository", "parentDirectory"] },
     { "required": ["repositories", "parentDirectory"] }
   ]
 }

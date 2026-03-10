@@ -63,8 +63,10 @@ export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Arra
   async modify(newValue: (NpmPackage | string)[], previousValue: (NpmPackage | string)[], plan: Plan<NpmConfig>): Promise<void> {
     const toInstall = newValue.filter((n) => !previousValue.some((p) => this.isSamePackage(n, p)));
     const toUninstall = previousValue.filter((p) => !newValue.some((n) => this.isSamePackage(n, p)));
-    
-    await this.uninstall(toUninstall);
+
+    if (plan.isStateful && toUninstall.length > 0) {
+      await this.uninstall(toUninstall);
+    }
     await this.install(toInstall);
   }
 
@@ -86,6 +88,10 @@ export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Arra
       return p.name;
     })
 
+    if (installStatements.length === 0) {
+      return;
+    }
+
     await $.spawn(`npm install --global ${installStatements.join(' ')}`, { interactive: true });
   }
 
@@ -98,6 +104,10 @@ export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Arra
 
       return p.name;
     })
+
+    if (uninstallStatements.length === 0) {
+      return;
+    }
 
     await $.spawn(`npm uninstall --global ${uninstallStatements.join(' ')}`, { interactive: true });
   }
