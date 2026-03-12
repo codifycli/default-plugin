@@ -63,7 +63,7 @@ export class SshAddResource extends Resource<SshAddConfig> {
     
     let appleUseKeychain: boolean | undefined;
     if (parameters.appleUseKeychain) {
-      appleUseKeychain = Utils.isMacOS() ? (await this.isKeyLoadedInKeychain(sshPath)) : parameters.appleUseKeychain;
+      appleUseKeychain = (Utils.isMacOS() && !(await this.isInsideVM())) ? (await this.isKeyLoadedInKeychain(sshPath)) : parameters.appleUseKeychain;
     }
 
     return {
@@ -109,10 +109,13 @@ export class SshAddResource extends Resource<SshAddConfig> {
       return false;
     }
 
-
-   const $ = getPty();
+    const $ = getPty();
     const { data: keychainKeys, status } = await $.spawnSafe('/usr/bin/ssh-add --apple-load-keychain', { interactive: true });
     if (status === SpawnStatus.ERROR) {
+      return false;
+    }
+
+    if (keychainKeys.includes('No identity found')) {
       return false;
     }
 
@@ -120,10 +123,27 @@ export class SshAddResource extends Resource<SshAddConfig> {
       .split(/\n/)
       .filter(Boolean)
       .map((l) => {
-        const [line, path, comment] = l.trim().match(APPLE_KEYCHAIN_REGEX) ?? [];
-        return { line, path, comment };
+        const result = l.trim().match(APPLE_KEYCHAIN_REGEX) ?? [];
+        if (result.length < 3) {
+          return undefined;
+        }
+
+        return { line: result[0], path: result[1], comment: result[2] };
       })
-      .some((result) => path.resolve(keyPath) === path.resolve(result.path))
+      .filter(Boolean)
+      .some((result) => path.resolve(keyPath) === path.resolve(result!.path))
+  }
+
+  /**
+   * Check if the script is currently executing inside a VM. Tart VM's don't work properly with apple keychain currently.
+   * We're introducing a HACK to skip out on the keychain check if inside a VM.
+   * @private
+   */
+  private async isInsideVM(): Promise<boolean> {
+    const $ = getPty();
+    const { data: model } = await $.spawnSafe('sysctl -n hw.model')
+
+    return model.includes('VirtualMac');
   }
 
 }
