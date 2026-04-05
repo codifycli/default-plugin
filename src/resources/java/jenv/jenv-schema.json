@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/jenv.json",
-  "$comment": "https://docs.codifycli.com/core-resources/jenv/",
+  "$comment": "https://codifycli.com/docs/core-resources/jenv/",
   "title": "Jenv resource",
   "type": "object",
   "description": "Install jenv and manage Java versions using jenv. Jenv cannot install Java directly, it needs to be installed separately and added to Jenv.",

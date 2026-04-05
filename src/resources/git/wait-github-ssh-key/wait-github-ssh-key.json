@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/wait-github-ssh-key.json",
-  "$comment": "https://docs.codifycli.com/core-resources/git/git-repository/",
+  "$comment": "https://codifycli.com/docs/core-resources/git/git-repository/",
   "title": "Wait github ssh key",
   "description": "Allow users to add their ssh-keys to github.",
   "type": "object",

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/ssh-add.json",
-  "$comment": "https://docs.codifycli.com/core-resources/ssh/ssh-add/",
+  "$comment": "https://codifycli.com/docs/core-resources/ssh/ssh-add/",
   "title": "Ssh add resource",
   "description": "Adds ssh private keys to the ssh agent.",
   "type": "object",

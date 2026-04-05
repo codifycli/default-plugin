@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/git.json",
-  "$comment": "https://docs.codifycli.com/core-resources/git/git/",
+  "$comment": "https://codifycli.com/docs/core-resources/git/git/",
   "title": "Git resource",
   "description": "Set and manage global git settings (email and username)",
   "type": "object",
