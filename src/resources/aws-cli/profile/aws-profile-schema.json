@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/aws-profile.json",
-  "$comment": "https://codifycli.com/docs/core-resources/aws-profile/",
+  "$comment": "https://codifycli.com/docs/resources/aws-profile/",
   "title": "Aws-CLI configure resource",
   "type": "object",
   "description": "Configures AWS profiles.",

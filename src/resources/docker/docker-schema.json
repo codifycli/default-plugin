@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/docker.json",
-  "$comment": "https://codifycli.com/docs/core-resources/docker/",
+  "$comment": "https://codifycli.com/docs/resources/docker/",
   "title": "Docker resource",
   "type": "object",
   "description": "Installs docker.",

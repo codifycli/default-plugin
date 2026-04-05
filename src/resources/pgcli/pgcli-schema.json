@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/pgcli.json",
-  "$comment": "https://codifycli.com/docs/core-resources/pgcli/",
+  "$comment": "https://codifycli.com/docs/resources/pgcli/",
   "title": "Pgcli resource",
   "type": "object",
   "description": "Installs pgcli.",

@@ -14,7 +14,7 @@ const schema = z.object({
         'Forces the resource to only create the file if it doesn\'t exist but don\'t detect any content changes.'
       )
       .optional()
-  })
+  })    .meta({ $comment: 'https://codifycli.com/docs/resources/scripting/file' })
 
 type FileConfig = z.infer<typeof schema>;
 

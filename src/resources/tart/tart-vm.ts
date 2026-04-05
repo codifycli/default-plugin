@@ -33,7 +33,7 @@ const schema = z.object({
     .number()
     .describe('The disk size in GB. Disk size can only be increased and not decreased')
     .optional(),
-});
+}).meta({ $comment: 'https://codifycli.com/docs/resources/tart/tart-vm' });
 
 export type TartVmConfig = z.infer<typeof schema>;
 

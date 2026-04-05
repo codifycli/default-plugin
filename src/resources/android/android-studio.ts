@@ -21,7 +21,8 @@ export const schema = z.object({
       'The directory to install Android Studios into. Defaults to /Applications'
     )
     .optional(),
-})
+}).meta({ $comment: 'https://codifycli.com/docs/resources/android-studio' })
+
 export type AndroidStudioConfig = z.infer<typeof schema>;
 
 export class AndroidStudioResource extends Resource<AndroidStudioConfig> {

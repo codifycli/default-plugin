@@ -26,7 +26,7 @@ const schema = z.object({
     .string()
     .describe('The directory to run the install command')
     .optional(),
-});
+}).meta({ $comment: 'https://codifycli.com/docs/resources/asdf/asdf-install' });
 
 export type AsdfInstallConfig = z.infer<typeof schema>;
 const CURRENT_VERSION_REGEX = /^([^ ]+?)\s+([^ ]+?)\s+.*/;

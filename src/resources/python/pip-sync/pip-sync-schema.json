@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/pip-sync.json",
-  "$comment": "https://codifycli.com/docs/core-resources/python/pip-sync/",
+  "$comment": "https://codifycli.com/docs/resources/python/pip-sync/",
   "title": "Pip-sync resource",
   "type": "object",
   "description": "Install and manage though pip-tools by installing + uninstalling packages using pip-sync",

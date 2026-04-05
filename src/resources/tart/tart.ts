@@ -40,7 +40,7 @@ const schema = z.object({
   )
     .describe('The image to clone. This is a stateful parameter that controls which images are cloned. Can be a string (clone directly) or an object with sourceName and name.')
     .optional(),
-});
+}).meta({ $comment: 'https://codifycli.com/docs/resources/tart/tart' });
 
 export type TartConfig = z.infer<typeof schema>;
 

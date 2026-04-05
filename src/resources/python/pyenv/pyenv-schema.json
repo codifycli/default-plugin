@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/pyenv.json",
-  "$comment": "https://codifycli.com/docs/core-resources/python/pyenv/",
+  "$comment": "https://codifycli.com/docs/resources/python/pyenv/",
   "title": "Pyenv resource",
   "type": "object",
   "description": "Install and manage Python versions using pyenv.",

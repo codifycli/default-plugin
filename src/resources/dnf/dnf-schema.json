@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/dnf.json",
-  "$comment": "https://codifycli.com/docs/core-resources/dnf/",
+  "$comment": "https://codifycli.com/docs/resources/dnf/",
   "title": "Dnf resource",
   "description": "Manage dnf packages on modern Red Hat-based systems.",
   "type": "object",

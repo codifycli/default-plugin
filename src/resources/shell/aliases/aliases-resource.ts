@@ -32,7 +32,7 @@ export const schema = z.object({
     .describe('Aliases to create')
     .optional(),
   declarationsOnly: z.boolean().optional(),
-})
+}).meta({ $comment: 'https://codifycli.com/docs/resources/shell/aliases' })
 
 export type AliasesConfig = z.infer<typeof schema>;
 export class AliasesResource extends Resource<AliasesConfig> {

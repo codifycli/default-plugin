@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/git-lfs.json",
-  "$comment": "https://codifycli.com/docs/core-resources/git/git-lfs/",
+  "$comment": "https://codifycli.com/docs/resources/git/git-lfs/",
   "title": "Git-LFS resource",
   "description": "Installs git-lfs. This resource will automatically activate git-lfs as well.",
   "type": "object",

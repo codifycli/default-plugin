@@ -14,7 +14,7 @@ const schema = z.object({
       'Asdf plugins to install. See: https://github.com/asdf-community for a full list'
     )
     .optional()
-})
+}).meta({ $comment: 'https://codifycli.com/docs/resources/asdf/asdf' });
 
 export type AsdfConfig = z.infer<typeof schema>
 

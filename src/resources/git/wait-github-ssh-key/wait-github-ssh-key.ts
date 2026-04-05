@@ -69,7 +69,7 @@ ${publicKeys.length > 0
 ${publicKeys.map((l, idx) => `${chalk.underline.italic(`key ${idx + 1}:\n`)}${l}`).join('\n')}  
 
 Paste one of the above key/keys into github and then press any key to continue.`
-  : 'No public keys were found in your .ssh folder. Please use a public key located elsewhere or visit: https://codifycli.com/docs/core-resources/ssh/ssh-key/ to generate an ssh key using Codify.'
+  : 'No public keys were found in your .ssh folder. Please use a public key located elsewhere or visit: https://codifycli.com/docs/resources/ssh/ssh-key/ to generate an ssh key using Codify.'
 }
 
 For additional information visit: ${chalk.underline('https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account')}`

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/apt.json",
-  "$comment": "https://codifycli.com/docs/core-resources/apt/",
+  "$comment": "https://codifycli.com/docs/resources/apt/",
   "title": "Apt resource",
   "description": "Manage apt packages on Debian-based systems.",
   "type": "object",

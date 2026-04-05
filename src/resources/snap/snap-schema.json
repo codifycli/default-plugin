@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/snap.json",
-  "$comment": "https://codifycli.com/docs/core-resources/snap/",
+  "$comment": "https://codifycli.com/docs/resources/snap/",
   "title": "Snap resource",
   "description": "Manage snap packages on Linux systems.",
   "type": "object",

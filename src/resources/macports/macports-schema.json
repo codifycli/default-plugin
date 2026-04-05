@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/macports.json",
-  "$comment": "https://codifycli.com/docs/core-resources/macports/",
+  "$comment": "https://codifycli.com/docs/resources/macports/",
   "title": "Macports resource",
   "description": "Install macports and manage packages.",
   "type": "object",

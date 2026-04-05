@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/npm.json",
-  "$comment": "https://codifycli.com/docs/core-resources/javascript/npm/",
+  "$comment": "https://codifycli.com/docs/resources/javascript/npm/",
   "title": "Npm resource",
   "description": "Install and manage packages using NPM.",
   "type": "object",

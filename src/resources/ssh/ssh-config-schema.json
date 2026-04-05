@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/ssh-config.json",
-  "$comment": "https://codifycli.com/docs/core-resources/ssh/ssh-config/",
+  "$comment": "https://codifycli.com/docs/resources/ssh/ssh-config/",
   "title": "Ssh config resource",
   "description": "Configures the ssh config file.",
   "type": "object",
