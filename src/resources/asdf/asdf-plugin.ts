@@ -22,7 +22,8 @@ const schema = z
       .string()
       .describe('The gitUrl of the plugin')
       .optional()
-  }).meta({ $comment: 'https://codifycli.com/docs/resources/asdf/asdf-plugin' });
+  }).meta({ $comment: 'https://codifycli.com/docs/resources/asdf/asdf-plugin' })
+    .describe('Asdf plugin resource for installing asdf plugins.');
 export type AsdfPluginConfig = z.infer<typeof schema>;
 
 const PLUGIN_LIST_REGEX = /^([^ ]+?)\s+([^ ]+)/
