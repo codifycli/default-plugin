@@ -30,6 +30,7 @@ import { UvResource } from './resources/python/uv/uv.js';
 import { VenvProject } from './resources/python/venv/venv-project.js';
 import { Virtualenv } from './resources/python/virtualenv/virtualenv.js';
 import { VirtualenvProject } from './resources/python/virtualenv/virtualenv-project.js';
+import { RbenvResource } from './resources/ruby/rbenv/rbenv.js';
 import { ActionResource } from './resources/scripting/action.js';
 import { AliasResource } from './resources/shell/alias/alias-resource.js';
 import { AliasesResource } from './resources/shell/aliases/aliases-resource.js';
@@ -92,5 +93,6 @@ runPlugin(Plugin.create(
     new SnapResource(),
     new TartResource(),
     new TartVmResource(),
+    new RbenvResource(),
   ])
 )
