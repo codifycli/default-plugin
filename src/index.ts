@@ -26,6 +26,7 @@ import { PgcliResource } from './resources/pgcli/pgcli.js';
 import { Pip } from './resources/python/pip/pip.js';
 import { PipSync } from './resources/python/pip-sync/pip-sync.js';
 import { PyenvResource } from './resources/python/pyenv/pyenv.js';
+import { UvResource } from './resources/python/uv/uv.js';
 import { VenvProject } from './resources/python/venv/venv-project.js';
 import { Virtualenv } from './resources/python/virtualenv/virtualenv.js';
 import { VirtualenvProject } from './resources/python/virtualenv/virtualenv-project.js';
@@ -54,6 +55,7 @@ runPlugin(Plugin.create(
     new AliasesResource(),
     new HomebrewResource(),
     new PyenvResource(),
+    new UvResource(),
     new GitLfsResource(),
     new AwsCliResource(),
     new AwsProfileResource(),
