@@ -1,7 +1,7 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 
-const toolName = 'rbenv';
-const toolHomepage = 'https://github.com/rbenv/rbenv'
+const toolName = 'ollama';
+const toolHomepage = 'https://github.com/ollama/ollama'
 
 const researchResults: string[] = [];
 

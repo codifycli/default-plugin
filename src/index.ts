@@ -22,6 +22,7 @@ import { NpmLoginResource } from './resources/javascript/npm/npm-login.js';
 import { NvmResource } from './resources/javascript/nvm/nvm.js';
 import { Pnpm } from './resources/javascript/pnpm/pnpm.js';
 import { MacportsResource } from './resources/macports/macports.js';
+import { OllamaResource } from './resources/ollama/ollama.js';
 import { PgcliResource } from './resources/pgcli/pgcli.js';
 import { Pip } from './resources/python/pip/pip.js';
 import { PipSync } from './resources/python/pip-sync/pip-sync.js';
@@ -93,6 +94,7 @@ runPlugin(Plugin.create(
     new SnapResource(),
     new TartResource(),
     new TartVmResource(),
+    new OllamaResource(),
     new RbenvResource(),
   ])
 )
