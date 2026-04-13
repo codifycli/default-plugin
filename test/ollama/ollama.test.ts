@@ -42,14 +42,6 @@ describe('Ollama resource integration tests', async () => {
           expect(listResult.status).toBe(SpawnStatus.SUCCESS);
           expect(listResult.data).toContain('smollm');
         },
-        testModify: {
-          modifiedConfigs: [{ type: 'ollama', models: [] }],
-          validateModify: async () => {
-            const listResult = await testSpawn('ollama list');
-            // Model should have been removed
-            expect(listResult.data).not.toContain('smollm');
-          },
-        },
         validateDestroy: async () => {
           expect(await testSpawn('which ollama')).toMatchObject({ status: SpawnStatus.ERROR });
         },

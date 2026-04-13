@@ -1,6 +1,27 @@
 import { ArrayStatefulParameter, getPty, Plan, SpawnStatus } from '@codifycli/plugin-core';
 
+import { Utils } from '../../utils/index.js';
 import { OllamaConfig } from './ollama.js';
+
+async function ensureOllamaServerRunning(): Promise<void> {
+  const $ = getPty();
+
+  // Check if the server is already reachable
+  const { status } = await $.spawnSafe('ollama list');
+  if (status === SpawnStatus.SUCCESS) {
+    return;
+  }
+
+  // Start the server as a background service
+  if (Utils.isMacOS()) {
+    await $.spawn('brew services start ollama', { interactive: true });
+  } else {
+    await $.spawn('sudo systemctl start ollama', { interactive: true });
+  }
+
+  // Give the server a moment to become ready
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+}
 
 export class ModelsParameter extends ArrayStatefulParameter<OllamaConfig, string> {
 
@@ -30,6 +51,7 @@ export class ModelsParameter extends ArrayStatefulParameter<OllamaConfig, string
 
   async addItem(item: string, _plan: Plan<OllamaConfig>): Promise<void> {
     const $ = getPty();
+    await ensureOllamaServerRunning();
     await $.spawn(`ollama pull ${item}`, { interactive: true });
   }
 
