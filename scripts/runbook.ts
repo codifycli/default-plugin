@@ -1,13 +1,16 @@
 import { query } from "@anthropic-ai/claude-agent-sdk";
 
-const toolName = 'ollama';
-const toolHomepage = 'https://github.com/ollama/ollama'
+const toolName = 'syncthing';
+const toolHomepage = 'https://docs.syncthing.net/'
+const description = 'Make sure that the resources created allow the usage and configuration of syncthing directly. Syncthing has a CLI so this should be possible.'
 
 const researchResults: string[] = [];
 
 for await (const message of query({
   prompt:
     `Research and design a Codify resource for ${toolName} (the homepage is: ${toolHomepage})
+    
+${description}
 
 The research should include:
 ** The installation method **
@@ -63,6 +66,8 @@ it can be easily understood by Claude.
 
 for await (const message of query({
   prompt: `Use the research results to design a Codify resource for ${toolName} (the homepage is: ${toolHomepage}).
+  
+${description}
   
 Guidelines:
 - Follow the other tools in the project under @src/resources/** as a guideline

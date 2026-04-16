@@ -37,6 +37,9 @@ import { AliasResource } from './resources/shell/alias/alias-resource.js';
 import { AliasesResource } from './resources/shell/aliases/aliases-resource.js';
 import { PathResource } from './resources/shell/path/path-resource.js';
 import { SnapResource } from './resources/snap/snap.js';
+import { SyncthingResource } from './resources/syncthing/syncthing.js';
+import { SyncthingDeviceResource } from './resources/syncthing/syncthing-device.js';
+import { SyncthingFolderResource } from './resources/syncthing/syncthing-folder.js';
 import { SshAddResource } from './resources/ssh/ssh-add.js';
 import { SshConfigFileResource } from './resources/ssh/ssh-config.js';
 import { SshKeyResource } from './resources/ssh/ssh-key.js';
@@ -95,6 +98,9 @@ runPlugin(Plugin.create(
     new TartResource(),
     new TartVmResource(),
     new OllamaResource(),
+    new SyncthingResource(),
+    new SyncthingDeviceResource(),
+    new SyncthingFolderResource(),
     new RbenvResource(),
   ])
 )
