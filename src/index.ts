@@ -22,13 +22,16 @@ import { NpmLoginResource } from './resources/javascript/npm/npm-login.js';
 import { NvmResource } from './resources/javascript/nvm/nvm.js';
 import { Pnpm } from './resources/javascript/pnpm/pnpm.js';
 import { MacportsResource } from './resources/macports/macports.js';
+import { OllamaResource } from './resources/ollama/ollama.js';
 import { PgcliResource } from './resources/pgcli/pgcli.js';
 import { Pip } from './resources/python/pip/pip.js';
 import { PipSync } from './resources/python/pip-sync/pip-sync.js';
 import { PyenvResource } from './resources/python/pyenv/pyenv.js';
+import { UvResource } from './resources/python/uv/uv.js';
 import { VenvProject } from './resources/python/venv/venv-project.js';
 import { Virtualenv } from './resources/python/virtualenv/virtualenv.js';
 import { VirtualenvProject } from './resources/python/virtualenv/virtualenv-project.js';
+import { RbenvResource } from './resources/ruby/rbenv/rbenv.js';
 import { ActionResource } from './resources/scripting/action.js';
 import { AliasResource } from './resources/shell/alias/alias-resource.js';
 import { AliasesResource } from './resources/shell/aliases/aliases-resource.js';
@@ -54,6 +57,7 @@ runPlugin(Plugin.create(
     new AliasesResource(),
     new HomebrewResource(),
     new PyenvResource(),
+    new UvResource(),
     new GitLfsResource(),
     new AwsCliResource(),
     new AwsProfileResource(),
@@ -90,5 +94,7 @@ runPlugin(Plugin.create(
     new SnapResource(),
     new TartResource(),
     new TartVmResource(),
+    new OllamaResource(),
+    new RbenvResource(),
   ])
 )
