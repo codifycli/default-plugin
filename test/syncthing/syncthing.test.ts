@@ -58,13 +58,13 @@ describe('Syncthing resource integration tests', async () => {
           });
 
           const announceResult = await testSpawn(
-            'syncthing cli config options globalAnnounceEnabled get'
+            'syncthing cli config options global-ann-enabled get'
           );
           expect(announceResult.status).toBe(SpawnStatus.SUCCESS);
           expect(announceResult.data.trim()).toBe('false');
 
           const relaysResult = await testSpawn(
-            'syncthing cli config options relaysEnabled get'
+            'syncthing cli config options relays-enabled get'
           );
           expect(relaysResult.status).toBe(SpawnStatus.SUCCESS);
           expect(relaysResult.data.trim()).toBe('false');
@@ -94,7 +94,7 @@ describe('Syncthing resource integration tests', async () => {
       {
         validateApply: async () => {
           const relaysResult = await testSpawn(
-            'syncthing cli config options relaysEnabled get'
+            'syncthing cli config options relays-enabled get'
           );
           expect(relaysResult.data.trim()).toBe('true');
         },
@@ -109,12 +109,12 @@ describe('Syncthing resource integration tests', async () => {
           ],
           validateModify: async () => {
             const relaysResult = await testSpawn(
-              'syncthing cli config options relaysEnabled get'
+              'syncthing cli config options relays-enabled get'
             );
             expect(relaysResult.data.trim()).toBe('false');
 
             const bwResult = await testSpawn(
-              'syncthing cli config options maxSendKbps get'
+              'syncthing cli config options max-send-kbps get'
             );
             expect(bwResult.data.trim()).toBe('1024');
           },
@@ -144,7 +144,7 @@ describe('Syncthing resource integration tests', async () => {
           id: 'codify-test',
           path: testFolderPath,
           label: 'Codify Test Folder',
-          type: 'sendreceive',
+          folderType: 'sendreceive',
           fsWatcherEnabled: false,
           rescanIntervalS: 3600,
           maxConflicts: 0,

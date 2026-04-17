@@ -27,7 +27,7 @@ const schema = z
       .string()
       .optional()
       .describe('Human-readable display name for this folder'),
-    type: z
+    folderType: z
       .enum(FOLDER_TYPES)
       .optional()
       .describe('Folder sync type: sendreceive (default), sendonly, receiveonly, or receiveencrypted'),
@@ -87,7 +87,7 @@ export class SyncthingFolderResource extends Resource<SyncthingFolderConfig> {
       parameterSettings: {
         path: { type: 'directory', canModify: false },
         label: { type: 'string', canModify: true },
-        type: { type: 'string', canModify: true },
+        folderType: { type: 'string', canModify: true },
         devices: { type: 'array', canModify: true },
         fsWatcherEnabled: { type: 'boolean', canModify: true },
         rescanIntervalS: { type: 'number', canModify: true },
@@ -227,7 +227,7 @@ function folderFromRaw(raw: RawFolder): Partial<SyncthingFolderConfig> {
     id: raw.id,
     label: raw.label || undefined,
     path: raw.path,
-    type: raw.type as SyncthingFolderConfig['type'],
+    folderType: raw.type as SyncthingFolderConfig['folderType'],
     devices: raw.devices.map((d) => d.deviceID),
     fsWatcherEnabled: raw.fsWatcherEnabled,
     rescanIntervalS: raw.rescanIntervalS,
@@ -239,9 +239,9 @@ function folderFromRaw(raw: RawFolder): Partial<SyncthingFolderConfig> {
 function folderOptionCliPath(key: keyof SyncthingFolderConfig): string | undefined {
   const map: Partial<Record<keyof SyncthingFolderConfig, string>> = {
     label: 'label',
-    type: 'type',
-    fsWatcherEnabled: 'fsWatcherEnabled',
-    rescanIntervalS: 'rescanIntervalS',
+    folderType: 'type',
+    fsWatcherEnabled: 'fswatcher-enabled',
+    rescanIntervalS: 'rescan-intervals',
     maxConflicts: 'maxConflicts',
     paused: 'paused',
   };
@@ -254,11 +254,11 @@ function buildFolderAddArgs(config: Partial<SyncthingFolderConfig>): string {
   if (config.id) parts.push(`--id ${config.id}`);
   if (config.path) parts.push(`--path "${config.path}"`);
   if (config.label) parts.push(`--label "${config.label}"`);
-  if (config.type) parts.push(`--type ${config.type}`);
+  if (config.folderType) parts.push(`--type ${config.folderType}`);
   if (config.fsWatcherEnabled !== undefined)
-    parts.push(`--fs-watcher-enabled=${config.fsWatcherEnabled}`);
+    parts.push(config.fsWatcherEnabled ? '--fswatcher-enabled' : '--fswatcher-enabled=false');
   if (config.rescanIntervalS !== undefined)
-    parts.push(`--rescan-interval-s ${config.rescanIntervalS}`);
+    parts.push(`--rescan-intervals ${config.rescanIntervalS}`);
   if (config.maxConflicts !== undefined) parts.push(`--max-conflicts ${config.maxConflicts}`);
   if (config.paused !== undefined) parts.push(`--paused=${config.paused}`);
 

@@ -75,16 +75,17 @@ const schema = z
 export type SyncthingConfig = z.infer<typeof schema>;
 
 // Maps schema key → syncthing CLI config path (without trailing "get/set <value>")
+// Syncthing v2 uses kebab-case subcommands
 const OPTION_CLI_PATHS: Partial<Record<keyof SyncthingConfig, string>> = {
-  guiAddress: 'gui address',
-  globalAnnounceEnabled: 'options globalAnnounceEnabled',
-  localAnnounceEnabled: 'options localAnnounceEnabled',
-  relaysEnabled: 'options relaysEnabled',
-  natEnabled: 'options natEnabled',
-  maxSendKbps: 'options maxSendKbps',
-  maxRecvKbps: 'options maxRecvKbps',
-  startBrowser: 'options startBrowser',
-  urAccepted: 'options urAccepted',
+  guiAddress: 'gui raw-address',
+  globalAnnounceEnabled: 'options global-ann-enabled',
+  localAnnounceEnabled: 'options local-ann-enabled',
+  relaysEnabled: 'options relays-enabled',
+  natEnabled: 'options natenabled',
+  maxSendKbps: 'options max-send-kbps',
+  maxRecvKbps: 'options max-recv-kbps',
+  startBrowser: 'options start-browser',
+  urAccepted: 'options uraccepted',
 };
 
 export class SyncthingResource extends Resource<SyncthingConfig> {
@@ -122,15 +123,15 @@ export class SyncthingResource extends Resource<SyncthingConfig> {
 
     // Option values can only be fetched when the daemon is running
     if (await isDaemonRunning()) {
-      result.guiAddress = await getCliConfigValue('gui address');
-      result.globalAnnounceEnabled = await getCliConfigBool('options globalAnnounceEnabled');
-      result.localAnnounceEnabled = await getCliConfigBool('options localAnnounceEnabled');
-      result.relaysEnabled = await getCliConfigBool('options relaysEnabled');
-      result.natEnabled = await getCliConfigBool('options natEnabled');
-      result.maxSendKbps = await getCliConfigNumber('options maxSendKbps');
-      result.maxRecvKbps = await getCliConfigNumber('options maxRecvKbps');
-      result.startBrowser = await getCliConfigBool('options startBrowser');
-      result.urAccepted = await getCliConfigNumber('options urAccepted');
+      result.guiAddress = await getCliConfigValue('gui raw-address');
+      result.globalAnnounceEnabled = await getCliConfigBool('options global-ann-enabled');
+      result.localAnnounceEnabled = await getCliConfigBool('options local-ann-enabled');
+      result.relaysEnabled = await getCliConfigBool('options relays-enabled');
+      result.natEnabled = await getCliConfigBool('options natenabled');
+      result.maxSendKbps = await getCliConfigNumber('options max-send-kbps');
+      result.maxRecvKbps = await getCliConfigNumber('options max-recv-kbps');
+      result.startBrowser = await getCliConfigBool('options start-browser');
+      result.urAccepted = await getCliConfigNumber('options uraccepted');
     }
 
     return result;

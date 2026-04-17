@@ -44,7 +44,7 @@ export async function getCliConfigValue(cliPath: string): Promise<string | undef
  */
 export async function setCliConfigValue(cliPath: string, value: string): Promise<void> {
   const $ = getPty();
-  await $.spawn(`syncthing cli config ${cliPath} set ${value}`, { interactive: true });
+  await $.spawn(`syncthing cli config ${cliPath} set -- ${value}`, { interactive: true });
 }
 
 /** Reads a boolean config value; returns undefined when unavailable. */
