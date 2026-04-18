@@ -123,6 +123,10 @@ async function launchPersistentVm(operatingSystem: string) {
 
   const { data: ipAddr } = await testSpawn(`tart ip ${newVmName}`);
   await testSpawn(`sshpass -p "admin" rsync -avz -e 'ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.fleet' ${process.cwd()} admin@${ipAddr}:~`);
+  if (operatingSystem === 'darwin') {
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "mv ~/.zprofile ~/.zshenv"`);
+  }
+
   await testSpawn(`tart exec ${newVmName} ${shell} -i -c "cd ~/codify-homebrew-plugin && npm ci"`);
   console.log('Finished installing dependencies. Start tests in a new terminal window.');
 

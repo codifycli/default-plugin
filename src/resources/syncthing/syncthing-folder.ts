@@ -5,9 +5,9 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings,
-  SpawnStatus,
   getPty,
   z,
+  SpawnStatus,
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 
@@ -162,27 +162,7 @@ export class SyncthingFolderResource extends Resource<SyncthingFolderConfig> {
   private async fetchFolder(folderId: string): Promise<RawFolder | null> {
     const $ = getPty();
 
-    // Verify the folder ID exists in the configured list
-    const { status: listStatus, data: listData } = await $.spawnSafe(
-      'syncthing cli config folders list'
-    );
-    if (listStatus !== SpawnStatus.SUCCESS) {
-      return null;
-    }
-
-    let ids: string[];
-    try {
-      ids = JSON.parse(listData) as string[];
-    } catch {
-      return null;
-    }
-
-    if (!ids.includes(folderId)) {
-      return null;
-    }
-
-    // Fetch the full folder configuration
-    const { status, data } = await $.spawnSafe(`syncthing cli config folders ${folderId}`);
+    const { status, data } = await $.spawnSafe(`syncthing cli config folders ${folderId} dump-json`);
     if (status !== SpawnStatus.SUCCESS) {
       return null;
     }

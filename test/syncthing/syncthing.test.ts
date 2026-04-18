@@ -155,8 +155,7 @@ describe('Syncthing resource integration tests', async () => {
           const listResult = await testSpawn('syncthing cli config folders list');
           expect(listResult.status).toBe(SpawnStatus.SUCCESS);
 
-          const ids: string[] = JSON.parse(listResult.data);
-          expect(ids).toContain('codify-test');
+          expect(listResult.data).toContain('codify-test');
         },
         validateDestroy: async () => {
           expect(await testSpawn('which syncthing')).toMatchObject({
@@ -173,7 +172,7 @@ describe('Syncthing resource integration tests', async () => {
 
   it('Can add and remove a remote device', { timeout: 300_000 }, async () => {
     // Use a deterministic but fictitious device ID that Syncthing will accept
-    const testDeviceId = 'AAAAAAA-BBBBBBB-CCCCCCC-DDDDDDD-EEEEEEE-FFFFFFF-GGGGGGG-HHHHHHH';
+    const testDeviceId = 'MFZWI3D-BONSGYC-YLTMRWG-C43ENR5-QXGZDMM-FZWI3DP-BONSGYY-LTMRWAD';
 
     await PluginTester.fullTest(
       pluginPath,
@@ -182,7 +181,7 @@ describe('Syncthing resource integration tests', async () => {
         {
           type: 'syncthing-device',
           deviceId: testDeviceId,
-          name: 'Codify Test Device',
+          deviceName: 'Codify Test Device',
           addresses: ['dynamic'],
           autoAcceptFolders: false,
           compression: 'metadata',
@@ -193,8 +192,7 @@ describe('Syncthing resource integration tests', async () => {
           const listResult = await testSpawn('syncthing cli config devices list');
           expect(listResult.status).toBe(SpawnStatus.SUCCESS);
 
-          const ids: string[] = JSON.parse(listResult.data);
-          expect(ids).toContain(testDeviceId);
+          expect(listResult.data).toContain(testDeviceId);
         },
         validateDestroy: async () => {
           expect(await testSpawn('which syncthing')).toMatchObject({

@@ -18,7 +18,7 @@ const schema = z
     deviceId: z
       .string()
       .describe('The Syncthing device ID (e.g. XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX)'),
-    name: z
+    deviceName: z
       .string()
       .optional()
       .describe('Human-readable label for this device'),
@@ -79,7 +79,7 @@ export class SyncthingDeviceResource extends Resource<SyncthingDeviceConfig> {
         identifyingParameters: ['deviceId'],
       },
       parameterSettings: {
-        name: { type: 'string', canModify: true },
+        deviceName: { type: 'string', canModify: true },
         addresses: { type: 'array', canModify: true },
         autoAcceptFolders: { type: 'boolean', canModify: true },
         paused: { type: 'boolean', canModify: true },
@@ -107,10 +107,10 @@ export class SyncthingDeviceResource extends Resource<SyncthingDeviceConfig> {
 
   async create(plan: CreatePlan<SyncthingDeviceConfig>): Promise<void> {
     const $ = getPty();
-    const { deviceId, name, addresses, autoAcceptFolders, paused, compression, maxSendKbps, maxRecvKbps } =
+    const { deviceId, deviceName, addresses, autoAcceptFolders, paused, compression, maxSendKbps, maxRecvKbps } =
       plan.desiredConfig;
 
-    const args = buildDeviceAddArgs({ deviceId, name, addresses, autoAcceptFolders, paused, compression, maxSendKbps, maxRecvKbps });
+    const args = buildDeviceAddArgs({ deviceId, deviceName, addresses, autoAcceptFolders, paused, compression, maxSendKbps, maxRecvKbps });
     await $.spawn(`syncthing cli config devices add ${args}`, { interactive: true });
   }
 
@@ -150,19 +150,14 @@ export class SyncthingDeviceResource extends Resource<SyncthingDeviceConfig> {
       return null;
     }
 
-    let ids: string[];
-    try {
-      ids = JSON.parse(listData) as string[];
-    } catch {
-      return null;
-    }
+    const ids = listData.split('\n').map((s) => s.trim()).filter(Boolean);
 
     if (!ids.includes(deviceId)) {
       return null;
     }
 
     // Fetch the full device configuration
-    const { status, data } = await $.spawnSafe(`syncthing cli config devices ${deviceId}`);
+    const { status, data } = await $.spawnSafe(`syncthing cli config devices ${deviceId} dump-json`);
     if (status !== SpawnStatus.SUCCESS) {
       return null;
     }
@@ -180,7 +175,7 @@ export class SyncthingDeviceResource extends Resource<SyncthingDeviceConfig> {
 function deviceFromRaw(raw: RawDevice): Partial<SyncthingDeviceConfig> {
   return {
     deviceId: raw.deviceID,
-    name: raw.name || undefined,
+    deviceName: raw.name || undefined,
     addresses: raw.addresses,
     compression: raw.compression as SyncthingDeviceConfig['compression'],
     autoAcceptFolders: raw.autoAcceptFolders,
@@ -192,7 +187,7 @@ function deviceFromRaw(raw: RawDevice): Partial<SyncthingDeviceConfig> {
 
 function deviceOptionCliPath(key: keyof SyncthingDeviceConfig): string | undefined {
   const map: Partial<Record<keyof SyncthingDeviceConfig, string>> = {
-    name: 'name',
+    deviceName: 'name',
     autoAcceptFolders: 'autoAcceptFolders',
     paused: 'paused',
     compression: 'compression',
@@ -206,7 +201,7 @@ function buildDeviceAddArgs(config: Partial<SyncthingDeviceConfig>): string {
   const parts: string[] = [];
 
   if (config.deviceId) parts.push(`--device-id ${config.deviceId}`);
-  if (config.name) parts.push(`--name "${config.name}"`);
+  if (config.deviceName) parts.push(`--name "${config.deviceName}"`);
   if (config.addresses?.length) parts.push(`--addresses ${config.addresses.join(',')}`);
   if (config.autoAcceptFolders !== undefined)
     parts.push(`--auto-accept-folders=${config.autoAcceptFolders}`);
