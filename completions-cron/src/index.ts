@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js'
-import { completionModules, type CompletionModule } from './completions-index.js'
+import { completionModules, type CompletionModule } from './__generated__/completions-index.js'
 
 const BATCH_SIZE = 1000
 

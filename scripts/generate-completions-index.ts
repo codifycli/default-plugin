@@ -6,7 +6,7 @@ import * as url from 'node:url'
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(__dirname, '..')
 const srcDir = path.resolve(repoRoot, 'src')
-const outputFile = path.resolve(repoRoot, 'completions-cron', 'src', 'completions-index.ts')
+const outputFile = path.resolve(repoRoot, 'completions-cron', 'src', '__generated__', 'completions-index.ts')
 
 const completionFiles = globSync('resources/**/completions/*.ts', {
   cwd: srcDir,
@@ -30,8 +30,8 @@ const modules = completionFiles.map((relPath, i) => {
   const resourceType = filename.substring(0, dotIndex)
   const parameterPath = '/' + filename.substring(dotIndex + 1)
 
-  // Path from completions-cron/src/ back to plugin src/resources/
-  const importPath = '../../src/' + relPath.replace(/\.ts$/, '.js')
+  // Path from completions-cron/src/__generated__/ back to plugin src/resources/
+  const importPath = '../../../src/' + relPath.replace(/\.ts$/, '.js')
   const importName = `mod${i}`
 
   return { importName, importPath, resourceType, parameterPath }

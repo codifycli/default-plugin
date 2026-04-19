@@ -283,6 +283,36 @@ Deployment (`scripts/deploy.ts`) uploads the built plugin to Cloudflare R2:
 - Production: `plugins/{name}/{version}/index.js`
 - Beta: `plugins/{name}/beta/index.js`
 
+## Completions System
+
+The Codify Editor supports auto-complete for certain resource parameters (e.g. Homebrew formula names, Node.js versions). These completions are pre-fetched by a Cloudflare Workers cron job that lives in `completions-cron/`.
+
+### Adding completions for a parameter
+
+1. Create `src/resources/<category>/<resource>/completions/<type>.<param>.ts`
+2. Export a default async function returning `Promise<string[]>` — fetch the values, return them, nothing else
+3. The filename determines the Supabase metadata automatically:
+   - `homebrew.formulae.ts` → `resource_type=homebrew`, `parameter_path=/formulae`
+4. Run `npm run build:completions` to regenerate the index
+
+```bash
+npm run build:completions   # regenerate completions-cron/src/__generated__/completions-index.ts
+npm run deploy:completions  # build + deploy to Cloudflare Workers
+```
+
+### How it fits together
+
+```
+src/resources/**/completions/*.ts   ← per-resource fetch scripts (return string[])
+        ↓  npm run build:completions
+completions-cron/src/__generated__/completions-index.ts   ← AUTO-GENERATED, do not edit
+completions-cron/src/index.ts       ← orchestrator: Supabase writes, scheduled handler
+        ↓  wrangler deploy
+Cloudflare Workers (runs daily at 05:00 UTC)
+```
+
+See `completions-cron/README.md` for full details.
+
 ## Key Patterns
 
 ### allowMultiple Configuration
@@ -402,9 +432,16 @@ The framework automatically validates dependencies exist and orders execution.
 **Build:**
 - `/scripts/build.ts` - Build process with schema collection
 - `/scripts/deploy.ts` - Deployment to Cloudflare R2
+- `/scripts/generate-completions-index.ts` - Generates completions-cron entry index
 - `/rollup.config.js` - Bundling configuration
 - `/tsconfig.json` - TypeScript config (ES2024, strict mode)
 - `/vitest.config.ts` - Test runner config
+
+**Completions cron:**
+- `/completions-cron/src/index.ts` - Cloudflare Workers scheduled handler
+- `/completions-cron/src/__generated__/completions-index.ts` - Auto-generated, do not edit
+- `/completions-cron/wrangler.toml` - Worker config (schedule, env vars)
+- `/completions-cron/README.md` - Full documentation
 
 **Testing:**
 - `/test/setup.ts` - Global test setup/teardown
