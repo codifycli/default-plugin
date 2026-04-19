@@ -14,6 +14,8 @@
     "test": "vitest",
     "rollup": "rollup -c",
     "build": "tsx ./scripts/build.ts",
+    "build:completions": "tsx ./scripts/generate-completions-index.ts",
+    "deploy:completions": "npm run build:completions && cd completions-cron && wrangler deploy",
     "deploy": "tsx ./scripts/deploy.ts",
     "deploy:beta": "BETA=true tsx ./scripts/deploy.ts",
     "testing": "codify-deploy"
@@ -66,7 +68,7 @@
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
-    "@types/chalk": "^2.2.0",
+"@types/chalk": "^2.2.0",
     "@types/commander": "^2.12.2",
     "@types/debug": "4.1.12",
     "@types/lodash.isequal": "^4.5.8",
