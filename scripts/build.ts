@@ -1,4 +1,5 @@
 import { JSONSchema } from '@apidevtools/json-schema-ref-parser';
+import { createRequire } from 'node:module';
 import { Ajv } from 'ajv';
 import { VerbosityLevel } from '@codifycli/plugin-core';
 import { SequentialPty } from '@codifycli/plugin-core/dist/pty/seqeuntial-pty';
@@ -97,9 +98,22 @@ await $.spawn('npm run rollup', { interactive: true }); // re-run rollup without
 
 console.log('Generated JSON Schemas for all resources')
 
+const require = createRequire(import.meta.url);
+const rawSchema = require('./raw-codify-schema.json');
+
+const codifySchema = {
+  ...rawSchema,
+  items: {
+    oneOf: [
+      ...rawSchema.items.oneOf,
+      ...mergedSchemas,
+    ]
+  }
+};
+
 const distFolder = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', 'dist');
 const schemaOutputPath = path.resolve(distFolder, 'schemas.json');
-fs.writeFileSync(schemaOutputPath, JSON.stringify(mergedSchemas, null, 2));
+fs.writeFileSync(schemaOutputPath, JSON.stringify(codifySchema, null, 2));
 
 console.log('Successfully wrote schema to ./dist/schemas.json')
 

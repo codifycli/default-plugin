@@ -1,6 +1,6 @@
 {
   "name": "default",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "description": "Default plugin for Codify - provides 50+ declarative resources for managing development tools and system configuration across macOS and Linux",
   "main": "dist/index.js",
   "scripts": {
@@ -68,7 +68,8 @@
     "@rollup/plugin-replace": "^6.0.2",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
-"@types/chalk": "^2.2.0",
+    "@supabase/supabase-js": "^2.103.3",
+    "@types/chalk": "^2.2.0",
     "@types/commander": "^2.12.2",
     "@types/debug": "4.1.12",
     "@types/lodash.isequal": "^4.5.8",
@@ -78,6 +79,7 @@
     "@types/semver": "^7.5.4",
     "@types/uuid": "10.0.0",
     "commander": "^12.1.0",
+    "dotenv": "^17.4.2",
     "eslint": "^10.0.3",
     "eslint-config-oclif": "^6.0.156",
     "eslint-config-prettier": "^10.1.8",
