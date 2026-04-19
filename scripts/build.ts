@@ -63,6 +63,7 @@ const { resourceDefinitions } = initializeResult;
 const resourceTypes = resourceDefinitions.map((i) => i.type);
 
 const schemasMap = new Map<string, JSONSchema>()
+const metadataList: Record<string, unknown>[] = [];
 for (const type of resourceTypes) {
   const resourceInfo = await sendMessageAndAwaitResponse(plugin, {
     cmd: 'getResourceInfo',
@@ -70,6 +71,9 @@ for (const type of resourceTypes) {
   })
 
   schemasMap.set(type, resourceInfo.schema);
+
+  const { schema: _schema, ...metadataWithoutSchema } = resourceInfo;
+  metadataList.push(metadataWithoutSchema);
 }
 
 const mergedSchemas = [...schemasMap.entries()].map(([type, schema]) => {
@@ -116,6 +120,10 @@ const schemaOutputPath = path.resolve(distFolder, 'schemas.json');
 fs.writeFileSync(schemaOutputPath, JSON.stringify(codifySchema, null, 2));
 
 console.log('Successfully wrote schema to ./dist/schemas.json')
+
+const metadataOutputPath = path.resolve(distFolder, 'metadata.json');
+fs.writeFileSync(metadataOutputPath, JSON.stringify(metadataList, null, 2));
+console.log('Successfully wrote metadata to ./dist/metadata.json')
 
 
 plugin.kill(9);
