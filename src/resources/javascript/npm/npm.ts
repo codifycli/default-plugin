@@ -1,11 +1,11 @@
 import { Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from '@codifycli/schemas';
+import { OS, ResourceConfig } from '@codifycli/schemas'
 
-import { NpmGlobalInstallParameter, NpmPackage } from './global-install.js';
+import { NpmInstallParameter } from './global-install.js';
 import schema from './npm-schema.json'
 
 export interface NpmConfig extends ResourceConfig {
-  globalInstall: Array<NpmPackage | string>
+  install: string[]
 }
 
 export class Npm extends Resource<NpmConfig> {
@@ -15,7 +15,7 @@ export class Npm extends Resource<NpmConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        globalInstall: { type: 'stateful', definition: new NpmGlobalInstallParameter() },
+        install: { type: 'stateful', definition: new NpmInstallParameter() },
       },
       importAndDestroy: {
         preventDestroy: true,
