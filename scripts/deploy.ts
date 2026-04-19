@@ -29,6 +29,10 @@ cp.spawnSync(`source ~/.zshrc; npx wrangler r2 object put plugins/${name}/${vers
 
 if (!isBeta) {
   await uploadResources();
+
+  // Build and deploy completions as well.
+  console.log('Deploying completions...')
+  cp.spawnSync('source ~/.zshrc; npm run deploy:completions' , { shell: 'zsh', stdio: 'inherit' })
 }
 
 async function uploadResources() {

@@ -15,7 +15,7 @@
     "rollup": "rollup -c",
     "build": "tsx ./scripts/build.ts",
     "build:completions": "tsx ./scripts/generate-completions-index.ts",
-    "deploy:completions": "npm run build:completions && cd completions-cron && wrangler deploy",
+    "deploy:completions": "npm run build:completions && cd completions-cron && npx wrangler deploy",
     "deploy": "tsx ./scripts/deploy.ts",
     "deploy:beta": "BETA=true tsx ./scripts/deploy.ts",
     "testing": "codify-deploy"
