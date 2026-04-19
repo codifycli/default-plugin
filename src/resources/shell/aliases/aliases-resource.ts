@@ -54,7 +54,7 @@ export class AliasesResource extends Resource<AliasesConfig> {
             current.filter((c) => desired.some((d) => d.alias === c.alias)),
           canModify: true,
         },
-        declarationsOnly: { default: false, setting: true },
+        declarationsOnly: { default: true, setting: true },
       },
       importAndDestroy: {
         refreshMapper(input) {

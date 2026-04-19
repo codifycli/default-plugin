@@ -94,4 +94,20 @@ export PATH=/Users/kevinwang/.nvm/.bin/3:$PATH;
 
   })
 
+  it('Can match path declarations with ${VAR:-default} syntax', () => {
+    const pathResource = new PathResource();
+
+    const result = pathResource.findAllPathDeclarations(
+      `
+export PATH="\${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
+`);
+
+    expect(result).toMatchObject([
+      {
+        declaration: 'export PATH="${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"',
+        path: '${ASDF_DATA_DIR:-$HOME/.asdf}/shims'
+      }
+    ])
+  })
+
 })

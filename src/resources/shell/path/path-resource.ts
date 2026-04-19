@@ -27,7 +27,6 @@ export interface PathConfig extends StringIndexedObject {
 
 export class PathResource extends Resource<PathConfig> {
   private readonly PATH_DECLARATION_REGEX = /((export PATH=)|(path+=\()|(path=\())(.+?)[\n;]/g;
-  private readonly PATH_REGEX = /(?<=[="':(])([^"'\n\r]+?)(?=["':)\n;])/g
   private readonly filePaths = Utils.getShellRcFiles()
 
   getSettings(): ResourceSettings<PathConfig> {
@@ -237,22 +236,59 @@ export class PathResource extends Resource<PathConfig> {
 
     for (const declaration of pathDeclarations) {
       const trimmedDeclaration = declaration[0];
-      const paths = trimmedDeclaration.matchAll(this.PATH_REGEX);
+      // Extract the value portion after the = or ( and strip surrounding quotes/parens
+      const valueMatch = trimmedDeclaration.match(/(?:export PATH=|path\+=\(|path=\()(["']?)(.+?)\1[\n;)]/s);
+      if (!valueMatch) {
+        continue;
+      }
+      const value = valueMatch[2];
+      const paths = this.splitPathValue(value);
 
-      for (const path of paths) {
-        const trimmedPath = path[0];
-        if (trimmedPath === '$PATH') {
+      for (const p of paths) {
+        if (!p || p.trim() === '' || p === '$PATH') {
           continue;
         }
 
         results.push({
           declaration: trimmedDeclaration.trim(),
-          path: trimmedPath,
+          path: p,
         });
       }
     }
 
     return results;
+  }
+
+  // Split a PATH value by ':' but treat ':' inside ${...} as literal
+  private splitPathValue(value: string): string[] {
+    const segments: string[] = [];
+    let current = '';
+    let depth = 0;
+
+    for (let i = 0; i < value.length; i++) {
+      const ch = value[i];
+      if (ch === '$' && value[i + 1] === '{') {
+        // Skip the '$', let the '{' handler increment depth
+        current += ch;
+      } else if (ch === '{') {
+        depth++;
+        current += ch;
+      } else if (ch === '}' && depth > 0) {
+        depth--;
+        current += ch;
+      } else if (ch === ':' && depth === 0) {
+        segments.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+
+    if (current) {
+      segments.push(current);
+    }
+
+    return segments;
   }
 
   private async resolvePathWithVariables(pathWithVariables: string): Promise<string> {

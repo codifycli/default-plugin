@@ -27,7 +27,7 @@ export class AsdfResource extends Resource<AsdfConfig> {
       schema,
       parameterSettings: {
         plugins: { type: 'stateful', definition: new AsdfPluginsParameter() },
-      }
+      },
     }
   }
 
