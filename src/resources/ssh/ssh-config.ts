@@ -11,6 +11,8 @@ import path from 'node:path';
 import { FileUtils } from '../../utils/file-utils.js';
 import { SshConfigHostsParameter } from './ssh-config-hosts-parameter.js';
 import Schema from './ssh-config-schema.json';
+import { SshKeyConfig } from './ssh-key.js';
+import { exampleSshConfigs } from './examples.js';
 
 export type SshConfigOptions = Partial<{
   Host: string;
@@ -32,10 +34,22 @@ export interface SshConfig extends StringIndexedObject {
   hosts: Array<Partial<SshConfigOptions>>;
 }
 
+const defaultConfig: Partial<SshConfig> = {
+  hosts: [{
+    Host: "*",
+    AddKeysToAgent: true,
+    UseKeychain: true,
+    IdentityFile: "~/.ssh/id_ed25519",
+    IgnoreUnknown: "UseKeychain"
+  }]
+}
+
 export class SshConfigFileResource extends Resource<SshConfig> {
   getSettings(): ResourceSettings<SshConfig> {
     return {
       id: 'ssh-config',
+      defaultConfig,
+      exampleConfigs: exampleSshConfigs,
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       isSensitive: true,

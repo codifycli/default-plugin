@@ -14,6 +14,7 @@ import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';
 import Schema from './ssh-key-schema.json';
+import { exampleSshConfigs } from './examples.js';
 
 export type SshKeyType = 'ecdsa' | 'ecdsa-sk' | 'ed25519' | 'ed25519-sk' | 'rsa';
 
@@ -26,12 +27,19 @@ export interface SshKeyConfig extends StringIndexedObject {
   folder: string;
 }
 
+const defaultConfig: Partial<SshKeyConfig> = {
+  keyType: 'ed25519',
+  passphrase: '',
+}
+
 const SSH_KEYGEN_FINGERPRINT_REGEX = /^(\d+) (.*):(.*) (.*) \((.*)\)$/
 
 export class SshKeyResource extends Resource<SshKeyConfig> {
   getSettings(): ResourceSettings<SshKeyConfig> {
     return {
       id: 'ssh-key',
+      defaultConfig: defaultConfig,
+      exampleConfigs: exampleSshConfigs,
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {

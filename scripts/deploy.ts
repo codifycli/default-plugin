@@ -37,6 +37,9 @@ if (!isBeta) {
 
 async function uploadResources() {
   const CodifySchema = require('../dist/schemas.json');
+  const Metadata: Array<Record<string, any>> = require('../dist/metadata.json');
+
+  const metadataByType = new Map(Metadata.map((m) => [m.type, m]));
 
   const client = createClient(
     process.env.SUPABASE_URL!,
@@ -55,6 +58,7 @@ async function uploadResources() {
 
   for (const resource of resources) {
     const type = resource.properties.type.const;
+    const metadata = metadataByType.get(type);
 
     console.log(`Adding resource ${type}`)
     const resourceRow = await client.from('registry_resources').upsert({
@@ -63,19 +67,28 @@ async function uploadResources() {
       plugin_name: pluginName,
       schema: JSON.stringify(resource),
       documentation_url: resource.$comment,
+      allow_multiple: metadata?.allowMultiple ?? false,
+      os: metadata?.operatingSystems ?? [],
+      default_config: metadata?.defaultConfig ? JSON.stringify(metadata.defaultConfig) : null,
+      example_config_1: metadata?.exampleConfigs?.example1 ? JSON.stringify(metadata.exampleConfigs.example1) : null,
+      example_config_2: metadata?.exampleConfigs?.example2 ? JSON.stringify(metadata.exampleConfigs.example2) : null,
     }, { onConflict: ['type', 'plugin_id'] })
       .select()
       .throwOnError();
 
     const { id: resourceId } = resourceRow.data![0];
 
+    const sensitiveParams: string[] = metadata?.sensitiveParameters ?? [];
+    const allSensitive = sensitiveParams.includes('*');
+
     const parameters = Object.entries(resource.properties)
       .filter(([k]) => k !== 'type')
       .map(([key, property]) => ({
-        type: property.type,
+        type: (property as any).type,
         name: key,
         resource_id: resourceId,
         schema: property,
+        is_sensitive: allSensitive || sensitiveParams.includes(key),
       }))
 
     await client.from('registry_resource_parameters')
