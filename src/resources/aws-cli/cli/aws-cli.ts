@@ -22,7 +22,6 @@ export class AwsCliResource extends Resource<AwsCliConfig> {
     };
   }
 
-
   override async refresh(): Promise<Partial<AwsCliConfig> | null> {
     const $ = getPty();
 

@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   ModifyPlan,
   ParameterChange,
   Resource,
@@ -27,11 +28,53 @@ export interface AwsProfileConfig extends StringIndexedObject {
   region: string;
 }
 
+const defaultConfig: Partial<AwsProfileConfig> = {
+  profile: 'default',
+  region: '<Replace me here!>',
+  output: 'json',
+}
+
+const exampleProfile: ExampleConfig = {
+  title: 'AWS named profile',
+  description: 'Configure a named AWS CLI profile with credentials and a default region and output format.',
+  configs: [{
+    type: 'aws-profile',
+    profile: 'default',
+    awsAccessKeyId: '<Replace me here!>',
+    awsSecretAccessKey: '<Replace me here!>',
+    region: 'us-east-1',
+    output: 'json',
+  }]
+}
+
+const exampleWithCli: ExampleConfig = {
+  title: 'Install AWS CLI and configure a profile',
+  description: 'Install the AWS CLI and set up a default profile with credentials — a complete AWS setup from scratch.',
+  configs: [
+    {
+      type: 'aws-cli',
+    },
+    {
+      type: 'aws-profile',
+      profile: 'default',
+      awsAccessKeyId: '<Replace me here!>',
+      awsSecretAccessKey: '<Replace me here!>',
+      region: 'us-east-1',
+      output: 'json',
+    },
+  ]
+}
+
 export class AwsProfileResource extends Resource<AwsProfileConfig> {
 
   getSettings(): ResourceSettings<AwsProfileConfig> {
     return {
       id: 'aws-profile',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleProfile,
+        example2: exampleWithCli,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['aws-cli'],
       schema: Schema,

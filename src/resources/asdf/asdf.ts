@@ -1,4 +1,4 @@
-import { CreatePlan, FileUtils, Resource, ResourceSettings, SpawnStatus, getPty, z } from '@codifycli/plugin-core';
+import { CreatePlan, ExampleConfig, FileUtils, Resource, ResourceSettings, SpawnStatus, getPty, z } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -19,10 +19,48 @@ const schema = z.object({
 
 export type AsdfConfig = z.infer<typeof schema>
 
+const defaultConfig: Partial<AsdfConfig> = {
+  plugins: [],
+}
+
+const exampleNodePython: ExampleConfig = {
+  title: 'Node.js and Python via asdf',
+  description: 'Install asdf with plugins for Node.js and Python - a common setup for web and scripting work.',
+  configs: [{
+    type: 'asdf',
+    plugins: ['nodejs', 'python'],
+  }]
+}
+
+const exampleFullInstall: ExampleConfig = {
+  title: 'Full asdf setup — install, plugin, and version',
+  description: 'Install asdf, add the Node.js plugin, and activate a specific version - a complete setup from scratch.',
+  configs: [
+    {
+      type: 'asdf',
+      plugins: ['nodejs'],
+    },
+    {
+      type: 'asdf-plugin',
+      plugin: 'nodejs',
+    },
+    {
+      type: 'asdf-install',
+      plugin: 'nodejs',
+      versions: ['22.0.0'],
+    },
+  ]
+}
+
 export class AsdfResource extends Resource<AsdfConfig> {
   getSettings(): ResourceSettings<AsdfConfig> {
     return {
       id: 'asdf',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleNodePython,
+        example2: exampleFullInstall,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   Resource,
   ResourceSettings,
   SpawnStatus,
@@ -26,12 +27,51 @@ const schema = z
     .describe('Asdf plugin resource for installing asdf plugins.');
 export type AsdfPluginConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<AsdfPluginConfig> = {
+  plugin: '<Replace me here!>',
+}
+
+const exampleNodejs: ExampleConfig = {
+  title: 'Node.js plugin via asdf',
+  description: 'Install the asdf Node.js plugin and pin specific versions for your environment.',
+  configs: [{
+    type: 'asdf-plugin',
+    plugin: 'nodejs',
+    versions: ['22.0.0', 'lts'],
+  }]
+}
+
+const exampleFullInstall: ExampleConfig = {
+  title: 'Full asdf setup — install, plugin, and version',
+  description: 'Install asdf, add the Node.js plugin, and activate a specific version - a complete setup from scratch.',
+  configs: [
+    {
+      type: 'asdf',
+      plugins: ['nodejs'],
+    },
+    {
+      type: 'asdf-plugin',
+      plugin: 'nodejs',
+    },
+    {
+      type: 'asdf-install',
+      plugin: 'nodejs',
+      versions: ['22.0.0'],
+    },
+  ]
+}
+
 const PLUGIN_LIST_REGEX = /^([^ ]+?)\s+([^ ]+)/
 
 export class AsdfPluginResource extends Resource<AsdfPluginConfig> {
   getSettings(): ResourceSettings<AsdfPluginConfig> {
     return {
       id: 'asdf-plugin',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleNodejs,
+        example2: exampleFullInstall,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['asdf'],
       schema,
