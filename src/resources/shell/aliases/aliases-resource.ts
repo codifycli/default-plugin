@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   ModifyPlan,
   ParameterChange,
   RefreshContext,
@@ -36,6 +37,40 @@ export const schema = z.object({
   .describe('Aliases resource. Can be used to manage multiple aliases');
 
 export type AliasesConfig = z.infer<typeof schema>;
+
+const defaultConfig: Partial<AliasesConfig> = {
+  aliases: [],
+}
+
+const exampleGitAliases: ExampleConfig = {
+  title: 'Git aliases',
+  description: 'Common shortcuts for everyday Git workflows - checking status, staging, committing, pushing, and viewing history.',
+  configs: [{
+    type: 'aliases',
+    aliases: [
+      { alias: 'gs', value: 'git status' },
+      { alias: 'ga', value: 'git add .' },
+      { alias: 'gc', value: 'git commit -m' },
+      { alias: 'gp', value: 'git push origin HEAD' },
+      { alias: 'gl', value: 'git log --oneline --graph --decorate' },
+    ],
+  }]
+}
+
+const exampleSystemAliases: ExampleConfig = {
+  title: 'System and safety shortcuts',
+  description: 'Handy aliases for common system tasks and safer defaults - clearing the screen, confirming deletions, and checking disk and process usage.',
+  configs: [{
+    type: 'aliases',
+    aliases: [
+      { alias: 'c', value: 'clear' },
+      { alias: 'rm', value: 'rm -i' },
+      { alias: 'dfh', value: 'df -h' },
+      { alias: 'psg', value: 'ps aux | grep -v grep | grep' },
+    ],
+  }]
+}
+
 export class AliasesResource extends Resource<AliasesConfig> {
   private readonly ALIAS_DECLARATION_REGEX = /^\s*alias\s+([A-Z_a-z][\w-]*)\s*=\s*(["']?)(.+?)\2\s*(?:#.*)?$/gm;
   readonly filePaths = Utils.getShellRcFiles()
@@ -43,6 +78,11 @@ export class AliasesResource extends Resource<AliasesConfig> {
   getSettings(): ResourceSettings<AliasesConfig> {
     return {
       id: 'aliases',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleGitAliases,
+        example2: exampleSystemAliases,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

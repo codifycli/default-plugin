@@ -1,7 +1,7 @@
 import { ExampleConfigs } from '@codifycli/plugin-core';
 
 export const exampleSshConfigs: ExampleConfigs = {
-  example1: {
+  example2: {
     title: 'Example git ssh setup',
     configs: [
       {

@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   getPty,
   ModifyPlan,
   ParameterChange,
@@ -25,6 +26,20 @@ export interface PathConfig extends StringIndexedObject {
   declarationsOnly: boolean;
 }
 
+const defaultConfig: Partial<PathConfig> = {
+  paths: [],
+  declarationsOnly: true,
+}
+
+const exampleConfig: ExampleConfig = {
+  title: 'Example path config',
+  configs: [{
+    type: 'path',
+    paths: ['~/.local', '~/bin'],
+    declarationsOnly: true,
+  }]
+}
+
 export class PathResource extends Resource<PathConfig> {
   private readonly PATH_DECLARATION_REGEX = /((export PATH=)|(path+=\()|(path=\())(.+?)[\n;]/g;
   private readonly filePaths = Utils.getShellRcFiles()
@@ -32,6 +47,10 @@ export class PathResource extends Resource<PathConfig> {
   getSettings(): ResourceSettings<PathConfig> {
     return {
       id: 'path',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleConfig,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {

@@ -1,4 +1,5 @@
 import {
+  ExampleConfig,
   getPty,
   Resource,
   ResourceSettings
@@ -39,8 +40,22 @@ const defaultConfig: Partial<SshConfig> = {
     Host: "*",
     AddKeysToAgent: true,
     UseKeychain: true,
-    IdentityFile: "~/.ssh/id_ed25519",
+    IdentityFile: "<Replace me here!>",
     IgnoreUnknown: "UseKeychain"
+  }]
+}
+
+const exampleConfig: ExampleConfig = {
+  title: 'Example ssh config',
+  configs: [{
+    type: 'ssh-config',
+    hosts: [{
+      Host: "*",
+      AddKeysToAgent: true,
+      UseKeychain: true,
+      IdentityFile: "~/.ssh/id_ed25519",
+      IgnoreUnknown: "UseKeychain"
+    }]
   }]
 }
 
@@ -49,7 +64,10 @@ export class SshConfigFileResource extends Resource<SshConfig> {
     return {
       id: 'ssh-config',
       defaultConfig,
-      exampleConfigs: exampleSshConfigs,
+      exampleConfigs: {
+        example1: exampleConfig,
+        ...exampleSshConfigs
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       isSensitive: true,
