@@ -14,6 +14,7 @@ import * as fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { exampleAwsCliConfigs } from '../examples.js';
 import Schema from './aws-profile-schema.json'
 import { CSVCredentialsTransformation } from './csv-credentials-transformation.js';
 
@@ -47,23 +48,6 @@ const exampleProfile: ExampleConfig = {
   }]
 }
 
-const exampleWithCli: ExampleConfig = {
-  title: 'Install AWS CLI and configure a profile',
-  description: 'Install the AWS CLI and set up a default profile with credentials — a complete AWS setup from scratch.',
-  configs: [
-    {
-      type: 'aws-cli',
-    },
-    {
-      type: 'aws-profile',
-      profile: 'default',
-      awsAccessKeyId: '<Replace me here!>',
-      awsSecretAccessKey: '<Replace me here!>',
-      region: 'us-east-1',
-      output: 'json',
-    },
-  ]
-}
 
 export class AwsProfileResource extends Resource<AwsProfileConfig> {
 
@@ -73,7 +57,7 @@ export class AwsProfileResource extends Resource<AwsProfileConfig> {
       defaultConfig,
       exampleConfigs: {
         example1: exampleProfile,
-        example2: exampleWithCli,
+        example2: exampleAwsCliConfigs.example1,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['aws-cli'],

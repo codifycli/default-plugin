@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { exampleAwsCliConfigs } from '../examples.js';
 import Schema from './aws-cli-schema.json';
 
 export interface AwsCliConfig extends StringIndexedObject {
@@ -17,6 +18,9 @@ export class AwsCliResource extends Resource<AwsCliConfig> {
   getSettings(): ResourceSettings<AwsCliConfig> {
     return {
       schema: Schema,
+      exampleConfigs: {
+        ...exampleAwsCliConfigs,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       id: 'aws-cli',
     };

@@ -1,4 +1,4 @@
-import { getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
@@ -8,11 +8,30 @@ export interface GitLfsConfig extends ResourceConfig {
   // TODO: Add --system option for installing.
 }
 
+const exampleWithRepo: ExampleConfig = {
+  title: 'Install Git LFS and clone a repository',
+  description: 'Install Git LFS and clone a repository that uses LFS for large file storage.',
+  configs: [
+    {
+      type: 'git-lfs',
+    },
+    {
+      type: 'git-repository',
+      repository: 'git@github.com:org/repo-with-lfs.git',
+      directory: '~/projects/repo-with-lfs',
+      dependsOn: ['git-lfs'],
+    },
+  ]
+}
+
 export class GitLfsResource extends Resource<GitLfsConfig> {
   getSettings(): ResourceSettings<GitLfsConfig> {
     return {
       id: 'git-lfs',
-      operatingSystems: [OS.Darwin],
+      exampleConfigs: {
+        example1: exampleWithRepo,
+      },
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       dependencies: ['homebrew'],
     }

@@ -1,5 +1,6 @@
 import {
   CreatePlan,
+  ExampleConfig,
   FileUtils,
   Resource,
   ResourceSettings,
@@ -26,6 +27,31 @@ export interface HomebrewConfig extends ResourceConfig {
   onlyPlanUserInstalled: boolean
 }
 
+const defaultConfig: Partial<HomebrewConfig> = {
+  formulae: [],
+  casks: [],
+}
+
+const exampleFormulae: ExampleConfig = {
+  title: 'Install common CLI tools',
+  description: 'Install Homebrew and a set of essential command-line utilities for development.',
+  configs: [{
+    type: 'homebrew',
+    formulae: ['git', 'wget', 'jq', 'ripgrep', 'tree', 'htop'],
+    casks: [],
+  }]
+}
+
+const exampleWithCasks: ExampleConfig = {
+  title: 'Install CLI tools and GUI apps',
+  description: 'Install Homebrew with developer CLI tools and popular GUI applications via casks.',
+  configs: [{
+    type: 'homebrew',
+    formulae: ['git', 'wget', 'jq', 'ripgrep'],
+    casks: ['visual-studio-code', 'iterm2', 'google-chrome'],
+  }]
+}
+
 export class HomebrewResource extends Resource<HomebrewConfig> {
 
   override getSettings(): ResourceSettings<HomebrewConfig> {
@@ -33,6 +59,11 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
       schema: HomebrewSchema,
       operatingSystems: [OS.Darwin, OS.Linux],
       id: 'homebrew',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleFormulae,
+        example2: exampleWithCasks,
+      },
       parameterSettings: {
         taps: { type: 'stateful', definition: new TapsParameter(), order: 1 },
         formulae: { type: 'stateful', definition: new FormulaeParameter(), order: 2 },

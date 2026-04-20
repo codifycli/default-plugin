@@ -36,7 +36,7 @@ export const exampleSshConfigs: ExampleConfigs = {
         "dependsOn": ["ssh-config"]
       },
       {
-        "type": 'git-repository',
+        "type": 'git-repositories',
         "parentDirectory": '~/projects',
         "repositories": ['<Replace me here!>', '<Replace me here!>']
       }
