@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   ModifyPlan,
   ParameterChange,
   Resource,
@@ -12,6 +13,7 @@ import {
 import { OS } from '@codifycli/schemas';
 
 import { Utils } from '../../utils/index.js';
+import { exampleSyncthingConfigs } from './examples.js';
 import {
   getCliConfigBool,
   getCliConfigNumber,
@@ -74,6 +76,31 @@ const schema = z
 
 export type SyncthingConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<SyncthingConfig> = {
+  launchAtStartup: true,
+  globalAnnounceEnabled: true,
+  localAnnounceEnabled: true,
+  relaysEnabled: true,
+  natEnabled: true,
+  startBrowser: false,
+  urAccepted: -1,
+}
+
+const exampleConfig: ExampleConfig = {
+  title: 'Example Syncthing config',
+  description: 'Install Syncthing with sensible defaults: launch at startup, local and global discovery enabled, relays on, no browser auto-open, and usage reporting opted out.',
+  configs: [{
+    type: 'syncthing',
+    launchAtStartup: true,
+    globalAnnounceEnabled: true,
+    localAnnounceEnabled: true,
+    relaysEnabled: true,
+    natEnabled: true,
+    startBrowser: false,
+    urAccepted: -1,
+  }]
+}
+
 // Maps schema key → syncthing CLI config path (without trailing "get/set <value>")
 // Syncthing v2 uses kebab-case subcommands
 const OPTION_CLI_PATHS: Partial<Record<keyof SyncthingConfig, string>> = {
@@ -92,6 +119,11 @@ export class SyncthingResource extends Resource<SyncthingConfig> {
   getSettings(): ResourceSettings<SyncthingConfig> {
     return {
       id: 'syncthing',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleConfig,
+        ...exampleSyncthingConfigs,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

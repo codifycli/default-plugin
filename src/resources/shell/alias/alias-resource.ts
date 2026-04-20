@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   getPty,
   ModifyPlan,
   ParameterChange,
@@ -20,10 +21,40 @@ export interface AliasConfig extends StringIndexedObject {
   value: string;
 }
 
+const defaultConfig: Partial<AliasConfig> = {
+  alias: '<Replace me here!>',
+  value: '<Replace me here!>'
+}
+
+const exampleGitAlias: ExampleConfig = {
+  title: 'Git alias',
+  description: 'A single shortcut for a common Git operation.',
+  configs: [{
+    type: 'alias',
+    alias: 'gs',
+    value: 'git status',
+  }]
+}
+
+const exampleSystemAlias: ExampleConfig = {
+  title: 'System alias',
+  description: 'A single alias for a common system task or safer default.',
+  configs: [{
+    type: 'alias',
+    alias: 'rm',
+    value: 'rm -i',
+  }]
+}
+
 export class AliasResource extends Resource<AliasConfig> {
   getSettings(): ResourceSettings<AliasConfig> {
     return {
       id: 'alias',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleGitAlias,
+        example2: exampleSystemAlias,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {

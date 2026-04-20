@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   ModifyPlan,
   ParameterChange,
   Resource,
@@ -12,6 +13,7 @@ import {
 import { OS } from '@codifycli/schemas';
 
 import { isDaemonRunning } from './syncthing-utils.js';
+import { exampleSyncthingConfigs } from './examples.js';
 
 const FOLDER_TYPES = ['sendreceive', 'sendonly', 'receiveonly', 'receiveencrypted'] as const;
 
@@ -61,6 +63,31 @@ const schema = z
 
 export type SyncthingFolderConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<SyncthingFolderConfig> = {
+  folderType: 'sendreceive',
+  fsWatcherEnabled: true,
+  rescanIntervalS: 3600,
+  maxConflicts: 10,
+  paused: false,
+}
+
+const exampleConfig: ExampleConfig = {
+  title: 'Example Syncthing folder',
+  description: 'Share a local directory with one or more peer devices. Uses sendreceive mode so changes flow in both directions, with filesystem watching for fast change detection.',
+  configs: [{
+    type: 'syncthing-folder',
+    id: 'my-docs',
+    path: '~/Documents',
+    label: 'My Documents',
+    folderType: 'sendreceive',
+    devices: ['<Replace with device ID>'],
+    fsWatcherEnabled: true,
+    rescanIntervalS: 3600,
+    maxConflicts: 10,
+    paused: false,
+  }]
+}
+
 /** Raw JSON shape returned by `syncthing cli config folders <id>` */
 interface RawFolder {
   id: string;
@@ -78,6 +105,11 @@ export class SyncthingFolderResource extends Resource<SyncthingFolderConfig> {
   getSettings(): ResourceSettings<SyncthingFolderConfig> {
     return {
       id: 'syncthing-folder',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleConfig,
+        ...exampleSyncthingConfigs
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['syncthing'],
       schema,

@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   ModifyPlan,
   ParameterChange,
   Resource,
@@ -12,6 +13,7 @@ import {
 import { OS } from '@codifycli/schemas';
 
 import { isDaemonRunning } from './syncthing-utils.js';
+import { exampleSyncthingConfigs } from './examples.js';
 
 const schema = z
   .object({
@@ -56,6 +58,27 @@ const schema = z
 
 export type SyncthingDeviceConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<SyncthingDeviceConfig> = {
+  addresses: ['dynamic'],
+  autoAcceptFolders: false,
+  paused: false,
+  compression: 'metadata',
+}
+
+const exampleConfig: ExampleConfig = {
+  title: 'Example Syncthing device',
+  description: 'Add a remote peer device by its device ID. Use dynamic addressing for automatic discovery, metadata compression, and auto-accept any folders the peer shares.',
+  configs: [{
+    type: 'syncthing-device',
+    deviceId: '<Replace me here!>',
+    deviceName: 'My Laptop',
+    addresses: ['dynamic'],
+    autoAcceptFolders: true,
+    paused: false,
+    compression: 'metadata',
+  }]
+}
+
 /** Raw JSON shape returned by `syncthing cli config devices <id>` */
 interface RawDevice {
   deviceID: string;
@@ -72,6 +95,11 @@ export class SyncthingDeviceResource extends Resource<SyncthingDeviceConfig> {
   getSettings(): ResourceSettings<SyncthingDeviceConfig> {
     return {
       id: 'syncthing-device',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleConfig,
+        ...exampleSyncthingConfigs
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['syncthing'],
       schema,
