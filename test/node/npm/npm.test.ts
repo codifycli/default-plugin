@@ -1,19 +1,23 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
 import { SpawnStatus } from '@codifycli/plugin-core';
 
-// Example test suite
 describe('Npm tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
 
-  it('Can install nvm and a global package with npm',  { timeout: 500000 }, async () => {
-    await PluginTester.fullTest(pluginPath, [
+  beforeAll(async () => {
+    await PluginTester.install(pluginPath, [
       {
         type: 'nvm',
         global: '20',
-        nodeVersions: ['20']
-      },
+        nodeVersions: ['20'],
+      }
+    ]);
+  }, 500000);
+
+  it('Can install a global package with npm', { timeout: 500000 }, async () => {
+    await PluginTester.fullTest(pluginPath, [
       {
         type: 'npm',
         globalInstall: ['pnpm'],

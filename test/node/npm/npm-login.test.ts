@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
 import { PluginTester } from '@codifycli/plugin-test';
 import path from 'node:path';
 import fs from 'node:fs/promises';
@@ -11,17 +11,22 @@ function npmrcPath() {
 describe('Npm login tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
 
+  beforeAll(async () => {
+    await PluginTester.install(pluginPath, [
+      {
+        type: 'nvm',
+        global: '20',
+        nodeVersions: ['20'],
+      }
+    ]);
+  }, 600000);
+
   it('Can write token and scoped registry mapping to ~/.npmrc and remove on destroy', { timeout: 600000 }, async () => {
     const scope = '@codify';
     const registry = 'https://registry.npmjs.org/';
     const token = 'abc123';
 
     await PluginTester.fullTest(pluginPath, [
-      {
-        type: 'nvm',
-        global: '20',
-        nodeVersions: ['20']
-      },
       {
         type: 'npm-login',
         scope,
@@ -51,11 +56,6 @@ describe('Npm login tests', () => {
     // First apply initial state and keep it (skipUninstall) so we can modify
     await PluginTester.fullTest(pluginPath, [
       {
-        type: 'nvm',
-        global: '20',
-        nodeVersions: ['20']
-      },
-      {
         type: 'npm-login',
         scope,
         registry: initialRegistry,
@@ -72,11 +72,6 @@ describe('Npm login tests', () => {
 
     // Now modify to a new registry and validate token moved and scope updated
     await PluginTester.fullTest(pluginPath, [
-      {
-        type: 'nvm',
-        global: '20',
-        nodeVersions: ['20']
-      },
       {
         type: 'npm-login',
         scope,
