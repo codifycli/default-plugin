@@ -1,4 +1,4 @@
-import { getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
+import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
@@ -13,11 +13,40 @@ export interface NvmConfig extends ResourceConfig {
   nodeVersions?: string[],
 }
 
+const defaultConfig: Partial<NvmConfig> = {
+  nodeVersions: [],
+}
+
+const exampleLts: ExampleConfig = {
+  title: 'Install Node.js LTS via nvm',
+  description: 'Install nvm and set the latest LTS release as the global Node.js version.',
+  configs: [{
+    type: 'nvm',
+    nodeVersions: ['lts'],
+    global: 'lts',
+  }]
+}
+
+const exampleMultiVersion: ExampleConfig = {
+  title: 'Install multiple Node.js versions via nvm',
+  description: 'Install nvm with multiple Node.js versions side by side, using Node.js 22 as the global default.',
+  configs: [{
+    type: 'nvm',
+    nodeVersions: ['18', '20', '22'],
+    global: '22',
+  }]
+}
+
 export class NvmResource extends Resource<NvmConfig> {
 
   getSettings(): ResourceSettings<NvmConfig> {
     return {
       id: 'nvm',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleLts,
+        example2: exampleMultiVersion,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {

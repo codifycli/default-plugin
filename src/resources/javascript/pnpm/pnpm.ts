@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, RefreshContext, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, RefreshContext, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -14,10 +14,23 @@ export interface PnpmConfig extends ResourceConfig {
   globalEnvNodeVersion?: string;
 }
 
+const exampleWithNode: ExampleConfig = {
+  title: 'Install pnpm with a global Node.js version',
+  description: 'Install a specific version of pnpm and activate a global Node.js version via pnpm env.',
+  configs: [{
+    type: 'pnpm',
+    version: '10',
+    globalEnvNodeVersion: '22.0.0',
+  }]
+}
+
 export class Pnpm extends Resource<PnpmConfig> {
   getSettings(): ResourceSettings<PnpmConfig> {
     return {
       id: 'pnpm',
+      exampleConfigs: {
+        example1: exampleWithNode,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

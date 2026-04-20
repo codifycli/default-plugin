@@ -374,6 +374,69 @@ parameterSettings: {
 }
 ```
 
+### defaultConfig and exampleConfigs
+
+Every resource should have a `defaultConfig` and `exampleConfigs`. These are surfaced in the Codify Editor to help users get started quickly.
+
+**`defaultConfig`** — pre-fills the resource form with sensible starting values:
+- Use Syncthing's/asdf's/AWS's own documented defaults where applicable
+- For required fields with no sensible default (e.g. `deviceId`, `plugin`, `awsAccessKeyId`), use the placeholder string `'<Replace me here!'>`
+- For optional array fields that default to empty (e.g. `plugins`, `aliases`, `paths`), set them to `[]`
+- Omit fields that are purely user-specific (e.g. paths, names, credentials) — don't guess
+- If the resource declares `operatingSystems: [OS.Darwin]` or `operatingSystems: [OS.Linux]` (i.e. only one OS, not both), do NOT add `os` to `defaultConfig` (it's not on the typed config interface). Instead, add `os: ['darwin']` or `os: ['linux']` only to the config entries inside `exampleConfigs`. Skip entirely when the resource supports both OS.
+
+**`exampleConfigs`** — up to two named examples (`example1`, `example2`):
+- `example1`: a minimal, focused single-resource example showing the most common use case
+- `example2`: either a more advanced single-resource variant, OR a multi-resource example that shows the full end-to-end setup (e.g. install the tool + configure it)
+- Multi-resource examples (configs array with multiple types) are especially useful when the resource `dependsOn` another — show installing the dependency too
+- Every example needs a `title` (short, noun-phrase) and a `description` (one sentence explaining what it does and why)
+- Use realistic but obviously-placeholder values for sensitive fields (`'<Replace me here!'>`), not real credentials
+- Don't add step-numbering ("Step 1 of 3") in descriptions — it doesn't make sense when viewed from a single resource page
+- If the resource is OS-specific (only Darwin or only Linux), add `os: ['darwin']` or `os: ['linux']` to each config entry in the example so the editor filters it correctly
+
+**Structure:**
+```typescript
+import { ExampleConfig } from '@codifycli/plugin-core';
+
+const defaultConfig: Partial<MyConfig> = {
+  someField: 'sensible-default',
+  optionalArray: [],
+  // Add os: ['darwin'] or os: ['linux'] if operatingSystems is not [OS.Darwin, OS.Linux]
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Basic my-resource setup',
+  description: 'One sentence explaining what this example does and who it is for.',
+  configs: [{
+    type: 'my-resource',
+    someField: 'example-value',
+    // Add os: ['darwin'] or os: ['linux'] if the resource is OS-specific
+  }]
+}
+
+const exampleWithDependency: ExampleConfig = {
+  title: 'Full my-resource setup',
+  description: 'Install the prerequisite and configure my-resource in one go.',
+  configs: [
+    { type: 'prerequisite-resource' },
+    { type: 'my-resource', someField: 'example-value' },
+  ]
+}
+
+// Inside getSettings():
+return {
+  id: 'my-resource',
+  defaultConfig,
+  exampleConfigs: {
+    example1: exampleBasic,
+    example2: exampleWithDependency,
+  },
+  // ...
+}
+```
+
+**When there is a shared multi-resource example** (e.g. the asdf full-install example used across `asdf`, `asdf-plugin`, and `asdf-install`): define it once in a separate `examples.ts` file in the resource folder and spread it into `exampleConfigs` using `...exampleSharedConfigs`. Use a consistent description across all three rather than per-resource step labels.
+
 ### Dependencies
 
 Resources can declare dependencies on other resources:
