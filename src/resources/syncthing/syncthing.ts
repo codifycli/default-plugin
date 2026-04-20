@@ -237,17 +237,17 @@ export class SyncthingResource extends Resource<SyncthingConfig> {
     const $ = getPty();
 
     // Add the official Syncthing apt repository
-    await $.spawn('sudo mkdir -p /etc/apt/keyrings', { interactive: true });
+    await $.spawn('mkdir -p /etc/apt/keyrings', { interactive: true, requiresRoot: true });
     await $.spawn(
-      'sudo curl -L -o /etc/apt/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg',
-      { interactive: true }
+      'curl -L -o /etc/apt/keyrings/syncthing-archive-keyring.gpg https://syncthing.net/release-key.gpg',
+      { interactive: true, requiresRoot: true }
     );
     await $.spawn(
-      'echo "deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable" | sudo tee /etc/apt/sources.list.d/syncthing.list',
-      { interactive: true }
+      'bash -c \'echo "deb [signed-by=/etc/apt/keyrings/syncthing-archive-keyring.gpg] https://apt.syncthing.net/ syncthing stable" > /etc/apt/sources.list.d/syncthing.list\'',
+      { interactive: true, requiresRoot: true }
     );
-    await $.spawn('sudo apt-get update', { interactive: true });
-    await $.spawn('sudo apt-get install -y syncthing', { interactive: true });
+    await $.spawn('apt-get update', { interactive: true, requiresRoot: true });
+    await $.spawn('apt-get install -y syncthing', { interactive: true, requiresRoot: true });
 
     const shouldLaunchAtStartup = config.launchAtStartup ?? true;
     await this.setLaunchAtStartup(shouldLaunchAtStartup);
@@ -260,9 +260,9 @@ export class SyncthingResource extends Resource<SyncthingConfig> {
     const $ = getPty();
     await $.spawnSafe('systemctl --user stop syncthing');
     await $.spawnSafe('systemctl --user disable syncthing');
-    await $.spawnSafe('sudo apt-get remove -y syncthing');
-    await $.spawnSafe('sudo rm -f /etc/apt/sources.list.d/syncthing.list');
-    await $.spawnSafe('sudo rm -f /etc/apt/keyrings/syncthing-archive-keyring.gpg');
+    await $.spawnSafe('apt-get remove -y syncthing', { requiresRoot: true });
+    await $.spawnSafe('rm -f /etc/apt/sources.list.d/syncthing.list', { requiresRoot: true });
+    await $.spawnSafe('rm -f /etc/apt/keyrings/syncthing-archive-keyring.gpg', { requiresRoot: true });
   }
 
   // ── Service management ────────────────────────────────────────────────────

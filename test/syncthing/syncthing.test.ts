@@ -210,9 +210,9 @@ describe('Syncthing resource integration tests', async () => {
       await testSpawn('brew services stop syncthing');
       await testSpawn('brew uninstall syncthing');
     } else {
-      await testSpawn('systemctl --user stop syncthing');
-      await testSpawn('systemctl --user disable syncthing');
-      await testSpawn('sudo apt-get remove -y syncthing');
+      // await testSpawn('systemctl --user stop syncthing');
+      // await testSpawn('systemctl --user disable syncthing');
+      // await testSpawn('apt-get remove -y syncthing', { requiresRoot: true });
     }
   }, 60_000);
 });

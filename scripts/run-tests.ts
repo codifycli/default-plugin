@@ -98,7 +98,7 @@ async function launchPersistentTest(test: string, debug: boolean, operatingSyste
 
   console.log('Done refreshing files on VM. Starting tests...');
   VerbosityLevel.set(3);
-  await codifySpawn(`tart exec -i ${vmName} ${shell} -c -i "cd ${dir} && FORCE_COLOR=true npm run test -- ${test} --disable-console-intercept ${debugFlag} --no-file-parallelism"`, { throws: false });
+  await codifySpawn(`tart exec -i ${vmName} ${shell} -c -i 'cd ${dir} && XDG_RUNTIME_DIR="/run/user/$(id -u)" DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus" FORCE_COLOR=true npm run test -- ${test} --disable-console-intercept ${debugFlag} --no-file-parallelism'`, { throws: false });
   // }
 }
 
@@ -128,7 +128,17 @@ async function launchPersistentVm(operatingSystem: string) {
   } else {
     await testSpawn(`tart exec ${newVmName} ${shell} -i -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash"`)
     await testSpawn(`tart exec ${newVmName} ${shell} -i -c "nvm install 24; nvm alias default 24"`)
+
+    // XDG_RUNTIME_DIR is required by systemd user services (e.g. `systemctl --user`). On desktop
+    // Linux it is set automatically by PAM/logind on graphical login, but non-interactive SSH/tart
+    // sessions skip that path, so we set it explicitly to the canonical location /run/user/<uid>.
     await testSpawn(`tart exec ${newVmName} ${shell} -i -c "echo 'export XDG_RUNTIME_DIR=/run/user/$(id -u)' >> ~/.bashrc"`)
+
+    // enable-linger keeps the user's systemd session alive after logout. Without it, user-scoped
+    // systemd units (like syncthing.service) are stopped when the tart session ends, which causes
+    // `systemctl --user enable --now` to fail during integration tests.
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "loginctl enable-linger admin"`)
+
   }
 
   await testSpawn(`tart exec ${newVmName} ${shell} -i -c "cd ~/codify-homebrew-plugin && npm ci"`);
