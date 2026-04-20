@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   Resource,
   ResourceSettings,
   SpawnStatus,
@@ -37,10 +38,52 @@ const schema = z.object({
 
 export type TartVmConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<TartVmConfig> & { os: any } = {
+  sourceName: '<Replace me here!>',
+  localName: '<Replace me here!>',
+  os: ['macOS'],
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Pull a macOS VM image',
+  description: 'Clone a macOS Sequoia base image from the Cirrus Labs registry and store it locally.',
+  configs: [{
+    type: 'tart-vm',
+    sourceName: 'ghcr.io/cirruslabs/macos-sequoia-base:latest',
+    localName: 'sequoia',
+    os: ['macOS'],
+  }]
+}
+
+const exampleWithTart: ExampleConfig = {
+  title: 'Install Tart and pull a macOS VM',
+  description: 'Install Tart and clone a macOS Sequoia VM image ready to run locally.',
+  configs: [
+    {
+      type: 'tart',
+      os: ['macOS'],
+    },
+    {
+      type: 'tart-vm',
+      sourceName: 'ghcr.io/cirruslabs/macos-sequoia-base:latest',
+      localName: 'sequoia',
+      cpu: 4,
+      memory: 8192,
+      os: ['macOS'],
+      dependsOn: ['tart'],
+    },
+  ]
+}
+
 export class TartVmResource extends Resource<TartVmConfig> {
   getSettings(): ResourceSettings<TartVmConfig> {
     return {
       id: 'tart-vm',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleWithTart,
+      },
       operatingSystems: [OS.Darwin],
       dependencies: ['tart'],
       schema,

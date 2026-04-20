@@ -383,16 +383,17 @@ Every resource should have a `defaultConfig` and `exampleConfigs`. These are sur
 - For required fields with no sensible default (e.g. `deviceId`, `plugin`, `awsAccessKeyId`), use the placeholder string `'<Replace me here!'>`
 - For optional array fields that default to empty (e.g. `plugins`, `aliases`, `paths`), set them to `[]`
 - Omit fields that are purely user-specific (e.g. paths, names, credentials) — don't guess
-- If the resource declares `operatingSystems: [OS.Darwin]` or `operatingSystems: [OS.Linux]` (i.e. only one OS, not both), do NOT add `os` to `defaultConfig` (it's not on the typed config interface). Instead, add `os: ['darwin']` or `os: ['linux']` only to the config entries inside `exampleConfigs`. Skip entirely when the resource supports both OS.
+- If the resource declares `operatingSystems: [OS.Darwin]` or `operatingSystems: [OS.Linux]` (i.e. only one OS, not both), do NOT add `os` to `defaultConfig` (it's not on the typed config interface). Instead, add the correct `os` value only to the config entries inside `exampleConfigs`. Skip entirely when the resource supports both OS.
+- The `os` field values come from the `ResourceOs` enum in `@codifycli/schemas` (`../codify-schemas/src/types/index.ts`): use `'macOS'` for Darwin, `'linux'` for Linux, `'windows'` for Windows (e.g. `os: ['macOS']`, not `os: ['darwin']`).
 
 **`exampleConfigs`** — up to two named examples (`example1`, `example2`):
-- `example1`: a minimal, focused single-resource example showing the most common use case
+- `example1`: a substantive example showing the most common real-world use case with meaningful configuration — not a trivial "just install it" with no parameters
 - `example2`: either a more advanced single-resource variant, OR a multi-resource example that shows the full end-to-end setup (e.g. install the tool + configure it)
 - Multi-resource examples (configs array with multiple types) are especially useful when the resource `dependsOn` another — show installing the dependency too
 - Every example needs a `title` (short, noun-phrase) and a `description` (one sentence explaining what it does and why)
 - Use realistic but obviously-placeholder values for sensitive fields (`'<Replace me here!'>`), not real credentials
 - Don't add step-numbering ("Step 1 of 3") in descriptions — it doesn't make sense when viewed from a single resource page
-- If the resource is OS-specific (only Darwin or only Linux), add `os: ['darwin']` or `os: ['linux']` to each config entry in the example so the editor filters it correctly
+- If the resource is OS-specific (only Darwin or only Linux), add the correct `os` value to each config entry in the example so the editor filters it correctly (e.g. `os: ['macOS']`)
 
 **Structure:**
 ```typescript
@@ -401,7 +402,7 @@ import { ExampleConfig } from '@codifycli/plugin-core';
 const defaultConfig: Partial<MyConfig> = {
   someField: 'sensible-default',
   optionalArray: [],
-  // Add os: ['darwin'] or os: ['linux'] if operatingSystems is not [OS.Darwin, OS.Linux]
+  // Add os: ['macOS'] or os: ['linux'] if operatingSystems is not [OS.Darwin, OS.Linux]
 }
 
 const exampleBasic: ExampleConfig = {
@@ -410,7 +411,7 @@ const exampleBasic: ExampleConfig = {
   configs: [{
     type: 'my-resource',
     someField: 'example-value',
-    // Add os: ['darwin'] or os: ['linux'] if the resource is OS-specific
+    // Add os: ['macOS'] or os: ['linux'] if the resource is OS-specific
   }]
 }
 

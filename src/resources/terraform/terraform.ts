@@ -1,4 +1,4 @@
-import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { CreatePlan, ExampleConfig, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -20,11 +20,39 @@ export interface TerraformConfig extends StringIndexedObject {
   // TODO: Add option to install auto-complete
 }
 
+const defaultConfig: Partial<TerraformConfig> = {
+  version: 'latest',
+}
+
+const exampleLatest: ExampleConfig = {
+  title: 'Install Terraform at a pinned version',
+  description: 'Install a specific version of Terraform to ensure reproducible infrastructure deployments across machines.',
+  configs: [{
+    type: 'terraform',
+    version: '1.10.5',
+  }]
+}
+
+const exampleCustomDir: ExampleConfig = {
+  title: 'Install a pinned Terraform version to a custom directory',
+  description: 'Install a specific Terraform version to a user-owned directory, avoiding the need for root permissions.',
+  configs: [{
+    type: 'terraform',
+    version: '1.10.5',
+    directory: '~/.local/bin',
+  }]
+}
+
 export class TerraformResource extends Resource<TerraformConfig> {
 
   getSettings(): ResourceSettings<TerraformConfig> {
     return {
       id: 'terraform',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleLatest,
+        example2: exampleCustomDir,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {

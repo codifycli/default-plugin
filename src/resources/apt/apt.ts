@@ -1,5 +1,5 @@
 import { CreatePlan, ExampleConfig, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
-import { OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
+import { LinuxDistro, OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
 
 import schema from './apt-schema.json';
 import { AptInstallParameter } from './install-parameter.js';
@@ -11,6 +11,7 @@ export interface AptConfig extends ResourceConfig {
 
 const defaultConfig: Partial<AptConfig> = {
   install: [],
+  distro: [LinuxDistro.DEBIAN_BASED],
   os: [ResourceOs.LINUX]
 }
 
@@ -20,6 +21,7 @@ const exampleBasic: ExampleConfig = {
   configs: [{
     type: 'apt',
     os: [ResourceOs.LINUX],
+    distro: [LinuxDistro.DEBIAN_BASED],
     install: ['curl', 'git', 'build-essential'],
   }]
 }
@@ -29,6 +31,7 @@ const exampleVersionPinned: ExampleConfig = {
   description: 'Install packages using apt, with specific versions pinned for reproducibility.',
   configs: [{
     type: 'apt',
+    distro: [LinuxDistro.DEBIAN_BASED],
     os: [ResourceOs.LINUX],
     install: [
       'curl',

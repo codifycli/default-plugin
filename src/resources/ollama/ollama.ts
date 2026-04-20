@@ -1,5 +1,6 @@
 import {
   CreatePlan,
+  ExampleConfig,
   FileUtils,
   Resource,
   ResourceSettings,
@@ -27,10 +28,37 @@ const schema = z
 
 export type OllamaConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<OllamaConfig> = {
+  models: [],
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Install Ollama with a model',
+  description: 'Install the Ollama runtime and pull a model to run locally.',
+  configs: [{
+    type: 'ollama',
+    models: ['llama3.2'],
+  }]
+}
+
+const exampleMultiModel: ExampleConfig = {
+  title: 'Install Ollama with multiple models',
+  description: 'Install Ollama and pull several models for local use, including a coding-focused and a general-purpose model.',
+  configs: [{
+    type: 'ollama',
+    models: ['llama3.2', 'mistral', 'qwen2.5-coder'],
+  }]
+}
+
 export class OllamaResource extends Resource<OllamaConfig> {
   getSettings(): ResourceSettings<OllamaConfig> {
     return {
       id: 'ollama',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleMultiModel,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       dependencies: ['homebrew'],
