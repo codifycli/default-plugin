@@ -98,7 +98,7 @@ async function launchPersistentTest(test: string, debug: boolean, operatingSyste
 
   console.log('Done refreshing files on VM. Starting tests...');
   VerbosityLevel.set(3);
-  await codifySpawn(`tart exec ${vmName} ${shell} -c ${operatingSystem === 'darwin' ? '-i' : ''} "cd ${dir} && FORCE_COLOR=true npm run test -- ${test} --disable-console-intercept ${debugFlag} --no-file-parallelism"`, { throws: false });
+  await codifySpawn(`tart exec -i ${vmName} ${shell} -c -i "cd ${dir} && FORCE_COLOR=true npm run test -- ${test} --disable-console-intercept ${debugFlag} --no-file-parallelism"`, { throws: false });
   // }
 }
 
@@ -125,6 +125,10 @@ async function launchPersistentVm(operatingSystem: string) {
   await testSpawn(`sshpass -p "admin" rsync -avz -e 'ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.fleet' ${process.cwd()} admin@${ipAddr}:~`);
   if (operatingSystem === 'darwin') {
     await testSpawn(`tart exec ${newVmName} ${shell} -i -c "mv ~/.zprofile ~/.zshenv"`);
+  } else {
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash"`)
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "nvm install 24; nvm alias default 24"`)
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "echo 'export XDG_RUNTIME_DIR=/run/user/$(id -u)' >> ~/.bashrc"`)
   }
 
   await testSpawn(`tart exec ${newVmName} ${shell} -i -c "cd ~/codify-homebrew-plugin && npm ci"`);

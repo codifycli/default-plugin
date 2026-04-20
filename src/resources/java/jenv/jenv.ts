@@ -3,10 +3,11 @@ import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs';
 
 import { FileUtils } from '../../../utils/file-utils.js';
+import { Utils } from '../../../utils/index.js';
 import { JenvGlobalParameter } from './global-parameter.js';
 import {
   JenvAddParameter,
-  OPENJDK_SUPPORTED_VERSIONS
+  JAVA_VERSION_INTEGER,
 } from './java-versions-parameter.js';
 import Schema from './jenv-schema.json';
 
@@ -19,9 +20,9 @@ export class JenvResource extends Resource<JenvConfig> {
   getSettings(): ResourceSettings<JenvConfig> {
     return {
       id: 'jenv',
-      operatingSystems: [OS.Darwin],
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
-      dependencies: ['homebrew'],
+      dependencies: Utils.isMacOS() ? ['homebrew'] : [],
       parameterSettings: {
         add: { type: 'stateful', definition: new JenvAddParameter(), order: 1 },
         global: { type: 'stateful', definition: new JenvGlobalParameter(), order: 2 },
@@ -33,18 +34,16 @@ export class JenvResource extends Resource<JenvConfig> {
     if (parameters.add) {
       for (const version of parameters.add) {
         if (version.startsWith('/opt/homebrew/Cellar/openjdk@')) {
-          const versionStr = version.split('/').at(4)?.split('@').at(1);
-
-          if (!OPENJDK_SUPPORTED_VERSIONS.includes(Number.parseInt(versionStr!, 10))) {
-            throw new Error(`Version must be one of [${OPENJDK_SUPPORTED_VERSIONS.join(', ')}]`)
-          }
-
           continue;
         }
 
-        if (!fs.existsSync(version)) {
-          throw new Error(`Path does not exist. ${version} cannot be found on the file system`)
+        if (JAVA_VERSION_INTEGER.test(version)) {
+          continue;
         }
+
+        // if (!fs.existsSync(version)) {
+        //   throw new Error(`Path does not exist. ${version} cannot be found on the file system`)
+        // }
       }
     }
   }
@@ -69,15 +68,26 @@ export class JenvResource extends Resource<JenvConfig> {
 
   override async create(): Promise<void> {
     const $ = getPty();
-    await this.assertBrewInstalled()
 
-    const jenvQuery = await $.spawnSafe('which jenv', { interactive: true })
-    if (jenvQuery.status === SpawnStatus.ERROR) {
-      await $.spawn('brew install jenv', { interactive: true })
+    if (Utils.isMacOS()) {
+      await this.assertBrewInstalled()
+
+      const jenvQuery = await $.spawnSafe('which jenv', { interactive: true })
+      if (jenvQuery.status === SpawnStatus.ERROR) {
+        await $.spawn('brew install jenv', { interactive: true })
+      }
+    } else {
+      const jenvQuery = await $.spawnSafe('which jenv', { interactive: true })
+      if (jenvQuery.status === SpawnStatus.ERROR) {
+        const result = await $.spawnSafe('git clone https://github.com/jenv/jenv.git ~/.jenv', { interactive: true })
+        if (result.status === SpawnStatus.ERROR && !result.data.includes('already exists and is not an empty directory.')) {
+          throw new Error(result.data);
+        }
+      }
     }
 
-    const jenvDoctor = await $.spawn('jenv doctor', { interactive: true })
-    if (jenvDoctor.data.includes('Jenv is not loaded in')) {
+    const jenvDoctor = await $.spawnSafe('jenv doctor', { interactive: true })
+    if (jenvDoctor.data.includes('Jenv is not loaded in') || jenvDoctor.status === SpawnStatus.ERROR) {
       await FileUtils.addToStartupFile('export PATH="$HOME/.jenv/bin:$PATH"')
       await FileUtils.addToStartupFile('eval "$(jenv init -)"')
 
