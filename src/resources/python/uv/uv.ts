@@ -1,4 +1,4 @@
-import { FileUtils, getPty, Resource, ResourceSettings, SpawnStatus, z } from '@codifycli/plugin-core';
+import { ExampleConfig, FileUtils, getPty, Resource, ResourceSettings, SpawnStatus, z } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -26,10 +26,39 @@ const schema = z.object({
 
 export type UvConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<UvConfig> = {
+  pythonVersions: [],
+  tools: [],
+}
+
+const examplePython: ExampleConfig = {
+  title: 'Install uv with Python versions',
+  description: 'Install uv and pin one or more Python versions for use across projects.',
+  configs: [{
+    type: 'uv',
+    pythonVersions: ['3.12', '3.11'],
+  }]
+}
+
+const exampleWithTools: ExampleConfig = {
+  title: 'Install uv with Python and global tools',
+  description: 'Install uv, pin a Python version, and install commonly used global CLI tools like ruff and black.',
+  configs: [{
+    type: 'uv',
+    pythonVersions: ['3.12'],
+    tools: ['ruff', 'black', 'httpie'],
+  }]
+}
+
 export class UvResource extends Resource<UvConfig> {
   getSettings(): ResourceSettings<UvConfig> {
     return {
       id: 'uv',
+      defaultConfig,
+      exampleConfigs: {
+        example1: examplePython,
+        example2: exampleWithTools,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

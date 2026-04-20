@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   Resource,
   ResourceSettings,
   getPty
@@ -26,11 +27,54 @@ export interface VenvProjectConfig extends ResourceConfig {
   automaticallyInstallRequirementsTxt?: boolean;
 }
 
+const defaultConfig: Partial<VenvProjectConfig> = {
+  envDir: '.venv',
+  upgradeDeps: true,
+  automaticallyInstallRequirementsTxt: true,
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Create a virtual environment',
+  description: 'Create a Python virtual environment in the project directory and automatically install dependencies from requirements.txt.',
+  configs: [{
+    type: 'venv-project',
+    envDir: '.venv',
+    cwd: '~/projects/my-project',
+    automaticallyInstallRequirementsTxt: true,
+    upgradeDeps: true,
+  }]
+}
+
+const exampleWithRepo: ExampleConfig = {
+  title: 'Clone a repo and set up a virtual environment',
+  description: 'Clone a Python project and immediately create a virtual environment with its dependencies installed.',
+  configs: [
+    {
+      type: 'git-repository',
+      repository: 'git@github.com:org/my-python-project.git',
+      directory: '~/projects/my-python-project',
+    },
+    {
+      type: 'venv-project',
+      envDir: '.venv',
+      cwd: '~/projects/my-python-project',
+      automaticallyInstallRequirementsTxt: true,
+      upgradeDeps: true,
+      dependsOn: ['git-repository'],
+    },
+  ]
+}
+
 export class VenvProject extends Resource<VenvProjectConfig> {
 
   getSettings(): ResourceSettings<VenvProjectConfig> {
     return {
       id: 'venv-project',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleWithRepo,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

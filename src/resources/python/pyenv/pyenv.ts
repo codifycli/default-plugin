@@ -1,4 +1,4 @@
-import { getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs';
 import os from 'node:os';
@@ -15,10 +15,39 @@ export interface PyenvConfig extends ResourceConfig {
   // TODO: Add option here to use homebrew to install instead. Default to true. Maybe add option to set default values to resource config.
 }
 
+const defaultConfig: Partial<PyenvConfig> = {
+  pythonVersions: [],
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Install pyenv with a Python version',
+  description: 'Install pyenv and pin a Python version as the global default.',
+  configs: [{
+    type: 'pyenv',
+    pythonVersions: ['3.12'],
+    global: '3.12',
+  }]
+}
+
+const exampleMultiVersion: ExampleConfig = {
+  title: 'Install pyenv with multiple Python versions',
+  description: 'Install pyenv with several Python versions available, pinning one as the global default.',
+  configs: [{
+    type: 'pyenv',
+    pythonVersions: ['3.12', '3.11', '3.10'],
+    global: '3.12',
+  }]
+}
+
 export class PyenvResource extends Resource<PyenvConfig> {
   getSettings(): ResourceSettings<PyenvConfig> {
     return {
       id: 'pyenv',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleMultiVersion,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
