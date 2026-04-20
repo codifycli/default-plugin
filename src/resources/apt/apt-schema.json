@@ -8,19 +8,9 @@
   "properties": {
     "install": {
       "type": "array",
-      "description": "Installs packages using apt.",
+      "description": "Installs packages using apt. Use 'name=version' syntax to pin a version (e.g. 'nodejs=20.*').",
       "items": {
-        "oneOf": [
-          { "type": "string" },
-          {
-            "type": "object",
-            "properties": {
-              "name": { "type": "string" },
-              "version": { "type": "string" }
-            },
-            "required": ["name"]
-          }
-        ]
+        "type": "string"
       }
     },
     "update": {

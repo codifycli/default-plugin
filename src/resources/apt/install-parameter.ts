@@ -2,23 +2,24 @@ import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/pl
 
 import { AptConfig } from './apt.js';
 
-export interface AptPackage {
-  name: string;
-  version?: string;
+// Extracts the package name without the version specifier (e.g. "nodejs=20.*" → "nodejs")
+function packageName(pkg: string): string {
+  const eqIndex = pkg.indexOf('=')
+  return eqIndex > 0 ? pkg.slice(0, eqIndex) : pkg
 }
 
-export class AptInstallParameter extends StatefulParameter<AptConfig, Array<AptPackage | string>> {
+export class AptInstallParameter extends StatefulParameter<AptConfig, string[]> {
 
   getSettings(): ParameterSetting {
     return {
       type: 'array',
       filterInStatelessMode: (desired, current) =>
-        current.filter((c) => desired.some((d) => this.isSamePackage(d, c))),
+        current.filter((c) => desired.some((d) => packageName(d) === packageName(c))),
       isElementEqual: this.isEqual,
     }
   }
 
-  async refresh(desired: Array<AptPackage | string> | null, _config: Partial<AptConfig>): Promise<Array<AptPackage | string> | null> {
+  async refresh(desired: string[] | null, _config: Partial<AptConfig>): Promise<string[] | null> {
     const $ = getPty()
     const { data: installed } = await $.spawnSafe('dpkg-query -W -f=\'${Package} ${Version}\\n\'');
 
@@ -29,51 +30,36 @@ export class AptInstallParameter extends StatefulParameter<AptConfig, Array<AptP
     const r = installed.split(/\n/)
       .filter(Boolean)
       .map((l) => {
-        const [name, version] = l.split(/\s+/)
-          .filter(Boolean)
-
+        const [name, version] = l.split(/\s+/).filter(Boolean)
         return { name, version }
       })
-      .filter((pkg) =>
-        // Only return packages that are in the desired list
-        desired?.some((d) => {
-          if (typeof d === 'string') {
-            return d === pkg.name;
-          }
-
-          return d.name === pkg.name;
-        })
-      )
-      .map((installed) => {
-        if (desired?.find((d) => typeof d === 'string' && d === installed.name)) {
-          return installed.name;
+      .filter((pkg) => desired?.some((d) => packageName(d) === pkg.name))
+      .map((pkg) => {
+        // If desired entry has a version specifier, return name=version so equality checks work
+        if (desired?.some((d) => d.includes('=') && packageName(d) === pkg.name)) {
+          return `${pkg.name}=${pkg.version}`
         }
-
-        if (desired?.find((d) => typeof d === 'object' && d.name === installed.name && !d.version)) {
-          return { name: installed.name }
-        }
-
-        return installed;
+        return pkg.name
       })
 
     return r.length > 0 ? r : null;
   }
 
-  async add(valueToAdd: Array<AptPackage | string>, plan: Plan<AptConfig>): Promise<void> {
+  async add(valueToAdd: string[], plan: Plan<AptConfig>): Promise<void> {
     await this.updateIfNeeded(plan);
     await this.install(valueToAdd);
   }
 
-  async modify(newValue: (AptPackage | string)[], previousValue: (AptPackage | string)[], plan: Plan<AptConfig>): Promise<void> {
-    const valuesToAdd = newValue.filter((n) => !previousValue.some((p) => this.isSamePackage(n, p)));
-    const valuesToRemove = previousValue.filter((p) => !newValue.some((n) => this.isSamePackage(n, p)));
+  async modify(newValue: string[], previousValue: string[], plan: Plan<AptConfig>): Promise<void> {
+    const valuesToAdd = newValue.filter((n) => !previousValue.some((p) => packageName(n) === packageName(p)));
+    const valuesToRemove = previousValue.filter((p) => !newValue.some((n) => packageName(n) === packageName(p)));
 
     await this.uninstall(valuesToRemove);
     await this.updateIfNeeded(plan);
     await this.install(valuesToAdd);
   }
 
-  async remove(valueToRemove: (AptPackage | string)[], _plan: Plan<AptConfig>): Promise<void> {
+  async remove(valueToRemove: string[], _plan: Plan<AptConfig>): Promise<void> {
     await this.uninstall(valueToRemove);
   }
 
@@ -86,90 +72,35 @@ export class AptInstallParameter extends StatefulParameter<AptConfig, Array<AptP
     await $.spawn('apt-get update', { requiresRoot: true, interactive: true });
   }
 
-  private async install(packages: Array<AptPackage | string>): Promise<void> {
+  private async install(packages: string[]): Promise<void> {
     if (!packages || packages.length === 0) {
       return;
     }
 
     const $ = getPty();
-    const toInstall = packages.map((p) => {
-      if (typeof p === 'string') {
-        return p;
-      }
-
-      if (p.version) {
-        return `${p.name}=${p.version}`;
-      }
-
-      return p.name;
-    }).join(' ');
-
-    await $.spawn(`apt-get install -y ${toInstall}`, {
+    await $.spawn(`apt-get install -y ${packages.join(' ')}`, {
       requiresRoot: true,
       env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' }
     });
   }
 
-  private async uninstall(packages: Array<AptPackage | string>): Promise<void> {
+  private async uninstall(packages: string[]): Promise<void> {
     if (!packages || packages.length === 0) {
       return;
     }
 
     const $ = getPty();
-    const toUninstall = packages.map((p) => {
-      if (typeof p === 'string') {
-        return p;
-      }
-
-      return p.name;
-    }).join(' ');
-
-    await $.spawn(`apt-get auto-remove -y  ${toUninstall}`, { requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' }});
+    await $.spawn(`apt-get auto-remove -y ${packages.map(packageName).join(' ')}`, {
+      requiresRoot: true,
+      env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' }
+    });
   }
 
-  isSamePackage(a: AptPackage | string, b: AptPackage | string): boolean {
-    if (typeof a === 'string' || typeof b === 'string') {
-      if (typeof a === 'string' && typeof b === 'string') {
-        return a === b;
-      }
-
-      if (typeof a === 'string' && typeof b === 'object') {
-        return a === b.name;
-      }
-
-      if (typeof a === 'object' && typeof b === 'string') {
-        return a.name === b;
-      }
+  isEqual(desired: string, current: string): boolean {
+    // If no version specified in desired, match by name only
+    if (!desired.includes('=')) {
+      return packageName(desired) === packageName(current)
     }
-
-    if (typeof a === 'object' && typeof b === 'object') {
-      return a.name === b.name;
-    }
-
-    return false;
-  }
-
-  isEqual(desired: AptPackage | string, current: AptPackage | string): boolean {
-    if (typeof desired === 'string' || typeof current === 'string') {
-      if (typeof desired === 'string' && typeof current === 'string') {
-        return desired === current;
-      }
-
-      if (typeof desired === 'string' && typeof current === 'object') {
-        return desired === current.name;
-      }
-
-      if (typeof desired === 'object' && typeof current === 'string') {
-        return desired.name === current;
-      }
-    }
-
-    if (typeof desired === 'object' && typeof current === 'object') {
-      return desired.version
-        ? desired.version === current.version && desired.name === current.name
-        : desired.name === current.name;
-    }
-
-    return false;
+    return desired === current
   }
 }

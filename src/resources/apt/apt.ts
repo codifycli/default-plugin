@@ -2,10 +2,10 @@ import { CreatePlan, ExampleConfig, Resource, ResourceSettings, SpawnStatus, get
 import { OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
 
 import schema from './apt-schema.json';
-import { AptInstallParameter, AptPackage } from './install-parameter.js';
+import { AptInstallParameter } from './install-parameter.js';
 
 export interface AptConfig extends ResourceConfig {
-  install: Array<AptPackage | string>;
+  install: string[];
   update?: boolean;
 }
 
@@ -32,8 +32,8 @@ const exampleVersionPinned: ExampleConfig = {
     os: [ResourceOs.LINUX],
     install: [
       'curl',
-      { name: 'nodejs', version: '20.*' },
-      { name: 'python3', version: '3.12.*' },
+      'nodejs=20.*',
+      'python3=3.12.*',
     ],
   }]
 }
