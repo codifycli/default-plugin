@@ -13,6 +13,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { UvGlobalParameter } from './global-parameter.js';
 import { UvPythonVersionsParameter } from './python-versions-parameter.js';
 import { UvToolsParameter } from './tools-parameter.js';
 
@@ -23,6 +24,10 @@ const schema = z.object({
   pythonVersions: z
     .array(z.string())
     .describe('Python versions to install via uv (e.g. ["3.12", "3.11"])')
+    .optional(),
+  global: z
+    .string()
+    .describe('Python version to set as the global default (exposes `python` and `python3` on PATH via --default flag)')
     .optional(),
   tools: z
     .array(z.string())
@@ -41,19 +46,21 @@ const defaultConfig: Partial<UvConfig> = {
 
 const examplePython: ExampleConfig = {
   title: 'Install uv with Python versions',
-  description: 'Install uv and pin one or more Python versions for use across projects.',
+  description: 'Install uv, pin one or more Python versions, and set one as the global default accessible as `python` on PATH.',
   configs: [{
     type: 'uv',
     pythonVersions: ['3.12', '3.11'],
+    global: '3.12',
   }]
 }
 
 const exampleWithTools: ExampleConfig = {
   title: 'Install uv with Python and global tools',
-  description: 'Install uv, pin a Python version, and install commonly used global CLI tools like ruff and black.',
+  description: 'Install uv, set a global default Python, and install commonly used global CLI tools like ruff and black.',
   configs: [{
     type: 'uv',
     pythonVersions: ['3.12'],
+    global: '3.12',
     tools: ['ruff', 'black', 'httpie'],
   }]
 }
@@ -71,7 +78,8 @@ export class UvResource extends Resource<UvConfig> {
       schema,
       parameterSettings: {
         pythonVersions: { type: 'stateful', definition: new UvPythonVersionsParameter(), order: 1 },
-        tools: { type: 'stateful', definition: new UvToolsParameter(), order: 2 },
+        global: { type: 'stateful', definition: new UvGlobalParameter(), order: 2 },
+        tools: { type: 'stateful', definition: new UvToolsParameter(), order: 3 },
       },
       dependencies: [...(Utils.isMacOS() ? ['homebrew'] : [])],
     };

@@ -175,7 +175,7 @@ export class DockerResource extends Resource<DockerConfig> {
       { requiresRoot: true }
     );
     await $.spawn(
-      'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg',
+      'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o --batch --yes /etc/apt/keyrings/docker.gpg',
       { requiresRoot: true }
     );
     await $.spawn(
@@ -189,7 +189,7 @@ export class DockerResource extends Resource<DockerConfig> {
     const distro = await this.getDebianDistro($);
 
     await $.spawn(
-      `echo "deb [arch=${arch} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${distro} $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null`,
+      `bash -c 'echo "deb [arch=${arch} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${distro} $(lsb_release -cs 2>/dev/null) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null'`,
       { requiresRoot: true }
     );
 

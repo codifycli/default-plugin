@@ -50,7 +50,7 @@ function parseInstalledPythonVersions(output: string): string[] {
   return output
     .split('\n')
     .map((line) => {
-      const match = line.match(/cpython-(\d+\.\d+\.\d+)/);
+      const match = line.match(/cpython-(\d+\.\d+(?:\.\d+)?)/);
       return match ? match[1] : null;
     })
     .filter((v): v is string => v !== null);

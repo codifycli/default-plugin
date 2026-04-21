@@ -25,6 +25,24 @@ describe('uv resource integration tests', () => {
     });
   });
 
+  it('Installs uv and sets a global default Python', { timeout: 300_000 }, async () => {
+    await PluginTester.fullTest(pluginPath, [
+      {
+        type: 'uv',
+        pythonVersions: ['3.12'],
+        global: '3.12',
+      },
+    ], {
+      validateApply: async () => {
+        const { data: version } = await testSpawn('python --version');
+        expect(version).toContain('3.12');
+      },
+      validateDestroy: async () => {
+        expect(await testSpawn('uv --version')).toMatchObject({ status: SpawnStatus.ERROR });
+      },
+    });
+  });
+
   it('Installs uv and manages global tools', { timeout: 300_000 }, async () => {
     await PluginTester.fullTest(pluginPath, [
       {
