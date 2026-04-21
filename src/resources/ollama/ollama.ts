@@ -5,6 +5,7 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus,
+  Utils as CoreUtils,
   getPty,
   z,
 } from '@codifycli/plugin-core';
@@ -133,6 +134,11 @@ export class OllamaResource extends Resource<OllamaConfig> {
   private async installOnLinux(): Promise<void> {
     const $ = getPty();
 
+    const curlCheck = await $.spawnSafe('which curl');
+    if (curlCheck.status === SpawnStatus.ERROR) {
+      await CoreUtils.installViaPkgMgr('curl');
+    }
+
     // The official install script installs the binary, creates the `ollama`
     // system user, and registers + starts a systemd service automatically.
     await $.spawn(
@@ -144,14 +150,14 @@ export class OllamaResource extends Resource<OllamaConfig> {
   private async uninstallOnLinux(): Promise<void> {
     const $ = getPty();
 
-    await $.spawnSafe('sudo systemctl stop ollama');
-    await $.spawnSafe('sudo systemctl disable ollama');
-    await $.spawnSafe('sudo rm -f /etc/systemd/system/ollama.service');
-    await $.spawnSafe('sudo rm -f /usr/local/bin/ollama');
+    await $.spawnSafe('systemctl stop ollama', { requiresRoot: true });
+    await $.spawnSafe('systemctl disable ollama', { requiresRoot: true });
+    await $.spawnSafe('rm -f /etc/systemd/system/ollama.service', { requiresRoot: true });
+    await $.spawnSafe('rm -f /usr/local/bin/ollama', { requiresRoot: true });
 
     // Remove model data and configuration
-    await $.spawnSafe('sudo rm -rf /usr/share/ollama');
-    await $.spawnSafe('sudo userdel ollama');
-    await $.spawnSafe('sudo groupdel ollama');
+    await $.spawnSafe('rm -rf /usr/share/ollama', { requiresRoot: true });
+    await $.spawnSafe('userdel ollama', { requiresRoot: true });
+    await $.spawnSafe('groupdel ollama', { requiresRoot: true });
   }
 }

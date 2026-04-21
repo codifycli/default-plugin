@@ -1,4 +1,4 @@
-import { CreatePlan, ExampleConfig, FileUtils, Resource, ResourceSettings, SpawnStatus, getPty, z } from '@codifycli/plugin-core';
+import { CreatePlan, ExampleConfig, FileUtils, Resource, ResourceSettings, SpawnStatus, Utils as CoreUtils, getPty, z } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -88,6 +88,11 @@ export class AsdfResource extends Resource<AsdfConfig> {
     }
 
     if (Utils.isLinux()) {
+      const curlCheck = await $.spawnSafe('which curl');
+      if (curlCheck.status === SpawnStatus.ERROR) {
+        await CoreUtils.installViaPkgMgr('curl');
+      }
+
       const { data: latestVersion } = await $.spawn('curl -s https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \'"tag_name":\' | sed -E \'s/.*"([^"]+)".*/\\1/\'');
 
       // Create .asdf directory if it doesn't exist

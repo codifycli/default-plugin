@@ -180,6 +180,13 @@ export const Utils = {
     ];
   },
 
+  async installViaPkgMgr(pkg: string): Promise<void> {
+    const $ = getPty();
+    if (Utils.isLinux()) {
+      await $.spawn(`sudo apt-get install -y ${pkg}`, { interactive: true, requiresRoot: true });
+    }
+  },
+
   getPrimaryShellRc(): string {
     const shell = process.env.SHELL || '';
     const homeDir = os.homedir();

@@ -15,8 +15,8 @@ describe('Npm login tests', () => {
     await PluginTester.install(pluginPath, [
       {
         type: 'nvm',
-        global: '20',
-        nodeVersions: ['20'],
+        global: '24',
+        nodeVersions: ['24'],
       }
     ]);
   }, 600000);

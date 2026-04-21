@@ -1,10 +1,18 @@
-import { ExampleConfig, FileUtils, getPty, Resource, ResourceSettings, SpawnStatus, z } from '@codifycli/plugin-core';
+import {
+  ExampleConfig,
+  FileUtils,
+  getPty,
+  Resource,
+  ResourceSettings,
+  SpawnStatus,
+  Utils,
+  z
+} from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { Utils } from '../../../utils/index.js';
 import { UvPythonVersionsParameter } from './python-versions-parameter.js';
 import { UvToolsParameter } from './tools-parameter.js';
 
@@ -104,6 +112,11 @@ async function uninstallOnMacOS(): Promise<void> {
 
 async function installOnLinux(): Promise<void> {
   const $ = getPty();
+
+  const { status: curlStatus } = await $.spawnSafe('which curl');
+  if (curlStatus === SpawnStatus.ERROR) {
+    await Utils.installViaPkgMgr('curl');
+  }
 
   await fs.mkdir(UV_LOCAL_BIN, { recursive: true });
 

@@ -6,6 +6,7 @@ import os from 'node:os';
 import { TestUtils } from '../test-utils.js';
 import { SpawnStatus } from '@codifycli/plugin-core';
 
+// Need to fix
 describe('Pyenv resource integration tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
 

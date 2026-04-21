@@ -123,7 +123,12 @@ ${JSON.stringify(releaseInfo, null, 2)}
     // Create a temporary tmp dir
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'terraform-'));
 
-    // Ensure unzip is available (not installed by default on some Linux distros)
+    // Ensure curl and unzip are available (not installed by default on some Linux distros)
+    const curlCheck = await $.spawnSafe('which curl');
+    if (curlCheck.status === SpawnStatus.ERROR) {
+      await Utils.installViaPkgMgr('curl');
+    }
+
     const unzipCheck = await $.spawnSafe('which unzip');
     if (unzipCheck.status === SpawnStatus.ERROR) {
       await Utils.installViaPkgMgr('unzip');

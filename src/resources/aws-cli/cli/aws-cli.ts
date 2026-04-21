@@ -84,6 +84,11 @@ softwareupdate --install-rosetta
         : 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip';
 
       console.log(`Installing AWS CLI for Linux (${isArmArch ? 'ARM64' : 'x86_64'})...`);
+      const unzipCheck = await $.spawnSafe('which unzip');
+      if (unzipCheck.status === SpawnStatus.ERROR) {
+        await Utils.installViaPkgMgr('unzip');
+      }
+
       await FileUtils.downloadFile(downloadUrl, path.join(tmpDir, 'awscliv2.zip'));
       await $.spawn('unzip -q awscliv2.zip', { cwd: tmpDir });
       await $.spawn('./aws/install', { cwd: tmpDir, requiresRoot: true });

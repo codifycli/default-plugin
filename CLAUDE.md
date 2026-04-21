@@ -247,6 +247,16 @@ const { data } = await $.spawn('command', {
 })
 ```
 
+**Never use `sudo` inside `$.spawn` or `$.spawnSafe`.** Use `{ requiresRoot: true }` in the options instead. The framework handles privilege escalation through the parent process.
+
+```typescript
+// Wrong
+await $.spawn('sudo rm -f /usr/local/bin/ollama');
+
+// Correct
+await $.spawn('rm -f /usr/local/bin/ollama', { requiresRoot: true });
+```
+
 **File Operations:**
 ```typescript
 await FileUtils.addToStartupFile(lineToAdd)
@@ -262,6 +272,34 @@ await FileUtils.dirExists(path)
 Utils.isMacOS()
 Utils.isLinux()
 Utils.isWindows()
+```
+
+**Package Installation:**
+
+Always use `Utils.installViaPkgMgr(pkg)` from `@codifycli/plugin-core` to install system packages. This is platform-agnostic and automatically dispatches to the correct package manager (Homebrew on macOS, apt on Debian/Ubuntu, etc.). Never hardcode package manager calls like `brew install`, `apt-get install -y`, or `sudo apt install` in resource code.
+
+```typescript
+// Correct — works on macOS and Linux
+await Utils.installViaPkgMgr('curl');
+await Utils.uninstallViaPkgMgr('curl');
+
+// Wrong — hardcoded to a specific platform/package manager
+await $.spawn('sudo apt-get install -y curl');
+await $.spawn('brew install curl');
+```
+
+This applies to prerequisite checks too. When a resource needs a system dependency (e.g. `curl`, `git`, `make`), always install via `Utils.installViaPkgMgr` rather than spawning a package manager directly.
+
+**Imports — `Utils` from plugin-core vs local utils:**
+
+Always import `Utils` from `@codifycli/plugin-core`, not from `../../utils` or `../../../utils`. The local `src/utils/` module contains macOS-specific helpers (`findApplication`, `isArmArch`, `isRosetta2Installed`, `downloadUrlIntoFile`, etc.) that are only needed when those specific capabilities are required. For everything else — OS detection, package management, shell utilities — use the plugin-core `Utils`.
+
+```typescript
+// Correct
+import { Utils } from '@codifycli/plugin-core';
+
+// Only use local utils when you specifically need macOS/spotlight helpers
+import { Utils as LocalUtils } from '../../../utils/index.js';
 ```
 
 ## Build Process

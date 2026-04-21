@@ -89,7 +89,7 @@ export class PyenvResource extends Resource<PyenvConfig> {
     if (Utils.isMacOS()) {
       await Utils.installViaPkgMgr('openssl readline sqlite3 xz tcl-tk@8 libb2 zstd zlib pkgconfig');
     } else if (Utils.isLinux()) {
-      await Utils.installViaPkgMgr('make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl git libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev');
+      await Utils.installViaPkgMgr('curl make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev curl git libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev');
     }
 
     await $.spawn('curl https://pyenv.run | bash', { interactive: true })

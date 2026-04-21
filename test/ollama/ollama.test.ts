@@ -55,8 +55,8 @@ describe('Ollama resource integration tests', async () => {
       await testSpawn('brew services stop ollama');
       await testSpawn('brew uninstall ollama');
     } else {
-      await testSpawn('sudo systemctl stop ollama');
-      await testSpawn('sudo rm -f /usr/local/bin/ollama');
+      await testSpawn('systemctl stop ollama', { requiresRoot: true });
+      await testSpawn('rm -f /usr/local/bin/ollama', { requiresRoot: true });
     }
   }, 60_000);
 });

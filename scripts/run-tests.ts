@@ -36,9 +36,9 @@ async function main(argument: string, args: {
   }
 
   if (args.persistent) {
-    if (!argument) {
-      throw new Error('No test specified for persistent mode');
-    }
+    // if (!argument) {
+    //   throw new Error('No test specified for persistent mode');
+    // }
 
     await launchPersistentTest(argument, debug, args.operatingSystem);
     return process.exit(0);
@@ -98,7 +98,7 @@ async function launchPersistentTest(test: string, debug: boolean, operatingSyste
 
   console.log('Done refreshing files on VM. Starting tests...');
   VerbosityLevel.set(3);
-  await codifySpawn(`tart exec -i ${vmName} ${shell} -c -i 'cd ${dir} && XDG_RUNTIME_DIR="/run/user/$(id -u)" DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus" FORCE_COLOR=true npm run test -- ${test} --disable-console-intercept ${debugFlag} --no-file-parallelism'`, { throws: false });
+  await codifySpawn(`tart exec -i ${vmName} ${shell} -c -i 'cd ${dir} && XDG_RUNTIME_DIR="/run/user/$(id -u)" DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus" FORCE_COLOR=true npm run test -- ${test ? test : ''} --disable-console-intercept ${debugFlag} --no-file-parallelism'`, { throws: false });
   // }
 }
 

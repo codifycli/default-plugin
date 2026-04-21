@@ -6,7 +6,7 @@
   "description": "Install and manage packages using NPM.",
   "type": "object",
   "properties": {
-    "install": {
+    "globalInstall": {
       "type": "array",
       "description": "An array of npm packages to install globally. Use the npm@version syntax to pin a specific version (e.g. \"nodemon@3.1.10\").",
       "items": {

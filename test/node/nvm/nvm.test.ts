@@ -30,7 +30,7 @@ describe('nvm tests', () => {
       testModify: {
         modifiedConfigs: [{
           type: 'nvm',
-          global: '23',
+          global: '24',
           nodeVersions: ['23'],
         }],
         validateModify: () => {

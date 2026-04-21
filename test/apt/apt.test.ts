@@ -72,22 +72,12 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'apt',
       install: ['curl'],
-      update: false
+      update: true
     }], {
       skipUninstall: true,
       validateApply: async () => {
         expect(await testSpawn('which curl')).toMatchObject({ status: SpawnStatus.SUCCESS });
       },
     });
-
-    try {
-      await PluginTester.uninstall(pluginPath, [{
-        type: 'apt',
-        install: ['curl'],
-        update: false
-      }]);
-    } catch (e) {
-      console.error(e);
-    }
   });
 });
