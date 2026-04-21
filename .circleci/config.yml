@@ -15,6 +15,9 @@ jobs:
           command: |
             if [[ "$OSTYPE" == "linux"* ]]; then
               loginctl enable-linger $(whoami)
+
+#              Reset file permissions
+              sudo chown -R ubuntu:ubuntu /usr/local /opt /var/tmp
             fi
       - run:
           name: Install dependencies
@@ -47,4 +50,4 @@ workflows:
       - test:
           matrix:
             parameters:
-              executor: [macos]
+              executor: [linux-arm]
