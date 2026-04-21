@@ -7,7 +7,6 @@ const pluginPath = path.resolve('./src/index.ts');
 await PluginTester.uninstall(pluginPath, [
   { type: 'pyenv' },
   { type: 'rbenv' },
-  { type: 'uv' },
 ]);
 
 // Remove pre-installed tools that don't have Codify resources
