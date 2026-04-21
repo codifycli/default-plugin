@@ -69,8 +69,13 @@ export class Pnpm extends Resource<PnpmConfig> {
 
   async destroy(plan: DestroyPlan<PnpmConfig>): Promise<void> {
     const $ = getPty();
+
+    const expectedPnpmHome = Utils.isMacOS()
+      ? path.join(os.homedir(), 'Library', 'pnpm')
+      : path.join(os.homedir(), '.local', 'share', 'pnpm');
+
     const { data: pnpmLocation } = await $.spawn('which pnpm', { interactive: true });
-    if (pnpmLocation.trim().toLowerCase() !== path.join(os.homedir(), 'Library', 'pnpm', 'pnpm').trim().toLowerCase()) {
+    if (pnpmLocation.trim().toLowerCase() !== path.join(expectedPnpmHome, 'pnpm').trim().toLowerCase()) {
       throw new Error('pnpm was installed outside of Codify. Please uninstall manually and re-run Codify');
     }
 
@@ -84,7 +89,7 @@ export class Pnpm extends Resource<PnpmConfig> {
 
     const shellRc = Utils.getPrimaryShellRc();
     await FileUtils.removeLineFromStartupFile('# pnpm')
-    await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${os.homedir()}/Library/pnpm"`)
+    await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${expectedPnpmHome}"`)
     await FileUtils.removeFromFile(shellRc,
 `case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;

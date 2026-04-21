@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
 import { SpawnStatus } from '@codifycli/plugin-core';
@@ -20,18 +20,15 @@ describe('Npm tests', () => {
     await PluginTester.fullTest(pluginPath, [
       {
         type: 'npm',
-        globalInstall: ['pnpm'],
+        globalInstall: ['npm-run-all'],
       }
     ], {
+      skipUninstall: true,
       validateApply: async () => {
-        expect(await testSpawn('which nvm')).toMatchObject({ status: SpawnStatus.SUCCESS });
-        expect(await testSpawn('node --version')).toMatchObject({ status: SpawnStatus.SUCCESS });
-        expect(await testSpawn('nvm list')).toMatchObject({ status: SpawnStatus.SUCCESS });
-
-        const { data: installedVersions } = await testSpawn('nvm list')
-        expect(installedVersions).to.include('20');
-        expect(installedVersions).to.include('18');
+        expect(await testSpawn('which npm-run-all')).toMatchObject({ status: SpawnStatus.SUCCESS });
       },
     });
   });
+
+  // Don't uninstall nodeJS here. We need it for the test harness
 });

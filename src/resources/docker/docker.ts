@@ -175,7 +175,7 @@ export class DockerResource extends Resource<DockerConfig> {
       { requiresRoot: true }
     );
     await $.spawn(
-      'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o --batch --yes /etc/apt/keyrings/docker.gpg',
+      `bash -c 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg'`,
       { requiresRoot: true }
     );
     await $.spawn(
