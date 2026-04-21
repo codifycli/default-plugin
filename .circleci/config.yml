@@ -28,14 +28,14 @@ orbs:
   node: circleci/node@6
 
 executors:
-#  linux-x86:
-#    machine:
-#      image: ubuntu-2404:current
-#    resource_class: medium
-#  linux-arm:
-#    machine:
-#      image: ubuntu-2404:current
-#    resource_class: arm.medium
+  linux-x86:
+    machine:
+      image: ubuntu-2404:current
+    resource_class: medium
+  linux-arm:
+    machine:
+      image: ubuntu-2404:current
+    resource_class: arm.medium
   macos:
     macos:
       xcode: '26.4.0'
@@ -47,4 +47,4 @@ workflows:
       - test:
           matrix:
             parameters:
-              executor: [linux-x86, linux-arm, macos]
+              executor: [macos]
