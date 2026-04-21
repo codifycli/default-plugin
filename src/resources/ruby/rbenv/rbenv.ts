@@ -72,13 +72,13 @@ async function installOnMacOS(): Promise<void> {
 async function installOnLinux(): Promise<void> {
   const $ = getPty();
 
-  await $.spawn(`git clone https://github.com/rbenv/rbenv.git ${RBENV_ROOT}`, { interactive: true });
+  await $.spawnSafe(`git clone https://github.com/rbenv/rbenv.git ${RBENV_ROOT}`, { interactive: true });
 
   const rubyBuildPath = path.join(RBENV_ROOT, 'plugins', 'ruby-build');
-  await $.spawn(`git clone https://github.com/rbenv/ruby-build.git ${rubyBuildPath}`, { interactive: true });
+  await $.spawnSafe(`git clone https://github.com/rbenv/ruby-build.git ${rubyBuildPath}`, { interactive: true });
 
   await Utils.installViaPkgMgr(
-    'autoconf patch build-essential rustc libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libgmp-dev libncurses5-dev libffi-dev libgdbm6 libgdbm-dev libdb-dev uuid-dev'
+    'curl autoconf patch build-essential rustc libssl-dev libyaml-dev libreadline6-dev zlib1g-dev libgmp-dev libncurses5-dev libffi-dev libgdbm6 libgdbm-dev libdb-dev uuid-dev'
   );
 
   await FileUtils.addAllToShellRc([RBENV_PATH_EXPORT, RBENV_INIT]);

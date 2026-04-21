@@ -1,14 +1,21 @@
-import { CreatePlan, ExampleConfig, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import {
+  CreatePlan,
+  ExampleConfig,
+  Resource,
+  ResourceSettings,
+  SpawnStatus,
+  getPty,
+  Utils, FileUtils
+} from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import semver from 'semver';
 
-import { FileUtils } from '../../utils/file-utils.js';
-import { Utils } from '../../utils/index.js';
 import Schema from './terraform-schema.json';
 import { HashicorpReleaseInfo, HashicorpReleasesAPIResponse, TerraformVersionInfo } from './terraform-types.js';
+import { codifySpawn } from '../../utils/codify-spawn.js';
 
 const TERRAFORM_RELEASES_API_URL = 'https://api.releases.hashicorp.com/v1/releases/terraform';
 const TERRAFORM_RELEASE_INFO_API_URL = (version: string) => `https://api.releases.hashicorp.com/v1/releases/terraform/${version}`;
@@ -116,18 +123,24 @@ ${JSON.stringify(releaseInfo, null, 2)}
     // Create a temporary tmp dir
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'terraform-'));
 
+    // Ensure unzip is available (not installed by default on some Linux distros)
+    const unzipCheck = await $.spawnSafe('which unzip');
+    if (unzipCheck.status === SpawnStatus.ERROR) {
+      await Utils.installViaPkgMgr('unzip');
+    }
+
     // Download and unzip the terraform binary
     await $.spawn(`curl -fsSL ${downloadUrl} -o terraform.zip`, { cwd: temporaryDir });
     await $.spawn('unzip -q terraform.zip', { cwd: temporaryDir });
 
     // Ensure that /usr/local/bin exists. If not then create it
-    await (directory === '/usr/local/bin' ? Utils.createBinDirectoryIfNotExists() : Utils.createDirectoryIfNotExists(directory));
+    await (directory === '/usr/local/bin' ? this.createBinDirectoryIfNotExists() : this.createDirectoryIfNotExists(directory));
 
     await $.spawn(`mv ./terraform ${directory}`, { cwd: temporaryDir, requiresRoot: true })
     await $.spawn(`rm -rf ${temporaryDir}`)
 
     if (!(await Utils.isDirectoryOnPath(directory))) {
-      await FileUtils.addToStartupFile(`export PATH=$PATH:${directory}`);
+      await FileUtils.addToShellRc(`export PATH=$PATH:${directory}`);
     }
   }
 
@@ -145,7 +158,7 @@ ${JSON.stringify(releaseInfo, null, 2)}
     }
 
     await $.spawn(`rm ${installLocationQuery.data}`, { requiresRoot: true });
-    await FileUtils.removeLineFromStartupFile(`export PATH=$PATH:${installLocationQuery.data}`);
+    await FileUtils.removeLineFromShellRc(`export PATH=$PATH:${installLocationQuery.data}`);
   }
 
   private async getLatestTerraformInfo(): Promise<HashicorpReleaseInfo> {
@@ -183,5 +196,39 @@ ${JSON.stringify(releaseInfo, null, 2)}
     }
 
     return build.url;
+  }
+
+  private async createBinDirectoryIfNotExists(): Promise<void> {
+    let lstat = null;
+    try {
+      lstat = await fs.lstat('/usr/local/bin')
+    } catch {}
+
+    if (lstat && lstat.isDirectory()) {
+      return;
+    }
+
+    if (lstat && !lstat.isDirectory()) {
+      throw new Error('Found file at /usr/local/bin. Cannot create a directory there')
+    }
+
+    await codifySpawn('sudo mkdir -p -m 775 /usr/local/bin')
+  }
+
+  async createDirectoryIfNotExists(path: string): Promise<void> {
+    let lstat = null;
+    try {
+      lstat = await fs.lstat(path)
+    } catch {}
+
+    if (lstat && lstat.isDirectory()) {
+      return;
+    }
+
+    if (lstat && !lstat.isDirectory()) {
+      throw new Error(`Found file at ${path}. Cannot create a directory there`)
+    }
+
+    await fs.mkdir(path, { recursive: true })
   }
 }

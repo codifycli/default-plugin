@@ -78,7 +78,7 @@ export class AptInstallParameter extends StatefulParameter<AptConfig, string[]> 
     }
 
     const $ = getPty();
-    await $.spawn(`apt-get install -y ${packages.join(' ')}`, {
+    await $.spawn(`apt-get -qq install -o Dpkg::Progress-Fancy=0 -y ${packages.join(' ')}`, {
       requiresRoot: true,
       env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' }
     });
@@ -90,7 +90,7 @@ export class AptInstallParameter extends StatefulParameter<AptConfig, string[]> 
     }
 
     const $ = getPty();
-    await $.spawn(`apt-get auto-remove -y ${packages.map(packageName).join(' ')}`, {
+    await $.spawn(`apt-get -qq auto-remove -o Dpkg::Progress-Fancy=0 -y ${packages.map(packageName).join(' ')}`, {
       requiresRoot: true,
       env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' }
     });

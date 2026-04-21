@@ -16,6 +16,8 @@ import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';
 import { Utils } from '../../../utils/index.js';
+import os from 'node:os';
+import path from 'node:path';
 
 const ALIAS_REGEX = /^'?([^=]+?)'?='?(.*?)'?$/
 
@@ -118,6 +120,7 @@ export class AliasesResource extends Resource<AliasesConfig> {
 
     let aliases = data.split(/\n/g)
       .map((l) => l.trim())
+      .map((l) => l.replace(/^alias\s+/, ''))
       .map((l) => l.match(ALIAS_REGEX))
       .filter(Boolean)
       .map((m) => (m ? { alias: m[1], value: m[2] } : null))
