@@ -10,15 +10,12 @@ jobs:
       - checkout
       - node/install:
           node-version: '24'
-      - when:
-          condition:
-            matches:
-              pattern: "^linux.*"
-              value: << parameters.executor >>
-          steps:
-            - run:
-                name: Enable linger for current user (Linux only)
-                command: loginctl enable-linger $(whoami)
+      - run:
+          name: Enable linger for current user (Linux only)
+          command: |
+            if [[ "$OSTYPE" == "linux"* ]]; then
+              loginctl enable-linger $(whoami)
+            fi
       - run:
           name: Install dependencies
           command: npm ci
