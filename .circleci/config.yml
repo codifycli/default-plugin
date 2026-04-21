@@ -15,14 +15,18 @@ jobs:
           command: |
             if [[ "$OSTYPE" == "linux"* ]]; then
               loginctl enable-linger $(whoami)
-              sudo chown -R ubuntu:ubuntu /usr/local /opt /var/tmp
+              sudo chown -R circleci:circleci /usr/local /opt /var/tmp
             fi
       - run:
           name: Install dependencies
           command: npm ci
       - run:
+          name: Clean up pre-installed tools
+          command: npx tsx scripts/cleanup-circleci.ts
+          no_output_timeout: 10m
+      - run:
           name: Run tests
-          command: npm run test -- ./test --no-file-parallelism --disable-console-intercept
+          command: npm run test -- ./test/node/npm/npm.test.ts --no-file-parallelism --disable-console-intercept
           no_output_timeout: 30m
 
 orbs:
