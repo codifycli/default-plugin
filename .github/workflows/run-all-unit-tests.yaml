@@ -4,7 +4,7 @@
 name: Test all on Demand
 
 on:
-#  push:
+  push:
 #  schedule:
 #    - cron: '0 0 * * 0'  # Every Sunday at midnight UTC
   workflow_dispatch:
@@ -16,7 +16,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
+        os: [ubuntu-latest]
+#        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -29,4 +30,5 @@ jobs:
         if: runner.os == 'Linux'
         run: loginctl enable-linger $(whoami)
       - run: npm ci
+      - run: npx tsx scripts/cleanup-circleci.ts
       - run: npm run test -- ./test --no-file-parallelism --disable-console-intercept

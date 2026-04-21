@@ -16,7 +16,7 @@ async function ensureOllamaServerRunning(): Promise<void> {
   if (Utils.isMacOS()) {
     await $.spawn('brew services start ollama', { interactive: true });
   } else {
-    await $.spawn('sudo systemctl start ollama', { interactive: true });
+    await $.spawn('systemctl start ollama', { interactive: true, requiresRoot: true });
   }
 
   // Give the server a moment to become ready
