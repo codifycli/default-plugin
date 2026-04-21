@@ -15,8 +15,6 @@ jobs:
           command: |
             if [[ "$OSTYPE" == "linux"* ]]; then
               loginctl enable-linger $(whoami)
-
-#              Reset file permissions
               sudo chown -R ubuntu:ubuntu /usr/local /opt /var/tmp
             fi
       - run:
