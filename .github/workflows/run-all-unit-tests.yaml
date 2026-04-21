@@ -26,6 +26,8 @@ jobs:
         with:
           node-version: '24.x'
           cache: 'npm'
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
       - name: Enable linger for admin user (Linux only)
         if: runner.os == 'Linux'
         run: loginctl enable-linger $(whoami)
