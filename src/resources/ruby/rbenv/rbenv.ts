@@ -95,7 +95,8 @@ async function uninstallOnMacOS(): Promise<void> {
 
 async function uninstallOnLinux(): Promise<void> {
   const $ = getPty();
-  await $.spawn(`rm -rf ${RBENV_ROOT}`);
+  await $.spawnSafe(`rm -rf ${RBENV_ROOT}`);
+  await $.spawnSafe('rm -f /usr/bin/rbenv');
   await removeRbenvFromShellRc([RBENV_PATH_EXPORT, RBENV_INIT]);
 }
 
