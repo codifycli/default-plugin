@@ -14,6 +14,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
 
@@ -26,6 +27,6 @@ jobs:
           cache: 'npm'
       - name: Enable linger for admin user (Linux only)
         if: runner.os == 'Linux'
-        run: loginctl enable-linger admin
+        run: loginctl enable-linger $(whoami)
       - run: npm ci
       - run: npm run test -- ./test --no-file-parallelism --disable-console-intercept
