@@ -15,14 +15,17 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js 22
+      - name: Use Node.js 24
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: '24.x'
           cache: 'npm'
+      - name: Enable linger for admin user (Linux only)
+        if: runner.os == 'Linux'
+        run: loginctl enable-linger admin
       - run: npm ci
-      - run: npm run test
+      - run: npm run test -- ./test --no-file-parallelism --disable-console-intercept
