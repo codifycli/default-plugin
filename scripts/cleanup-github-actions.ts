@@ -5,7 +5,11 @@ const pluginPath = path.resolve('./src/index.ts');
 
 // Uninstall resources that have Codify resource definitions
 await PluginTester.uninstall(pluginPath, [
-  { type: 'docker' }
+  {
+    type: 'apt',
+    install: ['go', 'docker', 'python', 'rust']
+  },
+  { type: 'docker' },
 ]);
 
 // Remove pre-installed tools that don't have Codify resources
