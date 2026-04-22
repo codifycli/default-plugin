@@ -55,6 +55,8 @@ export class JenvResource extends Resource<JenvConfig> {
       return null
     }
 
+    console.log('Zshrc', fs.readFileSync('~/.zshrc', 'utf8'));
+
     // For some reason jenv doctor will return with a non-zero status code even
     // if it's successful. We can ignore the status code and only check for the text
     const jenvDoctor = await $.spawnSafe('jenv doctor')
