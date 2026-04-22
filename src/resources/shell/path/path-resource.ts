@@ -18,6 +18,7 @@ import path from 'node:path';
 
 import { untildify } from '../../../utils/untildify.js';
 import Schema from './path-schema.json';
+import os from 'node:os';
 
 export interface PathConfig extends StringIndexedObject {
   path: string;
@@ -188,6 +189,9 @@ export class PathResource extends Resource<PathConfig> {
     if (pc.name !== 'paths') {
       return;
     }
+
+    console.log('My shell', process.env.SHELL);
+    console.log('Other shell method', os.userInfo().shell)
     
     const pathsToAdd = pc.newValue.filter((p: string) => !pc.previousValue.includes(p));
     const pathsToRemove = pc.previousValue.filter((p: string) => !pc.newValue.includes(p));
@@ -216,7 +220,7 @@ export class PathResource extends Resource<PathConfig> {
 
   private async addPath(path: string, prepend = false): Promise<void> {
     // Escaping is done within file utils
-    await FileUtils.addPathToPrimaryShellRc(path, prepend);
+    await FileUtils.addPathToShellRc(path, prepend);
   }
   
   private async removePath(pathValue: string): Promise<void> {
