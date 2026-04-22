@@ -46,7 +46,8 @@ jobs:
           export SHELL=/bin/zsh
           touch ~/.zshrc
           unset JAVA_HOME
-          export PATH=/usr/bin:/bin:/usr/sbin:/sbin
+          export PATH=/Users/runner/work/default-plugin/default-plugin/node_modules/.bin:/Users/runner/work/default-plugin/node_modules/.bin:/Users/runner/work/node_modules/.bin:/Users/runner/node_modules/.bin:/Users/node_modules/.bin:/node_modules/.bin:/Users/runner/hostedtoolcache/node/24.15.0/arm64/lib/node_modules/npm/node_modules/@npmcli/run-script/lib/node-gyp-bin:/Users/runner/hostedtoolcache/node/24.15.0/arm64/bin:/opt/homebrew/lib/ruby/gems/3.3.0/bin:/opt/homebrew/opt/ruby@3.3/bin:/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/usr/bin:/bin:/usr/sbin:/sbin
+          
           
           
           npm run test -- ./test/java --no-file-parallelism --disable-console-intercept
