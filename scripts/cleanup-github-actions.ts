@@ -17,6 +17,6 @@ await testSpawn('rm -rf /usr/bin/python', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/python3', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/ruby', { requiresRoot: true })
 
-await testSpawn('rm -rf /var/lib/command-not-found/*', { requiresRoot: true });
-await testSpawn('apt update', { requiresRoot: true });
-await testSpawn('/usr/lib/cnf-update-db', { requiresRoot: true })
+// await testSpawn('rm -rf /var/lib/command-not-found/*', { requiresRoot: true });
+// await testSpawn('apt update', { requiresRoot: true });
+// await testSpawn('/usr/lib/cnf-update-db', { requiresRoot: true })
