@@ -28,6 +28,6 @@ if (Utils.isLinux()) {
     { type: 'aws-cli' },
   ]);
 
-  await testSpawn('brew uninstall chrome pipx python ruby awscli rust rustup git-lfs', { interactive: true });
+  await testSpawn('brew uninstall chrome pipx $(brew list | grep -E \'^python(@|$)\') $(brew list | grep -E \'^ruby(@|$)\') rustup git-lfs', { interactive: true });
 
 }
