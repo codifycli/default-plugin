@@ -30,8 +30,8 @@ jobs:
         if: runner.os == 'Linux'
         run: loginctl enable-linger $(whoami)
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
 
       - run: npm ci
       - run: npx tsx scripts/cleanup-github-actions.ts
