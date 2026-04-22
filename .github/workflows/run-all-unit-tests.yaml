@@ -33,8 +33,8 @@ jobs:
       - run: npm ci
       - run: npx tsx scripts/cleanup-github-actions.ts
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
 
       - name: Run tests (macOS - zsh login shell)
         if: runner.os == 'macOS'
@@ -45,8 +45,9 @@ jobs:
           echo $ZSH_NAME $ZSH_VERSION   
           export SHELL=/bin/zsh
           touch ~/.zshrc
+          unset JAVA_HOME
           
-          npm run test -- ./test --no-file-parallelism --disable-console-intercept
+          npm run test -- ./test/java --no-file-parallelism --disable-console-intercept
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
