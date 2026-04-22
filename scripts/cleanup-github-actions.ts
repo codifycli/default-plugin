@@ -5,12 +5,10 @@ const pluginPath = path.resolve('./src/index.ts');
 
 // Uninstall resources that have Codify resource definitions
 await PluginTester.uninstall(pluginPath, [
-  {
-    type: 'apt',
-    install: ['go', 'docker', 'python', 'rust']
-  },
   { type: 'docker' },
 ]);
+
+await testSpawn('apt-get autoremove -y golang docker-ce python rust ruby rpm python3 python php', { requiresRoot: true })
 
 // Remove pre-installed tools that don't have Codify resources
 // Python — remove all python-related binaries and symlinks
