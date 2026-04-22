@@ -43,7 +43,7 @@ jobs:
           export SHELL=/bin/zsh
           touch ~/.zshrc
           
-          npm run test -- ./test/shell --no-file-parallelism --disable-console-intercept
+          npm run test -- ./test --no-file-parallelism --disable-console-intercept
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
