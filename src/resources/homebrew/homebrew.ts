@@ -112,6 +112,12 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
 
   override async destroy(): Promise<void> {
     const $ = getPty();
+
+    const { status } = await $.spawnSafe('which brew');
+    if (status === SpawnStatus.ERROR) {
+      return;
+    }
+
     const homebrewInfo = await $.spawn('brew config', { interactive: true });
     const homebrewDirectory = this.getCurrentLocation(homebrewInfo.data)
 

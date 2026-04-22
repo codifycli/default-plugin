@@ -104,10 +104,10 @@ softwareupdate --install-rosetta
       return;
     }
 
-    // if (installLocation.includes('homebrew')) {
-    //   await $.spawn('brew uninstall awscli', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
-    //   return;
-    // }
+    if (installLocation.includes('homebrew')) {
+      await $.spawn('brew uninstall awscli', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+      return;
+    }
 
     if (Utils.isLinux()) {
       // Remove symlinks from bin dir
