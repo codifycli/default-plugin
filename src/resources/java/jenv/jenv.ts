@@ -104,10 +104,9 @@ export class JenvResource extends Resource<JenvConfig> {
     const $ = getPty();
 
     if (Utils.isMacOS()) {
-      const brewPrefix = await $.spawnSafe('brew --prefix', { interactive: true });
-      if (brewPrefix.status === SpawnStatus.SUCCESS) {
-        const jenvPath = await $.spawnSafe('which jenv', { interactive: true });
-        if (jenvPath.status === SpawnStatus.SUCCESS && jenvPath.data.trim().startsWith(brewPrefix.data.trim())) {
+      if (await Utils.isHomebrewInstalled()) {
+        const isHomebrewInstall = await $.spawnSafe('brew list jenv', { interactive: true });
+        if (isHomebrewInstall.status === SpawnStatus.SUCCESS) {
           await $.spawn('brew uninstall jenv', { interactive: true });
         }
       }
