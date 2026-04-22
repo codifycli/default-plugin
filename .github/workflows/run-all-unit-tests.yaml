@@ -35,7 +35,10 @@ jobs:
 
       - name: Run tests (macOS - zsh login shell)
         if: runner.os == 'macOS'
-        run: zsh -l -i -c 'npm run test -- ./test/shell --no-file-parallelism --silent=passed-only'
+        shell: zsh {0}
+        run: |
+          echo $ZSH_NAME $ZSH_VERSION
+          npm run test -- ./test/shell --no-file-parallelism --silent=passed-only
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
