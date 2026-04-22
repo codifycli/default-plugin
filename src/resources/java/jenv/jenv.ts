@@ -9,6 +9,7 @@ import {
   JAVA_VERSION_INTEGER,
 } from './java-versions-parameter.js';
 import Schema from './jenv-schema.json';
+import os from 'node:os';
 
 export interface JenvConfig extends ResourceConfig {
   add?: string[],
@@ -50,12 +51,14 @@ export class JenvResource extends Resource<JenvConfig> {
   override async refresh(): Promise<Partial<JenvConfig> | null> {
     const $ = getPty();
 
+    console.log('Zshrc', fs.readFileSync(`${os.homedir}/.zshrc`, 'utf8'));
+    console.log('Path', (await $.spawnSafe('echo $PATH')).data);
+
+
     const jenvQuery = await $.spawnSafe('which jenv')
     if (jenvQuery.status === SpawnStatus.ERROR) {
       return null
     }
-
-    console.log('Zshrc', fs.readFileSync('~/.zshrc', 'utf8'));
 
     // For some reason jenv doctor will return with a non-zero status code even
     // if it's successful. We can ignore the status code and only check for the text
