@@ -18,10 +18,10 @@ describe('Path resource integration tests', async () => {
       }
     ], {
       validateApply: async () => {
-        expect((await testSpawn(TestUtils.getShellCommand('echo $PATH'))).data).to.include(tempDir1);
+        expect((await testSpawn('echo $PATH', { interactive: true })).data).to.include(tempDir1);
       },
       validateDestroy: async () => {
-        expect((await testSpawn(TestUtils.getShellCommand('echo $PATH'))).data).to.not.include(tempDir1);
+        expect((await testSpawn('echo $PATH', { interactive: true })).data).to.not.include(tempDir1);
       }
     });
   })
@@ -40,12 +40,12 @@ describe('Path resource integration tests', async () => {
         console.log(JSON.stringify(plan, null, 2));
       },
       validateApply: async () => {
-        const { data: path } = await testSpawn('echo $PATH');
+        const { data: path } = await testSpawn('echo $PATH', { interactive: true })
         expect(path).to.include(tempDir1);
         expect(path).to.include(tempDir2);
       },
       validateDestroy: async () => {
-        const { data: path } = await testSpawn('echo $PATH')
+        const { data: path } = await testSpawn('echo $PATH', { interactive: true })
         expect(path).to.not.include(tempDir1);
         expect(path).to.not.include(tempDir2);
       }
@@ -64,12 +64,12 @@ describe('Path resource integration tests', async () => {
       }
     ], {
       validateApply: async () => {
-        const { data: path } = await testSpawn('echo $PATH')
+        const { data: path } = await testSpawn('echo $PATH', { interactive: true })
         expect(path).to.include(tempDir1);
         expect(path).to.include(tempDir2);
       },
       validateDestroy: async () => {
-        const { data: path } = await testSpawn('echo $PATH')
+        const { data: path } = await testSpawn('echo $PATH', { interactive: true })
         expect(path).to.not.include(tempDir1);
         expect(path).to.not.include(tempDir2);
       }
@@ -90,7 +90,7 @@ describe('Path resource integration tests', async () => {
       }
     ], {
       validateApply: async () => {
-        const { data: path } = await testSpawn('echo $PATH');
+        const { data: path } = await testSpawn('echo $PATH', { interactive: true })
         expect(path).to.include(tempDir1);
         expect(path).to.include(tempDir2);
       },
@@ -111,7 +111,7 @@ describe('Path resource integration tests', async () => {
             })])
           })
 
-          const { data: path } = await testSpawn('echo $PATH');
+          const { data: path } = await testSpawn('echo $PATH', { interactive: true })
           expect(path).to.include(tempDir1);
           expect(path).to.include(tempDir2);
           expect(path).to.include(tempDir3);
@@ -119,7 +119,7 @@ describe('Path resource integration tests', async () => {
         }
       },
       validateDestroy: async () => {
-        const { data: path } = await testSpawn('echo $PATH');
+        const { data: path } = await testSpawn('echo $PATH', { interactive: true })
         expect(path).to.not.include(tempDir1);
         expect(path).to.not.include(tempDir2);
         expect(path).to.not.include(tempDir3);

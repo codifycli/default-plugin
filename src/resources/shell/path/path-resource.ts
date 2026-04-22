@@ -94,9 +94,6 @@ export class PathResource extends Resource<PathConfig> {
   }
 
   override async refresh(parameters: Partial<PathConfig>, context: RefreshContext<PathConfig>): Promise<Partial<PathConfig> | null> {
-    console.log('My shell', process.env.SHELL);
-    console.log('Other shell method', os.userInfo().shell)
-
     // If declarations only, we only look into files to find potential paths
     if (parameters.declarationsOnly || context.isStateful) {
       const pathsResult = new Set<string>();
