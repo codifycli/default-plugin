@@ -26,6 +26,8 @@ if (Utils.isLinux()) {
 } else {
   await PluginTester.uninstall(pluginPath, [
     { type: 'aws-cli' },
-    { type: 'homebrew', formulae: ['chrome', 'python', 'ruby', 'awscli']  },
   ]);
+
+  await testSpawn('brew uninstall chrome python ruby awscli rust rustup git-lfs', { interactive: true });
+
 }
