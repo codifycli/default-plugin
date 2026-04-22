@@ -69,7 +69,7 @@ describe('Path resource integration tests', async () => {
         console.log('My path', path);
         console.log('Temp dir 1', tempDir1);
         console.log('Temp  dir 2', tempDir2);
-        console.log('Zshrc', await fs.readFile(`${os.homedir()}/.zshrc`))
+        console.log('Zshrc', await fs.readFile(`${os.homedir()}/.zshrc`, 'utf-8'))
 
         expect(path).to.include(tempDir1);
         expect(path).to.include(tempDir2);
