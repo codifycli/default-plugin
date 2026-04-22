@@ -33,8 +33,8 @@ jobs:
       - run: npm ci
       - run: npx tsx scripts/cleanup-github-actions.ts
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
 
       - name: Run tests (macOS - zsh login shell)
         if: runner.os == 'macOS'
@@ -42,6 +42,8 @@ jobs:
         run: |
           sudo chsh -s $(which zsh) $USER
           echo $0
+
+#         Clean up the residue from the bashrc file
           echo $ZSH_NAME $ZSH_VERSION   
           export SHELL=/bin/zsh
           touch ~/.zshrc

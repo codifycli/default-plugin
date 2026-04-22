@@ -102,7 +102,19 @@ export class JenvResource extends Resource<JenvConfig> {
 
   override async destroy(): Promise<void> {
     const $ = getPty();
-    await $.spawn('rm -rf $HOME/.jenv');
+
+    if (Utils.isMacOS()) {
+      const brewPrefix = await $.spawnSafe('brew --prefix', { interactive: true });
+      if (brewPrefix.status === SpawnStatus.SUCCESS) {
+        const jenvPath = await $.spawnSafe('which jenv', { interactive: true });
+        if (jenvPath.status === SpawnStatus.SUCCESS && jenvPath.data.trim().startsWith(brewPrefix.data.trim())) {
+          await $.spawn('brew uninstall jenv', { interactive: true });
+        }
+      }
+      await $.spawnSafe('rm -rf $HOME/.jenv');
+    } else {
+      await $.spawnSafe('rm -rf $HOME/.jenv');
+    }
 
     await FileUtils.removeLineFromStartupFile('export PATH="$HOME/.jenv/bin:$PATH"')
     await FileUtils.removeLineFromStartupFile('eval "$(jenv init -)"')
