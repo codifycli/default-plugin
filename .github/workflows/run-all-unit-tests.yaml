@@ -33,7 +33,7 @@ jobs:
       - run: npm ci
       - run: npx tsx scripts/cleanup-github-actions.ts
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
 
       - run: npm run test -- ./test --no-file-parallelism --silent=passed-only
