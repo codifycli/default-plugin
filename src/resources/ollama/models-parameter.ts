@@ -1,6 +1,5 @@
-import { ArrayStatefulParameter, getPty, Plan, SpawnStatus } from '@codifycli/plugin-core';
+import { ArrayStatefulParameter, getPty, Plan, SpawnStatus, Utils } from '@codifycli/plugin-core';
 
-import { Utils } from '../../utils/index.js';
 import { OllamaConfig } from './ollama.js';
 
 async function ensureOllamaServerRunning(): Promise<void> {

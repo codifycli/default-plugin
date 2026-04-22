@@ -42,7 +42,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@codifycli/plugin-core": "1.1.0-beta6",
+    "@codifycli/plugin-core": "1.1.0-beta7",
     "@codifycli/schemas": "1.0.0",
     "ajv": "^8.18.0",
     "ajv-formats": "^2.1.1",

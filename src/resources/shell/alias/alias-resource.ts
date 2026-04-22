@@ -7,13 +7,13 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings,
-  SpawnStatus
+  SpawnStatus,
+  Utils
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import Schema from './alias-schema.json';
 
 export interface AliasConfig extends StringIndexedObject {

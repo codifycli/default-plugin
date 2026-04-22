@@ -1,9 +1,8 @@
-import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
+import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { NvmGlobalParameter } from './global-parameter.js';
 import { NvmNodeVersionsParameter } from './node-versions-parameter.js';
 import Schema from './nvm-schema.json';

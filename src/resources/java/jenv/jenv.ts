@@ -1,9 +1,8 @@
-import { Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, getPty, Utils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { JenvGlobalParameter } from './global-parameter.js';
 import {
   JenvAddParameter,

@@ -135,7 +135,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
       throw new Error(`Unable to find desired version: ${plan.desiredConfig.version}`);
     }
 
-    const isArm = await LocalUtils.isArmArch();
+    const isArm = await Utils.isArmArch();
     const downloadLink = isArm
       ? versionToDownload.download.find((v) => v.link.includes('mac_arm.dmg'))!
       : versionToDownload.download.find((v) => v.link.includes('mac.dmg'))!

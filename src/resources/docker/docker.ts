@@ -1,12 +1,10 @@
-import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty, Utils, FileUtils } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { SpawnStatus } from '../../utils/codify-spawn.js';
-import { FileUtils } from '../../utils/file-utils.js';
-import { Utils } from '../../utils/index.js';
 import Schema from './docker-schema.json';
 
 export interface DockerConfig extends StringIndexedObject {
@@ -74,7 +72,7 @@ export class DockerResource extends Resource<DockerConfig> {
       const downloadLink = await Utils.isArmArch() ? ARM_DOWNLOAD_LINK : INTEL_DOWNLOAD_LINK;
 
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-docker'))
-      await Utils.downloadUrlIntoFile(path.join(tmpDir, 'Docker.dmg'), downloadLink);
+      await FileUtils.downloadFile(path.join(tmpDir, 'Docker.dmg'), downloadLink);
       const user = Utils.getUser();
 
       try {
@@ -93,7 +91,7 @@ export class DockerResource extends Resource<DockerConfig> {
       }
 
       await $.spawn('xattr -r -d com.apple.quarantine /Applications/Docker.app', { requiresRoot: true });
-      await FileUtils.addPathToPrimaryShellRc('/Applications/Docker.app/Contents/Resources/bin', false);
+      await FileUtils.addPathToShellRc('/Applications/Docker.app/Contents/Resources/bin', true);
     } else if (Utils.isLinux()) {
       // Detect Linux distribution
       const isDebianBased = await this.isDebianBased($);
@@ -121,7 +119,7 @@ export class DockerResource extends Resource<DockerConfig> {
       await fs.rm(path.join(os.homedir(), '.docker'), { recursive: true, force: true });
       await $.spawn('rm -rf /Applications/Docker.app')
 
-      await FileUtils.removeLineFromStartupFile('/Applications/Docker.app/Contents/Resources/bin')
+      await FileUtils.removeLineFromShellRc('/Applications/Docker.app/Contents/Resources/bin')
     } else if (Utils.isLinux()) {
       const isDebianBased = await this.isDebianBased($);
       const isRedHatBased = await this.isRedHatBased($);

@@ -8,14 +8,14 @@ import {
   RefreshContext,
   resolvePathWithVariables,
   Resource,
-  ResourceSettings
+  ResourceSettings,
+  Utils
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { untildify } from '../../../utils/untildify.js';
 import Schema from './path-schema.json';
 

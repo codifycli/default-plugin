@@ -1,9 +1,8 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
+import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus, Utils } from '@codifycli/plugin-core';
 import fs from 'node:fs/promises';
 import semver from 'semver';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { JenvConfig } from './jenv.js';
 import { nanoid } from 'nanoid';
 
