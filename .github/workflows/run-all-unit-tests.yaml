@@ -31,9 +31,18 @@ jobs:
         run: loginctl enable-linger $(whoami)
 
       - run: npm ci
-      - run: npx tsx scripts/cleanup-github-actions.ts
+
+      - name: Run tests
+        if: runner.os == 'Linux'
+        run: npx tsx scripts/cleanup-github-actions.ts
 
 #      - name: Setup tmate session
 #        uses: mxschmitt/action-tmate@v3
 
-      - run: npm run test -- ./test --no-file-parallelism --silent=passed-only
+      - name: Run tests (macOS - zsh login shell)
+        if: runner.os == 'macOS'
+        run: zsh -l -c 'npm run test -- ./test/shell --no-file-parallelism --silent=passed-only'
+
+      - name: Run tests (Linux)
+        if: runner.os == 'Linux'
+        run: npm run test -- ./test --no-file-parallelism --silent=passed-only
