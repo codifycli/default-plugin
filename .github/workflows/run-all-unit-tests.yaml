@@ -41,6 +41,8 @@ jobs:
           echo $0
           echo $ZSH_NAME $ZSH_VERSION   
           export SHELL=/bin/zsh
+          touch ~/.zshrc
+          
           npm run test -- ./test/shell --no-file-parallelism --disable-console-intercept
 
       - name: Run tests (Linux)
