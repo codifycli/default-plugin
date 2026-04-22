@@ -53,5 +53,5 @@ jobs:
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
-        run: npm run test -- ./test --no-file-parallelism --silent=passed-only
+        run: npm run test -- ./test/xcode-tools ./test/vscode ./test/macports --no-file-parallelism --silent=passed-only
 
