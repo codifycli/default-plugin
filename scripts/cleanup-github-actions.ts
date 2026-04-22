@@ -6,7 +6,7 @@ const pluginPath = path.resolve('./src/index.ts');
 // Uninstall resources that have Codify resource definitions
 await PluginTester.uninstall(pluginPath, [
   { type: 'docker' },
-  { type: 'aws-cli'}
+  // { type: 'aws-cli'}
 ]);
 
 await testSpawn('apt-get autoremove -y ruby rpm python', { requiresRoot: true });
@@ -17,4 +17,4 @@ await testSpawn('rm -rf /usr/bin/python', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/python3', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/ruby', { requiresRoot: true })
 
-await testSpawn('apt install --reinstall command-not-found', { requiresRoot: true });
+// await testSpawn('apt install --reinstall command-not-found', { requiresRoot: true });
