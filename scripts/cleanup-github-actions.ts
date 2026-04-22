@@ -9,10 +9,14 @@ await PluginTester.uninstall(pluginPath, [
   { type: 'aws-cli'}
 ]);
 
-await testSpawn('apt-get autoremove -y ruby rpm python command-not-found', { requiresRoot: true });
+await testSpawn('apt-get autoremove -y ruby rpm python', { requiresRoot: true });
 await testSpawn('rustup self uninstall -y');
 
 await testSpawn('rm -rf /usr/bin/go', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/python', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/python3', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/ruby', { requiresRoot: true })
+
+await testSpawn('rm -rf /var/lib/command-not-found/*', { requiresRoot: true });
+await testSpawn('apt update', { requiresRoot: true });
+await testSpawn('/usr/lib/cnf-update-db', { requiresRoot: true })
