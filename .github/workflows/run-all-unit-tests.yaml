@@ -43,7 +43,7 @@ jobs:
           sudo chsh -s $(which zsh) $USER
           echo $0
 
-#         Clean up the residue from the bashrc file
+#          Clean up the residue from the bashrc file
           echo $ZSH_NAME $ZSH_VERSION   
           export SHELL=/bin/zsh
           touch ~/.zshrc
