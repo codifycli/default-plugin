@@ -104,21 +104,24 @@ softwareupdate --install-rosetta
       return;
     }
 
-    if (installLocation.includes('homebrew')) {
-      await $.spawn('brew uninstall awscli', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
-      return;
-    }
+    // if (installLocation.includes('homebrew')) {
+    //   await $.spawn('brew uninstall awscli', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+    //   return;
+    // }
 
     if (Utils.isLinux()) {
       // Remove symlinks from bin dir
-      await $.spawnSafe('rm -f /usr/local/bin/aws', { requiresRoot: true });
-      await $.spawnSafe('rm -f /usr/local/bin/aws_completer', { requiresRoot: true });
+      await $.spawnSafe(`rm -f ${installLocation}`, { requiresRoot: true });
+      await $.spawnSafe(`rm -f ${installLocation}_completer`, { requiresRoot: true });
 
       // Remove the install directory (always /usr/local/aws-cli for the standalone installer)
       await $.spawnSafe('rm -rf /usr/local/aws-cli', { requiresRoot: true });
     } else {
       await $.spawnSafe(`rm ${installLocation}`, { requiresRoot: true });
       await $.spawnSafe(`rm ${installLocation}_completer`, { requiresRoot: true });
+
+      // Remove the install directory (always /usr/local/aws-cli for the standalone installer)
+      await $.spawnSafe('rm -rf /usr/local/aws-cli', { requiresRoot: true });
     }
   }
 
