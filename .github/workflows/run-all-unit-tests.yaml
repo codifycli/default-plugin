@@ -37,6 +37,8 @@ jobs:
         if: runner.os == 'macOS'
         shell: zsh {0}
         run: |
+          chsh -s bash
+          echo $0
           echo $ZSH_NAME $ZSH_VERSION
           npm run test -- ./test/shell --no-file-parallelism --silent=passed-only
 
