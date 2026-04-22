@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm]
+        os: [macos-latest]
 #        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
 
     steps:
@@ -30,10 +30,10 @@ jobs:
         if: runner.os == 'Linux'
         run: loginctl enable-linger $(whoami)
 
-#      - name: Setup tmate session
-#        uses: mxschmitt/action-tmate@v3
-
       - run: npm ci
       - run: npx tsx scripts/cleanup-github-actions.ts
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - run: npm run test -- ./test --no-file-parallelism --silent=passed-only
