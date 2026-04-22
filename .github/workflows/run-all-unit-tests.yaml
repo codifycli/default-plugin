@@ -49,9 +49,9 @@ jobs:
           unset JAVA_HOME
           export PATH=/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/usr/bin:/bin:/usr/sbin:/sbin
           
-          npm run test -- ./test/java --no-file-parallelism --disable-console-intercept
+          npm run test -- ./test/xcode-tools ./test/vscode ./test/macports --no-file-parallelism --disable-console-intercept
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
-        run: npm run test -- ./test/xcode-tools ./test/vscode ./test/macports --no-file-parallelism --silent=passed-only
+        run: npm run test -- ./test --no-file-parallelism --silent=passed-only
 
