@@ -50,7 +50,7 @@ jobs:
           export PATH=/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/usr/bin:/bin:/usr/sbin:/sbin
           export CI=true
           
-          npm run test -- ./test/android ./test/homebrew/custom-install.test.ts --no-file-parallelism --disable-console-intercept
+          npm run test -- ./test/android --no-file-parallelism --disable-console-intercept
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'

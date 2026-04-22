@@ -144,15 +144,16 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
 
     try {
       await $.spawn(`curl -fsSL ${downloadLink.link} -o android-studio.dmg`, { cwd: temporaryDir });
+      const mountedDir = '/Volumes/android-studio'
 
-      const { data } = await $.spawn('hdiutil attach android-studio.dmg', { cwd: temporaryDir });
-      const mountedDir = data.split(/\n/)
+      const { data } = await $.spawn('hdiutil attach android-studio.dmg -mountpoint "/Volumes/android-studio"', { cwd: temporaryDir });
+      const mountData = data.split(/\n/)
         .find((l) => l.includes('/Volumes/'))
         ?.split('                 ')
         ?.at(-1)
         ?.trim()
 
-      if (!mountedDir) {
+      if (!mountData) {
         throw new Error('Unable to mount dmg or find the mounted volume')
       }
 
