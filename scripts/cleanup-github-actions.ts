@@ -4,13 +4,14 @@ import { Utils } from '@codifycli/plugin-core';
 
 const pluginPath = path.resolve('./src/index.ts');
 
-// Uninstall resources that have Codify resource definitions
-await PluginTester.uninstall(pluginPath, [
-  { type: 'docker' },
-  { type: 'aws-cli'}
-]);
 
 if (Utils.isLinux()) {
+  // Uninstall resources that have Codify resource definitions
+  await PluginTester.uninstall(pluginPath, [
+    { type: 'docker' },
+    { type: 'aws-cli'}
+  ]);
+
   await testSpawn('apt-get autoremove -y ruby rpm python awscli needrestart', { requiresRoot: true }); // remove needrestart to keep logs clean.
 
   await testSpawn('rustup self uninstall -y');
@@ -24,6 +25,7 @@ if (Utils.isLinux()) {
   // MacOS
 } else {
   await PluginTester.uninstall(pluginPath, [
+    { type: 'aws-cli' },
     { type: 'brew', formulae: ['chrome', 'python', 'ruby', 'awscli']  },
   ]);
 }
