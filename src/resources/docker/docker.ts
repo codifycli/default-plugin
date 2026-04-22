@@ -72,7 +72,7 @@ export class DockerResource extends Resource<DockerConfig> {
       const downloadLink = await Utils.isArmArch() ? ARM_DOWNLOAD_LINK : INTEL_DOWNLOAD_LINK;
 
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-docker'))
-      await FileUtils.downloadFile(path.join(tmpDir, 'Docker.dmg'), downloadLink);
+      await FileUtils.downloadFile(downloadLink, path.join(tmpDir, 'Docker.dmg'));
       const user = Utils.getUser();
 
       try {

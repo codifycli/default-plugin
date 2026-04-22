@@ -65,7 +65,7 @@ export class MacportsResource extends Resource<MacportsConfig> {
     const installerPath = path.join(tmpDir, 'installer.pkg')
 
     console.log(`Downloading macports installer ${installerUrl}`)
-    await FileUtils.downloadFile(installerPath, installerUrl);
+    await FileUtils.downloadFile(installerUrl, installerPath);
 
     await $.spawn(`installer -pkg "${installerPath}" -target /;`, { requiresRoot: true })
 

@@ -48,8 +48,9 @@ jobs:
           touch ~/.zshrc
           unset JAVA_HOME
           export PATH=/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/usr/bin:/bin:/usr/sbin:/sbin
+          export CI=true
           
-          npm run test -- ./test/xcode-tools ./test/vscode ./test/macports --no-file-parallelism --disable-console-intercept
+          npm run test -- ./test/xcode-tools ./test/vscode ./test/macports ./test/docker --no-file-parallelism --disable-console-intercept
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
