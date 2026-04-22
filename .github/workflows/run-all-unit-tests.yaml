@@ -35,4 +35,4 @@ jobs:
 #      - name: Setup tmate session
 #        uses: mxschmitt/action-tmate@v3
 
-      - run: npm run test -- ./test/aws-cli --no-file-parallelism --silent=passed-only
+      - run: npm run test -- ./test --no-file-parallelism --silent=passed-only
