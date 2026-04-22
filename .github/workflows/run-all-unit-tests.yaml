@@ -33,6 +33,9 @@ jobs:
       - run: npm ci
       - run: npx tsx scripts/cleanup-github-actions.ts
 
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Run tests (macOS - zsh login shell)
         if: runner.os == 'macOS'
         shell: zsh {0}
@@ -48,7 +51,4 @@ jobs:
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
         run: npm run test -- ./test --no-file-parallelism --silent=passed-only
-
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
 
