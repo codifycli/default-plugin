@@ -14,4 +14,5 @@ await testSpawn('rustup self uninstall -y');
 
 await testSpawn('rm -rf /usr/bin/go', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/python', { requiresRoot: true })
+await testSpawn('rm -rf /usr/bin/python3', { requiresRoot: true })
 await testSpawn('rm -rf /usr/bin/ruby', { requiresRoot: true })
