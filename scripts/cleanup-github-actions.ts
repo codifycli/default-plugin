@@ -8,4 +8,4 @@ await PluginTester.uninstall(pluginPath, [
   { type: 'docker' },
 ]);
 
-await testSpawn('apt-get autoremove -y golang ruby rpm python3 php', { requiresRoot: true })
+await testSpawn('apt-get autoremove -y ruby rpm python3 rustc golang', { requiresRoot: true })
