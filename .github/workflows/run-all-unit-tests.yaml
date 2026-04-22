@@ -28,7 +28,9 @@ jobs:
           cache: 'npm'
       - name: Enable linger for admin user (Linux only)
         if: runner.os == 'Linux'
-        run: loginctl enable-linger $(whoami)
+        run:
+          loginctl enable-linger $(whoami)
+          sudo rm -f /etc/apt/apt.conf.d/50command-not-found
       - run: npm ci
       - run: npx tsx scripts/cleanup-github-actions.ts
 
