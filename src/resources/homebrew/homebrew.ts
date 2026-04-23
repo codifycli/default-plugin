@@ -10,7 +10,9 @@ import {
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
+import { nanoid } from 'nanoid';
 
 import { untildify } from '../../utils/untildify.js';
 import { CasksParameter } from './casks-parameter.js'
@@ -98,10 +100,48 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
       return this.installBrewInCustomDir(plan.desiredConfig.directory)
     }
 
-    await $.spawn(
-      '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
-      { stdin: true, interactive: true, env: { INTERACTIVE: 1, NONINTERACTIVE: undefined } }
-    )
+    const askpassPath = path.join(os.tmpdir(), `codify-askpass-${nanoid(8)}.sh`);
+
+    const askpassScript = `#!/bin/bash
+prompt="\${1:-Password: }"
+printf '\\033[34m%s\\033[0m' "$prompt" > /dev/tty
+
+password=""
+while IFS= read -r -s -n1 -d '' char < /dev/tty; do
+  if [[ "$char" == $'\\0' || "$char" == $'\\n' || "$char" == $'\\r' ]]; then
+    break
+  elif [[ "$char" == $'\\177' || "$char" == $'\\b' ]]; then
+    if [[ -n "$password" ]]; then
+      password="\${password%?}"
+      printf '\\b \\b' > /dev/tty
+    fi
+  else
+    password+="$char"
+    printf '*' > /dev/tty
+  fi
+done
+
+printf '\\n' > /dev/tty
+printf '%s\\n' "$password"
+`;
+
+    try {
+      await fs.writeFile(askpassPath, askpassScript, { mode: 0o700 });
+
+      await $.spawn(
+        '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
+        {
+          stdin: true,
+          interactive: true,
+          env: {
+            NONINTERACTIVE: 1,
+            SUDO_ASKPASS: askpassPath,
+          },
+        }
+      );
+    } finally {
+      await fs.unlink(askpassPath).catch(() => {});
+    }
 
     const brewPath = Utils.isLinux() ? '/home/linuxbrew/.linuxbrew/bin/brew' : '/opt/homebrew/bin/brew';
     await FileUtils.addToShellRc(`eval "$(${brewPath} shellenv)"`);
