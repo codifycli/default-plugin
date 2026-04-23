@@ -39,5 +39,5 @@ jobs:
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
-        run: npm run test -- ./test/java --no-file-parallelism --disable-console-intercept --shard ${{ matrix.shard }}
+        run: npm run test -- ./test/java --no-file-parallelism --disable-console-intercept # --shard ${{ matrix.shard }}
 
