@@ -22,7 +22,8 @@ export class NvmNodeVersionsParameter extends ArrayStatefulParameter<NvmConfig, 
           .replaceAll('*', '')
           .replaceAll('v', '')
           ?.trim()
-      ).filter(Boolean);
+      ).filter(Boolean)
+      .filter((v) => v !== 'system');
 
     // To make matching easier, we will replace the elements in
     // current with what we currently have installed. This is because nvm has weird
