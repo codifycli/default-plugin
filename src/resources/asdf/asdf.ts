@@ -1,10 +1,9 @@
-import { CreatePlan, ExampleConfig, FileUtils, Resource, ResourceSettings, SpawnStatus, Utils as CoreUtils, getPty, z } from '@codifycli/plugin-core';
+import { CreatePlan, ExampleConfig, FileUtils, Resource, ResourceSettings, SpawnStatus, Utils as CoreUtils, getPty, z, Utils } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { Utils } from '../../utils/index.js';
 import { AsdfPluginsParameter } from './plugins-parameter.js';
 
 const schema = z.object({

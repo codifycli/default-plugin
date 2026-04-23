@@ -58,11 +58,11 @@ export class GitRepositoryResource extends Resource<GitRepositoryConfig> {
       allowMultiple: {
         matcher: (desired, current) => {
           const desiredPath = desired.parentDirectory
-            ? path.resolve(desired.parentDirectory, this.extractBasename(desired.repository)!)
+            ? path.resolve(desired.parentDirectory, this.extractBasename(desired.repository!)!)
             : path.resolve(desired.directory!);
 
           const currentPath = current.parentDirectory
-            ? path.resolve(current.parentDirectory, this.extractBasename(current.repository)!)
+            ? path.resolve(current.parentDirectory, this.extractBasename(current.repository!)!)
             : path.resolve(current.directory!);
 
           if (process.platform === 'darwin') {

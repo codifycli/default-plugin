@@ -1,9 +1,8 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
+import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus, Utils } from '@codifycli/plugin-core';
 import fs from 'node:fs/promises';
 import semver from 'semver';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { JenvConfig } from './jenv.js';
 import { nanoid } from 'nanoid';
 
@@ -219,7 +218,7 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
       if (linuxMatch) {
         const version = linuxMatch[1];
         await $.spawn(`jenv remove ${param}`, { interactive: true })
-        await $.spawn(`sudo apt-get remove -y openjdk-${version}-jdk`, { interactive: true })
+        await $.spawn(`apt-get remove -y openjdk-${version}-jdk`, { interactive: true, requiresRoot: true })
         return;
       }
     }

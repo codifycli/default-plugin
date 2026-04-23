@@ -1,15 +1,15 @@
-import { Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, getPty, Utils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { JenvGlobalParameter } from './global-parameter.js';
 import {
   JenvAddParameter,
   JAVA_VERSION_INTEGER,
 } from './java-versions-parameter.js';
 import Schema from './jenv-schema.json';
+import os from 'node:os';
 
 export interface JenvConfig extends ResourceConfig {
   add?: string[],
@@ -98,7 +98,18 @@ export class JenvResource extends Resource<JenvConfig> {
 
   override async destroy(): Promise<void> {
     const $ = getPty();
-    await $.spawn('rm -rf $HOME/.jenv');
+
+    if (Utils.isMacOS()) {
+      if (await Utils.isHomebrewInstalled()) {
+        const isHomebrewInstall = await $.spawnSafe('brew list jenv', { interactive: true });
+        if (isHomebrewInstall.status === SpawnStatus.SUCCESS) {
+          await $.spawn('brew uninstall jenv', { interactive: true });
+        }
+      }
+      await $.spawnSafe('rm -rf $HOME/.jenv');
+    } else {
+      await $.spawnSafe('rm -rf $HOME/.jenv');
+    }
 
     await FileUtils.removeLineFromStartupFile('export PATH="$HOME/.jenv/bin:$PATH"')
     await FileUtils.removeLineFromStartupFile('eval "$(jenv init -)"')

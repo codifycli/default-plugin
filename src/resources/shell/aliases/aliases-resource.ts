@@ -9,13 +9,13 @@ import {
   ResourceSettings,
   SpawnStatus,
   getPty,
-  z
+  z,
+  Utils
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import os from 'node:os';
 import path from 'node:path';
 

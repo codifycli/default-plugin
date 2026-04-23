@@ -9,10 +9,10 @@ import {
   SpawnStatus,
   getPty,
   z,
+  Utils
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 
-import { Utils } from '../../utils/index.js';
 import { exampleSyncthingConfigs } from './examples.js';
 import {
   getCliConfigBool,

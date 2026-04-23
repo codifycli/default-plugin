@@ -1,6 +1,5 @@
-import { ArrayStatefulParameter, getPty, Plan, SpawnStatus } from '@codifycli/plugin-core';
+import { ArrayStatefulParameter, getPty, Plan, SpawnStatus, Utils } from '@codifycli/plugin-core';
 
-import { Utils } from '../../utils/index.js';
 import { OllamaConfig } from './ollama.js';
 
 async function ensureOllamaServerRunning(): Promise<void> {
@@ -16,7 +15,7 @@ async function ensureOllamaServerRunning(): Promise<void> {
   if (Utils.isMacOS()) {
     await $.spawn('brew services start ollama', { interactive: true });
   } else {
-    await $.spawn('sudo systemctl start ollama', { interactive: true });
+    await $.spawn('systemctl start ollama', { interactive: true, requiresRoot: true });
   }
 
   // Give the server a moment to become ready

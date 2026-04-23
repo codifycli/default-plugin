@@ -8,16 +8,17 @@ import {
   RefreshContext,
   resolvePathWithVariables,
   Resource,
-  ResourceSettings
+  ResourceSettings,
+  Utils,
+  FileUtils
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { untildify } from '../../../utils/untildify.js';
 import Schema from './path-schema.json';
+import os from 'node:os';
 
 export interface PathConfig extends StringIndexedObject {
   path: string;
@@ -216,7 +217,7 @@ export class PathResource extends Resource<PathConfig> {
 
   private async addPath(path: string, prepend = false): Promise<void> {
     // Escaping is done within file utils
-    await FileUtils.addPathToPrimaryShellRc(path, prepend);
+    await FileUtils.addPathToShellRc(path, prepend);
   }
   
   private async removePath(pathValue: string): Promise<void> {

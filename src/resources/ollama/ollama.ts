@@ -5,13 +5,12 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus,
-  Utils as CoreUtils,
+  Utils,
   getPty,
   z,
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 
-import { Utils } from '../../utils/index.js';
 import { ModelsParameter } from './models-parameter.js';
 
 const schema = z
@@ -136,7 +135,7 @@ export class OllamaResource extends Resource<OllamaConfig> {
 
     const curlCheck = await $.spawnSafe('which curl');
     if (curlCheck.status === SpawnStatus.ERROR) {
-      await CoreUtils.installViaPkgMgr('curl');
+      await Utils.installViaPkgMgr('curl');
     }
 
     // The official install script installs the binary, creates the `ollama`

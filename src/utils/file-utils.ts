@@ -3,7 +3,7 @@ import * as fs from 'node:fs/promises';
 import os, { homedir } from 'node:os';
 import path from 'node:path';
 
-import { Utils } from './index.js';
+import { Utils } from '@codifycli/plugin-core';
 
 const SPACE_REGEX = /^\s*$/
 

@@ -42,7 +42,7 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@codifycli/plugin-core": "1.1.0-beta6",
+    "@codifycli/plugin-core": "1.1.0-beta10",
     "@codifycli/schemas": "1.0.0",
     "ajv": "^8.18.0",
     "ajv-formats": "^2.1.1",
@@ -58,7 +58,7 @@
   "devDependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.97",
     "@apidevtools/json-schema-ref-parser": "^11.7.2",
-    "@codifycli/plugin-test": "^1.0.0",
+    "@codifycli/plugin-test": "1.1.0-beta3",
     "@fastify/merge-json-schemas": "^0.2.0",
     "@oclif/prettier-config": "^0.2.1",
     "@oclif/test": "^3",

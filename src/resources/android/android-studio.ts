@@ -135,7 +135,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
       throw new Error(`Unable to find desired version: ${plan.desiredConfig.version}`);
     }
 
-    const isArm = await LocalUtils.isArmArch();
+    const isArm = await Utils.isArmArch();
     const downloadLink = isArm
       ? versionToDownload.download.find((v) => v.link.includes('mac_arm.dmg'))!
       : versionToDownload.download.find((v) => v.link.includes('mac.dmg'))!
@@ -144,15 +144,16 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
 
     try {
       await $.spawn(`curl -fsSL ${downloadLink.link} -o android-studio.dmg`, { cwd: temporaryDir });
+      const mountedDir = '/Volumes/android-studio'
 
-      const { data } = await $.spawn('hdiutil attach android-studio.dmg', { cwd: temporaryDir });
-      const mountedDir = data.split(/\n/)
+      const { data } = await $.spawn('hdiutil attach android-studio.dmg -mountpoint "/Volumes/android-studio"', { cwd: temporaryDir });
+      const mountData = data.split(/\n/)
         .find((l) => l.includes('/Volumes/'))
         ?.split('                 ')
         ?.at(-1)
         ?.trim()
 
-      if (!mountedDir) {
+      if (!mountData) {
         throw new Error('Unable to mount dmg or find the mounted volume')
       }
 

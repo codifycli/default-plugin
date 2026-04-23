@@ -109,9 +109,20 @@ softwareupdate --install-rosetta
       return;
     }
 
-    await $.spawnSafe(`rm ${installLocation}`, { requiresRoot: true });
-    await $.spawnSafe(`rm ${installLocation}_completer`, { requiresRoot: true });
-    await $.spawnSafe('rm -rf $HOME/.aws/');
+    if (Utils.isLinux()) {
+      // Remove symlinks from bin dir
+      await $.spawnSafe(`rm -f ${installLocation}`, { requiresRoot: true });
+      await $.spawnSafe(`rm -f ${installLocation}_completer`, { requiresRoot: true });
+
+      // Remove the install directory (always /usr/local/aws-cli for the standalone installer)
+      await $.spawnSafe('rm -rf /usr/local/aws-cli', { requiresRoot: true });
+    } else {
+      await $.spawnSafe(`rm ${installLocation}`, { requiresRoot: true });
+      await $.spawnSafe(`rm ${installLocation}_completer`, { requiresRoot: true });
+
+      // Remove the install directory (always /usr/local/aws-cli for the standalone installer)
+      await $.spawnSafe('rm -rf /usr/local/aws-cli', { requiresRoot: true });
+    }
   }
 
   private async findInstallLocation(): Promise<null | string> {
