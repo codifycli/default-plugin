@@ -4,7 +4,7 @@
 name: Test all cron (Linux)
 
 on:
-  push:
+#  push:
   pull_request:
     branches:
       - release

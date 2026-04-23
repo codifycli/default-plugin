@@ -100,7 +100,7 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
 
     await $.spawn(
       '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
-      { stdin: true, env: { NONINTERACTIVE: 1 } }
+      { stdin: true, interactive: true, env: { INTERACTIVE: 1, NONINTERACTIVE: undefined } }
     )
 
     const brewPath = Utils.isLinux() ? '/home/linuxbrew/.linuxbrew/bin/brew' : '/opt/homebrew/bin/brew';
@@ -124,7 +124,7 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
     if (homebrewDirectory === '/opt/homebrew') {
       await $.spawnSafe(
         '/bin/bash -c "$(/usr/bin/curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"',
-        { stdin: true, env: { NONINTERACTIVE: 1 } }
+        { stdin: true, interactive: true, env: { INTERACTIVE: 1 } }
       )
     } else {
       await $.spawn(`rm -rf ${homebrewDirectory}`, { requiresRoot: true });
