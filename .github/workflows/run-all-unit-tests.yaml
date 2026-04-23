@@ -18,6 +18,7 @@ jobs:
       matrix:
         os: [macos-latest]
 #        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
+        shard: ["1/5", "2/5", "3/5", "4/5", "5/5"]
 
     steps:
       - uses: actions/checkout@v4
@@ -43,16 +44,16 @@ jobs:
           sudo chsh -s $(which zsh) $USER
           echo $0
 
-          echo $ZSH_NAME $ZSH_VERSION   
+          echo $ZSH_NAME $ZSH_VERSION
           export SHELL=/bin/zsh
           touch ~/.zshrc
           unset JAVA_HOME
           export PATH=/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/usr/bin:/bin:/usr/sbin:/sbin
           export CI=true
-          
-          npm run test -- ./test --no-file-parallelism --disable-console-intercept --exclude ./test/homebrew
+
+          npm run test -- ./test --no-file-parallelism --disable-console-intercept --exclude ./test/homebrew --shard ${{ matrix.shard }}
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
-        run: npm run test -- ./test --no-file-parallelism --silent=passed-only
+        run: npm run test -- ./test --no-file-parallelism --silent=passed-only --shard ${{ matrix.shard }}
 
