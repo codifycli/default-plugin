@@ -43,7 +43,7 @@
   "type": "module",
   "dependencies": {
     "@codifycli/plugin-core": "1.1.0-beta10",
-    "@codifycli/schemas": "1.0.0",
+    "@codifycli/schemas": "1.1.0-beta4",
     "ajv": "^8.18.0",
     "ajv-formats": "^2.1.1",
     "chalk": "^5.3.0",
