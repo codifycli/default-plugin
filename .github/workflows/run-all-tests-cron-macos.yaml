@@ -4,6 +4,7 @@
 name: Test all cron (MacOS)
 
 on:
+  push:
   pull_request:
     branches:
       - release
