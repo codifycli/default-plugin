@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
 #        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
-#        shard: ["1/20", "2/20", "3/20", "4/20", "5/20", "6/20", "7/20", "8/20", "9/20", "10/20", "11/20", "12/20", "13/20", "14/20", "15/20", "16/20", "17/20", "18/20", "19/20", "20/20"]
+        shard: ["1/20", "2/20", "3/20", "4/20", "5/20", "6/20", "7/20", "8/20", "9/20", "10/20", "11/20", "12/20", "13/20", "14/20", "15/20", "16/20", "17/20", "18/20", "19/20", "20/20"]
 
     steps:
       - uses: actions/checkout@v4
@@ -39,5 +39,5 @@ jobs:
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
-        run: npm run test -- ./test/java --no-file-parallelism --disable-console-intercept # --shard ${{ matrix.shard }}
+        run: npm run test -- ./test --no-file-parallelism --disable-console-intercept  --shard ${{ matrix.shard }}
 
