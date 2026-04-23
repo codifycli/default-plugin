@@ -1,7 +1,7 @@
 # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
-name: Test all on Demand
+name: Test all on Demand (Linux)
 
 on:
   push:
@@ -16,9 +16,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest]
+        os: [ubuntu-latest]
 #        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
-        shard: ["1/5", "2/5", "3/5", "4/5", "5/5"]
+        shard: ["1/20", "2/20", "3/20", "4/20", "5/20", "6/20", "7/20", "8/20", "9/20", "10/20", "11/20", "12/20", "13/20", "14/20", "15/20", "16/20", "17/20", "18/20", "19/20", "20/20"]
 
     steps:
       - uses: actions/checkout@v4
@@ -36,22 +36,6 @@ jobs:
 
 #      - name: Setup tmate session
 #        uses: mxschmitt/action-tmate@v3
-
-      - name: Run tests (macOS - zsh login shell)
-        if: runner.os == 'macOS'
-        shell: zsh {0}
-        run: |
-          sudo chsh -s $(which zsh) $USER
-          echo $0
-
-          echo $ZSH_NAME $ZSH_VERSION
-          export SHELL=/bin/zsh
-          touch ~/.zshrc
-          unset JAVA_HOME
-          export PATH=/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/usr/bin:/bin:/usr/sbin:/sbin
-          export CI=true
-
-          npm run test -- ./test --no-file-parallelism --disable-console-intercept --exclude ./test/homebrew --shard ${{ matrix.shard }}
 
       - name: Run tests (Linux)
         if: runner.os == 'Linux'
