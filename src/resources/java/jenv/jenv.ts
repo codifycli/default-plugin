@@ -51,10 +51,6 @@ export class JenvResource extends Resource<JenvConfig> {
   override async refresh(): Promise<Partial<JenvConfig> | null> {
     const $ = getPty();
 
-    console.log('Zshrc', fs.readFileSync(`${os.homedir}/.zshrc`, 'utf8'));
-    console.log('Path', (await $.spawnSafe('echo $PATH')).data);
-
-
     const jenvQuery = await $.spawnSafe('which jenv')
     if (jenvQuery.status === SpawnStatus.ERROR) {
       return null
