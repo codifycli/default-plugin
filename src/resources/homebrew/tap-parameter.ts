@@ -17,7 +17,7 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
     if (tapsQuery.status === SpawnStatus.SUCCESS && tapsQuery.data !== null && tapsQuery.data !== undefined) {
       return tapsQuery.data
         .split('\n')
-        .filter((t) => t === 'homebrew/bundle' || t === 'homebrew/services')
+        .filter((t) => t !== 'homebrew/bundle' && t !== 'homebrew/services')
         .filter(Boolean)
     }
 
