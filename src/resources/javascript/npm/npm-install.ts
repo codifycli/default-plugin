@@ -2,13 +2,12 @@ import { ExampleConfig, Resource, ResourceSettings, getPty } from '@codifycli/pl
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
-import { z } from 'zod';
 
-const schema = z.object({
-  directories: z.array(z.string()).describe('List of directories to run npm install in'),
-});
+import Schema from './npm-install-schema.json';
 
-export type NpmInstallConfig = z.infer<typeof schema> & ResourceConfig;
+export interface NpmInstallConfig extends ResourceConfig {
+  directories: string[];
+}
 
 const defaultConfig: Partial<NpmInstallConfig> = {
   directories: [],
@@ -42,7 +41,7 @@ export class NpmInstallResource extends Resource<NpmInstallConfig> {
         example2: exampleMultipleProjects,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema,
+      schema: Schema,
       parameterSettings: {
         directories: {
           type: 'array',

@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://www.codifycli.com/npm-install.json",
+  "$comment": "https://codifycli.com/docs/resources/javascript/npm-install/",
+  "title": "NpmInstall resource",
+  "description": "Run npm install in one or more project directories.",
+  "type": "object",
+  "properties": {
+    "directories": {
+      "type": "array",
+      "description": "List of directories to run npm install in.",
+      "items": {
+        "type": "string",
+        "description": "Path to a directory containing a package.json file."
+      }
+    }
+  },
+  "additionalProperties": false
+}
