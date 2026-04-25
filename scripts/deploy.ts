@@ -7,14 +7,18 @@ import { createClient } from '@supabase/supabase-js';
 
 const require = createRequire(import.meta.url);
 
-const isBeta = process.env.BETA === 'true';
 
 // This should run the build
 cp.spawnSync('source ~/.zshrc; npm run build', { shell: 'zsh', stdio: 'inherit' });
 
-const version = isBeta ? 'beta' : process.env.npm_package_version;
+const version = process.env.npm_package_version;
 if (!version) {
   throw new Error('Unable to find version');
+}
+
+const isBeta = version.includes('beta');
+if (isBeta) {
+  console.log('Deploying beta version!')
 }
 
 const name = process.env.npm_package_name;
