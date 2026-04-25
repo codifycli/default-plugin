@@ -19,6 +19,7 @@ import { WaitGithubSshKey } from './resources/git/wait-github-ssh-key/wait-githu
 import { HomebrewResource } from './resources/homebrew/homebrew.js';
 import { JenvResource } from './resources/java/jenv/jenv.js';
 import { Npm } from './resources/javascript/npm/npm.js';
+import { NpmInstallResource } from './resources/javascript/npm/npm-install.js';
 import { NpmLoginResource } from './resources/javascript/npm/npm-login.js';
 import { NvmResource } from './resources/javascript/nvm/nvm.js';
 import { Pnpm } from './resources/javascript/pnpm/pnpm.js';
@@ -91,6 +92,7 @@ runPlugin(Plugin.create(
     new PipSync(),
     new MacportsResource(),
     new Npm(),
+    new NpmInstallResource(),
     new NpmLoginResource(),
     new DockerResource(),
     new AptResource(),
