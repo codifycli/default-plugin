@@ -1,6 +1,6 @@
 {
   "name": "default",
-  "version": "1.1.0-beta1",
+  "version": "1.1.0-beta4",
   "description": "Default plugin for Codify - provides 50+ declarative resources for managing development tools and system configuration across macOS and Linux",
   "main": "dist/index.js",
   "scripts": {
@@ -42,8 +42,8 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@codifycli/plugin-core": "1.1.0-beta12",
-    "@codifycli/schemas": "1.1.0-beta4",
+    "@codifycli/plugin-core": "1.1.0-beta16",
+    "@codifycli/schemas": "1.1.0-beta5",
     "ajv": "^8.18.0",
     "ajv-formats": "^2.1.1",
     "chalk": "^5.3.0",
