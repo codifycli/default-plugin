@@ -97,7 +97,7 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
       return;
     }
 
-    const result = await $.spawnSafe(`brew install --casks ${casksToInstall.join(' ')}`, {
+    const result = await $.spawnSafe(`brew install --casks --adopt ${casksToInstall.join(' ')}`, {
       interactive: true,
       env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
     })
