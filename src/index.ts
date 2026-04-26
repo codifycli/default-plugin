@@ -1,5 +1,4 @@
 import { Plugin, runPlugin } from '@codifycli/plugin-core';
-
 import { AndroidStudioResource } from './resources/android/android-studio.js';
 import { AptResource } from './resources/apt/apt.js';
 import { AsdfResource } from './resources/asdf/asdf.js';
@@ -50,6 +49,8 @@ import { TerraformResource } from './resources/terraform/terraform.js';
 import { VscodeResource } from './resources/vscode/vscode.js';
 import { XcodeToolsResource } from './resources/xcode-tools/xcode-tools.js';
 import { YumResource } from './resources/yum/yum.js';
+
+export const MIN_SUPPORTED_CLI_VERSION: string | undefined = '1.1.0';
 
 runPlugin(Plugin.create(
   'default',
@@ -104,5 +105,6 @@ runPlugin(Plugin.create(
     new SyncthingDeviceResource(),
     new SyncthingFolderResource(),
     new RbenvResource(),
-  ])
-)
+  ],
+  { minSupportedCliVersion: MIN_SUPPORTED_CLI_VERSION }
+))

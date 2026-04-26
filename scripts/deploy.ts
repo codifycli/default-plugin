@@ -7,9 +7,10 @@ import { createClient } from '@supabase/supabase-js';
 
 const require = createRequire(import.meta.url);
 
-
 // This should run the build
 cp.spawnSync('source ~/.zshrc; npm run build', { shell: 'zsh', stdio: 'inherit' });
+
+const PluginManifest: { minSupportedCliVersion: string | null } = require('../dist/plugin-manifest.json');
 
 const version = process.env.npm_package_version;
 if (!version) {
@@ -31,6 +32,35 @@ console.log(`Uploading plugin ${name}, version ${version} to cloudflare!`)
 const outputFilePath = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', 'dist', 'index.js')
 cp.spawnSync(`source ~/.zshrc; npx wrangler r2 object put plugins/${name}/${version}/index.js --file=${outputFilePath} --remote`, { shell: 'zsh', stdio: 'inherit' });
 
+const client = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!,
+);
+
+console.log('Adding default plugin');
+const defaultPlugin = await client.from('registry_plugins').upsert({
+  name: 'default',
+  display_name: 'Default Plugin',
+  homepage: 'https://codifycli.com',
+  repository_url: 'https://github.com/codifycli/default-plugin',
+  license: 'ISC',
+}, { onConflict: 'name' })
+  .select()
+  .throwOnError();
+
+const { id: pluginId, name: pluginName } = defaultPlugin.data![0];
+
+console.log('Upserting plugin version');
+const versionRow = await client.from('registry_plugin_versions').upsert({
+  plugin_id: pluginId,
+  version,
+  bundle_url: `https://plugins.codifycli.com/${name}/${version}/index.js`,
+  min_cli_version: PluginManifest.minSupportedCliVersion,
+  published_at: new Date().toISOString(),
+}, { onConflict: 'plugin_id,version' })
+  .select()
+  .throwOnError();
+
 if (!isBeta) {
   await uploadResources();
 
@@ -45,19 +75,13 @@ async function uploadResources() {
 
   const metadataByType = new Map(Metadata.map((m) => [m.type, m]));
 
-  const client = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const { id: versionId } = versionRow.data![0];
 
-  console.log('Adding default plugin');
-  const defaultPlugin = await client.from('registry_plugins').upsert({
-    name: 'default',
-  }, { onConflict: 'name' })
-    .select()
+  console.log('Updating latest version pointer');
+  await client.from('registry_plugins')
+    .update({ latest_version: version, latest_version_id: versionId })
+    .eq('id', pluginId)
     .throwOnError();
-
-  const { id: pluginId, name: pluginName } = defaultPlugin.data![0];
   const resources = CodifySchema.items.oneOf;
 
   for (const resource of resources) {

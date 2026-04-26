@@ -59,7 +59,7 @@ const initializeResult = await sendMessageAndAwaitResponse(plugin, {
   data: {}
 })
 
-const { resourceDefinitions } = initializeResult;
+const { resourceDefinitions, minSupportedCliVersion } = initializeResult;
 const resourceTypes = resourceDefinitions.map((i) => i.type);
 
 const schemasMap = new Map<string, JSONSchema>()
@@ -124,6 +124,10 @@ console.log('Successfully wrote schema to ./dist/schemas.json')
 const metadataOutputPath = path.resolve(distFolder, 'metadata.json');
 fs.writeFileSync(metadataOutputPath, JSON.stringify(metadataList, null, 2));
 console.log('Successfully wrote metadata to ./dist/metadata.json')
+
+const pluginManifestPath = path.resolve(distFolder, 'plugin-manifest.json');
+fs.writeFileSync(pluginManifestPath, JSON.stringify({ minSupportedCliVersion: minSupportedCliVersion ?? null }, null, 2));
+console.log('Successfully wrote plugin manifest to ./dist/plugin-manifest.json')
 
 
 plugin.kill(9);
