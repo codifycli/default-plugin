@@ -39,13 +39,15 @@ export class NpmInstallParameter extends StatefulParameter<NpmConfig, string[]> 
 
     const parsedData = JSON.parse(data) as NpmLsResponse;
 
-    return Object.entries(parsedData.dependencies ?? {}).map(([name, info]) => {
-      // If desired entry has a version specifier, return name@version so equality checks work
-      if (desired?.some((d) => d.includes('@') && packageName(d) === name)) {
-        return `${name}@${info.version}`
-      }
-      return name
-    })
+    return Object.entries(parsedData.dependencies ?? {})
+      .filter(([name]) => name !== 'corepack')
+      .map(([name, info]) => {
+        // If desired entry has a version specifier, return name@version so equality checks work
+        if (desired?.some((d) => d.includes('@') && packageName(d) === name)) {
+          return `${name}@${info.version}`
+        }
+        return name
+      })
   }
 
   async add(valueToAdd: string[], plan: Plan<NpmConfig>): Promise<void> {

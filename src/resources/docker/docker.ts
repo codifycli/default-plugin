@@ -85,7 +85,7 @@ export class DockerResource extends Resource<DockerConfig> {
 
         // TODO: Attempt to sleep until Docker is ready
         await this.sleep(1000);
-        await $.spawn('hdiutil detach /Volumes/Docker', { cwd: tmpDir })
+        await $.spawnSafe('hdiutil detach /Volumes/Docker', { cwd: tmpDir })
       } finally {
         await fs.rm(tmpDir, { recursive: true, force: true })
       }

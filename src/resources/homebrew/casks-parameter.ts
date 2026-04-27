@@ -97,20 +97,31 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
       return;
     }
 
-    const result = await $.spawnSafe(`brew install --casks --adopt ${casksToInstall.join(' ')}`, {
-      interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
-    })
+    for (const cask of casksToInstall) {
+      const result = await $.spawnSafe(`brew install --casks ${cask}`, {
+        interactive: true,
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+      })
 
-    if (result.status === SpawnStatus.SUCCESS) {
-      // Casks can't detect if a program was installed by other means. If it returns this message, throw an error
-      if (result.data.includes('It seems there is already an App at')) {
-        throw new Error(`A program already exists for cask ${casks}`)
+      if (result.status === SpawnStatus.SUCCESS) {
+        console.log(`Installed cask: ${cask}`);
+        continue;
       }
 
-      console.log(`Installed casks: ${casks.join(' ')}`);
-    } else {
-      throw new Error(`Failed to install casks: ${casks}. ${JSON.stringify(result.data, null, 2)}`)
+      if (result.data?.includes('It seems there is already an App at')) {
+        const adoptResult = await $.spawnSafe(`brew install --casks --adopt ${cask}`, {
+          interactive: true,
+          env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+        })
+
+        if (adoptResult.status === SpawnStatus.SUCCESS) {
+          console.log(`Installed cask (adopted): ${cask}`);
+        } else {
+          throw new Error(`Failed to install cask ${cask} with --adopt: ${JSON.stringify(adoptResult.data, null, 2)}`)
+        }
+      } else {
+        throw new Error(`Failed to install cask: ${cask}. ${JSON.stringify(result.data, null, 2)}`)
+      }
     }
   }
 
