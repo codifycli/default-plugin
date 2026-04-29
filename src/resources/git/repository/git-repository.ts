@@ -53,7 +53,7 @@ export class GitRepositoryResource extends Resource<GitRepositoryConfig> {
         autoVerifySSH: { type: 'boolean', default: true, setting: true },
       },
       importAndDestroy: {
-        requiredParameters: ['directory']
+        preventImport: true,
       },
       allowMultiple: {
         matcher: (desired, current) => {

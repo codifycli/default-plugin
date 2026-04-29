@@ -48,13 +48,12 @@ export class Pnpm extends Resource<PnpmConfig> {
     }
 
     // Return a specific version if it's required from the user.
-    if (parameters.version) {
+    if (parameters.version || context.commandType === 'import') {
       const { data } = await pty.spawn('pnpm --version');
       return { version: data }
     }
  
-      return parameters;
-    
+    return parameters;
   }
 
   async create(plan: CreatePlan<PnpmConfig>): Promise<void> {
