@@ -42,7 +42,7 @@ const exampleConfig: ExampleConfig = {
 }
 
 export class PathResource extends Resource<PathConfig> {
-  private readonly PATH_DECLARATION_REGEX = /((export PATH=)|(path+=\()|(path=\())(.+?)[\n;]/g;
+  private readonly PATH_DECLARATION_REGEX = /((export PATH=)|(path\+=\()|(path=\())(.+?)(?:[\n;]|$)/g;
   private readonly filePaths = Utils.getShellRcFiles()
 
   getSettings(): ResourceSettings<PathConfig> {
@@ -257,7 +257,7 @@ export class PathResource extends Resource<PathConfig> {
     for (const declaration of pathDeclarations) {
       const trimmedDeclaration = declaration[0];
       // Extract the value portion after the = or ( and strip surrounding quotes/parens
-      const valueMatch = trimmedDeclaration.match(/(?:export PATH=|path\+=\(|path=\()(["']?)(.+?)\1[\n;)]/s);
+      const valueMatch = trimmedDeclaration.match(/(?:export PATH=|path\+=\(|path=\()(["']?)(.+?)\1(?:[\n;)"]|$)/s);
       if (!valueMatch) {
         continue;
       }

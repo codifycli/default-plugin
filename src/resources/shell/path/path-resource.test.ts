@@ -110,4 +110,19 @@ export PATH="\${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH"
     ])
   })
 
+  it('Can match path declaration at end of file with no trailing newline', () => {
+    const pathResource = new PathResource();
+
+    const result = pathResource.findAllPathDeclarations(
+      `export PNPM_HOME="/Users/kevinwang/Library/pnpm"
+export PATH="$PNPM_HOME:$PATH"`);
+
+    expect(result).toMatchObject([
+      {
+        declaration: 'export PATH="$PNPM_HOME:$PATH"',
+        path: '$PNPM_HOME'
+      }
+    ])
+  })
+
 })
