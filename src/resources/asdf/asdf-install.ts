@@ -83,6 +83,9 @@ export class AsdfInstallResource extends Resource<AsdfInstallConfig> {
         directory: { type: 'directory' },
         versions: { type: 'array' }
       },
+      allowMultiple: {
+        identifyingParameters: ['plugin', 'directory'],
+      },
       importAndDestroy:{
         requiredParameters: ['directory'],
         refreshKeys: ['directory']

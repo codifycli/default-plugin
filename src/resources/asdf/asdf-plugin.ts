@@ -78,6 +78,9 @@ export class AsdfPluginResource extends Resource<AsdfPluginConfig> {
       parameterSettings: {
         versions: { type: 'stateful', definition: new AsdfPluginVersionsParameter() }
       },
+      allowMultiple: {
+        identifyingParameters: ['plugin'],
+      },
     }
   }
 
