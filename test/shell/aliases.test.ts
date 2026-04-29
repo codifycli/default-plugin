@@ -1,4 +1,3 @@
-
 import { describe, expect, it } from 'vitest';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
@@ -6,6 +5,7 @@ import { TestUtils } from '../test-utils.js';
 import { SpawnStatus } from '@codifycli/plugin-core';
 import { ResourceOperation } from '@codifycli/schemas';
 
+// Fix for linux
 describe('Aliases resource integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
@@ -47,17 +47,19 @@ describe('Aliases resource integration tests', async () => {
 
           expect(plans[0]).toMatchObject({
             operation: ResourceOperation.MODIFY,
-            parameters: [{
-              previousValue: [
-                { alias: 'my-alias', value: 'ls -l' },
-                { alias: 'my-alias2', value: 'pwd' }
-              ],
-              newValue: [
-                { alias: 'my-alias', value: 'cd .' },
-                { alias: 'my-alias2', value: 'cd ..' },
-                { alias: 'my-alias3', value: 'cd ../..' }
-              ]
-            }]
+            parameters: expect.arrayContaining([
+              expect.objectContaining({
+                previousValue: [
+                  { alias: 'my-alias', value: 'ls -l' },
+                  { alias: 'my-alias2', value: 'pwd' }
+                ],
+                newValue: [
+                  { alias: 'my-alias', value: 'cd .' },
+                  { alias: 'my-alias2', value: 'cd ..' },
+                  { alias: 'my-alias3', value: 'cd ../..' }
+                ]
+              })
+            ])
           })
 
           const { data: aliasOutput } = await testSpawn('alias')

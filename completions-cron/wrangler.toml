@@ -1,0 +1,15 @@
+#:schema node_modules/wrangler/config-schema.json
+name = "resource-completions-cron"
+main = "src/index.ts"
+compatibility_flags = [ "nodejs_compat" ]
+compatibility_date = "2024-09-23"
+
+[observability]
+enabled = true
+head_sampling_rate = 1
+
+[vars]
+SUPABASE_URL = "https://kdctbvqvqjfquplxhqrm.supabase.co"
+
+[triggers]
+crons = ["0 5 * * *"]

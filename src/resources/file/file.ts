@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, ModifyPlan, ParameterChange, Resource, ResourceSettings, z } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, ModifyPlan, ParameterChange, Resource, ResourceSettings, z } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -18,10 +18,41 @@ const schema = z.object({
 
 type FileConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<FileConfig> = {
+  path: '<Replace me here!>',
+  contents: '',
+}
+
+const exampleDotfile: ExampleConfig = {
+  title: 'Manage a dotfile with declarative contents',
+  description: 'Create and keep a configuration file in sync with the exact contents specified — useful for dotfiles like .curlrc or .wgetrc.',
+  configs: [{
+    type: 'file',
+    path: '~/.curlrc',
+    contents: '--silent\n--location\n--retry 3\n',
+  }]
+}
+
+const exampleOnlyCreate: ExampleConfig = {
+  title: 'Bootstrap a file only if it does not exist',
+  description: 'Write an initial .env file on first run without overwriting any local edits made afterwards.',
+  configs: [{
+    type: 'file',
+    path: '~/.config/myapp/.env',
+    contents: 'API_URL=https://api.example.com\nDEBUG=false\n',
+    onlyCreate: true,
+  }]
+}
+
 export class FileResource extends Resource<FileConfig> {
   getSettings(): ResourceSettings<FileConfig> {
     return {
       id: 'file',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleDotfile,
+        example2: exampleOnlyCreate,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

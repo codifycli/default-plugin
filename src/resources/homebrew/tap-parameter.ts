@@ -17,6 +17,7 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
     if (tapsQuery.status === SpawnStatus.SUCCESS && tapsQuery.data !== null && tapsQuery.data !== undefined) {
       return tapsQuery.data
         .split('\n')
+        .filter((t) => t !== 'homebrew/bundle' && t !== 'homebrew/services')
         .filter(Boolean)
     }
 
@@ -45,10 +46,12 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
     }
 
     const $ = getPty();
-    await $.spawn(`brew tap ${taps.join(' ')}`, {
-      interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
-    })
+    for (const tap of taps) {
+      await $.spawn(`brew tap ${tap}`, {
+        interactive: true,
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
+      });
+    }
   }
 
   private async uninstallTaps(taps: string[]): Promise<void> {
@@ -57,10 +60,12 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
     }
 
     const $ = getPty();
-    await $.spawn(`brew untap ${taps.join(' ')}`, {
-      interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
-    })
+    for (const tap of taps) {
+      await $.spawn(`brew untap ${tap}`, {
+        interactive: true,
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
+      });
+    }
   }
 
 }

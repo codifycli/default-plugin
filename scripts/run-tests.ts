@@ -36,9 +36,9 @@ async function main(argument: string, args: {
   }
 
   if (args.persistent) {
-    if (!argument) {
-      throw new Error('No test specified for persistent mode');
-    }
+    // if (!argument) {
+    //   throw new Error('No test specified for persistent mode');
+    // }
 
     await launchPersistentTest(argument, debug, args.operatingSystem);
     return process.exit(0);
@@ -98,7 +98,7 @@ async function launchPersistentTest(test: string, debug: boolean, operatingSyste
 
   console.log('Done refreshing files on VM. Starting tests...');
   VerbosityLevel.set(3);
-  await codifySpawn(`tart exec ${vmName} ${shell} -c ${operatingSystem === 'darwin' ? '-i' : ''} "cd ${dir} && FORCE_COLOR=true npm run test -- ${test} --disable-console-intercept ${debugFlag} --no-file-parallelism"`, { throws: false });
+  await codifySpawn(`tart exec -i ${vmName} ${shell} -c -i 'cd ${dir} && XDG_RUNTIME_DIR="/run/user/$(id -u)" DBUS_SESSION_BUS_ADDRESS="unix:path=$XDG_RUNTIME_DIR/bus" FORCE_COLOR=true npm run test -- ${test ? test : ''} --disable-console-intercept ${debugFlag} --no-file-parallelism'`, { throws: false });
   // }
 }
 
@@ -123,6 +123,24 @@ async function launchPersistentVm(operatingSystem: string) {
 
   const { data: ipAddr } = await testSpawn(`tart ip ${newVmName}`);
   await testSpawn(`sshpass -p "admin" rsync -avz -e 'ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null' --exclude 'node_modules' --exclude '.git' --exclude 'dist' --exclude '.fleet' ${process.cwd()} admin@${ipAddr}:~`);
+  if (operatingSystem === 'darwin') {
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "mv ~/.zprofile ~/.zshenv"`);
+  } else {
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.4/install.sh | bash"`)
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "nvm install 24; nvm alias default 24"`)
+
+    // XDG_RUNTIME_DIR is required by systemd user services (e.g. `systemctl --user`). On desktop
+    // Linux it is set automatically by PAM/logind on graphical login, but non-interactive SSH/tart
+    // sessions skip that path, so we set it explicitly to the canonical location /run/user/<uid>.
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "echo 'export XDG_RUNTIME_DIR=/run/user/$(id -u)' >> ~/.bashrc"`)
+
+    // enable-linger keeps the user's systemd session alive after logout. Without it, user-scoped
+    // systemd units (like syncthing.service) are stopped when the tart session ends, which causes
+    // `systemctl --user enable --now` to fail during integration tests.
+    await testSpawn(`tart exec ${newVmName} ${shell} -i -c "loginctl enable-linger admin"`)
+
+  }
+
   await testSpawn(`tart exec ${newVmName} ${shell} -i -c "cd ~/codify-homebrew-plugin && npm ci"`);
   console.log('Finished installing dependencies. Start tests in a new terminal window.');
 

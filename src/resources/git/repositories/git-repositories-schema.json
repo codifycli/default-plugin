@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://www.codifycli.com/git-repositories.json",
+  "$comment": "https://codifycli.com/docs/resources/git/git-repositories/",
+  "title": "Git-repositories resource",
+  "description": "Clone multiple Git repositories into a shared parent directory.",
+  "type": "object",
+  "properties": {
+    "repositories": {
+      "type": "array",
+      "description": "Remote repository URLs to clone.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "parentDirectory": {
+      "type": "string",
+      "description": "Parent directory to clone repositories into. Each repository is cloned as a subdirectory using the repository name."
+    },
+    "autoVerifySSH": {
+      "type": "boolean",
+      "description": "Automatically verifies the ssh connection for ssh git clones. Defaults to true."
+    }
+  },
+  "required": ["repositories", "parentDirectory"],
+  "additionalProperties": false
+}

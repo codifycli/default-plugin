@@ -1,12 +1,44 @@
-import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from '@codifycli/schemas';
+import { CreatePlan, ExampleConfig, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { LinuxDistro, OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
 
 import schema from './apt-schema.json';
-import { AptInstallParameter, AptPackage } from './install-parameter.js';
+import { AptInstallParameter } from './install-parameter.js';
 
 export interface AptConfig extends ResourceConfig {
-  install: Array<AptPackage | string>;
+  install: string[];
   update?: boolean;
+}
+
+const defaultConfig: Partial<AptConfig> = {
+  install: [],
+  distro: [LinuxDistro.DEBIAN_BASED],
+  os: [ResourceOs.LINUX]
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Install apt packages',
+  description: 'Install a set of common development packages using apt on a Debian-based system.',
+  configs: [{
+    type: 'apt',
+    os: [ResourceOs.LINUX],
+    distro: [LinuxDistro.DEBIAN_BASED],
+    install: ['curl', 'git', 'build-essential'],
+  }]
+}
+
+const exampleVersionPinned: ExampleConfig = {
+  title: 'Install apt packages with pinned versions',
+  description: 'Install packages using apt, with specific versions pinned for reproducibility.',
+  configs: [{
+    type: 'apt',
+    distro: [LinuxDistro.DEBIAN_BASED],
+    os: [ResourceOs.LINUX],
+    install: [
+      'curl',
+      'nodejs=20.*',
+      'python3=3.12.*',
+    ],
+  }]
 }
 
 export class AptResource extends Resource<AptConfig> {
@@ -14,6 +46,11 @@ export class AptResource extends Resource<AptConfig> {
   override getSettings(): ResourceSettings<AptConfig> {
     return {
       id: 'apt',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleVersionPinned,
+      },
       operatingSystems: [OS.Linux],
       schema,
       removeStatefulParametersBeforeDestroy: true,

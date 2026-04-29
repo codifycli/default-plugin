@@ -1,11 +1,10 @@
-import { CreatePlan, DestroyPlan, RefreshContext, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, RefreshContext, Resource, ResourceSettings, getPty, Utils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { PnpmGlobalEnvStatefulParameter } from './pnpm-global-env-stateful-parameter.js';
 import schema from './pnpm-schema.json';
 
@@ -14,10 +13,23 @@ export interface PnpmConfig extends ResourceConfig {
   globalEnvNodeVersion?: string;
 }
 
+const exampleWithNode: ExampleConfig = {
+  title: 'Install pnpm with a global Node.js version',
+  description: 'Install a specific version of pnpm and activate a global Node.js version via pnpm env.',
+  configs: [{
+    type: 'pnpm',
+    version: '10',
+    globalEnvNodeVersion: '22.0.0',
+  }]
+}
+
 export class Pnpm extends Resource<PnpmConfig> {
   getSettings(): ResourceSettings<PnpmConfig> {
     return {
       id: 'pnpm',
+      exampleConfigs: {
+        example1: exampleWithNode,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
@@ -36,13 +48,12 @@ export class Pnpm extends Resource<PnpmConfig> {
     }
 
     // Return a specific version if it's required from the user.
-    if (parameters.version) {
+    if (parameters.version || context.commandType === 'import') {
       const { data } = await pty.spawn('pnpm --version');
       return { version: data }
     }
  
-      return parameters;
-    
+    return parameters;
   }
 
   async create(plan: CreatePlan<PnpmConfig>): Promise<void> {
@@ -56,8 +67,13 @@ export class Pnpm extends Resource<PnpmConfig> {
 
   async destroy(plan: DestroyPlan<PnpmConfig>): Promise<void> {
     const $ = getPty();
+
+    const expectedPnpmHome = Utils.isMacOS()
+      ? path.join(os.homedir(), 'Library', 'pnpm')
+      : path.join(os.homedir(), '.local', 'share', 'pnpm');
+
     const { data: pnpmLocation } = await $.spawn('which pnpm', { interactive: true });
-    if (pnpmLocation.trim().toLowerCase() !== path.join(os.homedir(), 'Library', 'pnpm', 'pnpm').trim().toLowerCase()) {
+    if (pnpmLocation.trim().toLowerCase() !== path.join(expectedPnpmHome, 'pnpm').trim().toLowerCase()) {
       throw new Error('pnpm was installed outside of Codify. Please uninstall manually and re-run Codify');
     }
 
@@ -71,7 +87,7 @@ export class Pnpm extends Resource<PnpmConfig> {
 
     const shellRc = Utils.getPrimaryShellRc();
     await FileUtils.removeLineFromStartupFile('# pnpm')
-    await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${os.homedir()}/Library/pnpm"`)
+    await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${expectedPnpmHome}"`)
     await FileUtils.removeFromFile(shellRc,
 `case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;

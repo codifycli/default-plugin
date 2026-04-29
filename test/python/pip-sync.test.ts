@@ -1,6 +1,8 @@
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { describe, expect, it } from 'vitest'
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import { afterAll, describe, expect, it } from 'vitest'
 
 describe('Pip-sync resource integration tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
@@ -8,9 +10,10 @@ describe('Pip-sync resource integration tests', () => {
   it('Installs python', { timeout: 500_000 }, async () => {
     await PluginTester.fullTest(pluginPath, [
       {
-        type: 'pyenv',
+        type: 'uv',
         pythonVersions: ['3.11'],
-        global: '3.11'
+        global: '3.11',
+        tools: ['pip'],
       },
     ], {
       skipUninstall: true,
@@ -25,7 +28,7 @@ describe('Pip-sync resource integration tests', () => {
       {
         'type': 'git-repository',
         'directory': '~/Projects/example-project2',
-        'repository': 'https://github.com/daniel-dqsdatalabs/python-template.git'
+        'repository': 'https://github.com/ImperialCollegeLondon/pip-tools-template.git'
       },
       {
         'type': 'venv-project',
@@ -49,4 +52,9 @@ describe('Pip-sync resource integration tests', () => {
       validateApply() {},
     });
   });
+
+  afterAll(async () => {
+    await fs.rm(path.join(os.homedir(), 'Projects', 'example-project2'), { recursive: true, force: true });
+    await PluginTester.uninstall(pluginPath, [{ type: 'uv' }]);
+  }, 120_000);
 })

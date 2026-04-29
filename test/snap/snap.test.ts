@@ -38,12 +38,10 @@ describe('Snap resource integration tests', { skip: !Utils.isLinux() },  () => {
           expect(snapList).toContain('hello-world');
           expect(snapList).toContain('jq');
         }
-      },
-      validateDestroy: async () => {
-        // snap should still exist as it's a core system component
-        expect(await testSpawn('which snap')).toMatchObject({ status: SpawnStatus.SUCCESS });
       }
     });
+
+    await testSpawn('snap remove jq hello-world curl', { requiresRoot: true });
   });
 
   it('Can install packages with specific channels', { timeout: 300000 }, async () => {

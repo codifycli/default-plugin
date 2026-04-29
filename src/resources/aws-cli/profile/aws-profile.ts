@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   ModifyPlan,
   ParameterChange,
   Resource,
@@ -13,6 +14,7 @@ import * as fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { exampleAwsCliConfigs } from '../examples.js';
 import Schema from './aws-profile-schema.json'
 import { CSVCredentialsTransformation } from './csv-credentials-transformation.js';
 
@@ -27,11 +29,36 @@ export interface AwsProfileConfig extends StringIndexedObject {
   region: string;
 }
 
+const defaultConfig: Partial<AwsProfileConfig> = {
+  profile: 'default',
+  region: '<Replace me here!>',
+  output: 'json',
+}
+
+const exampleProfile: ExampleConfig = {
+  title: 'AWS named profile',
+  description: 'Configure a named AWS CLI profile with credentials and a default region and output format.',
+  configs: [{
+    type: 'aws-profile',
+    profile: 'default',
+    awsAccessKeyId: '<Replace me here!>',
+    awsSecretAccessKey: '<Replace me here!>',
+    region: 'us-east-1',
+    output: 'json',
+  }]
+}
+
+
 export class AwsProfileResource extends Resource<AwsProfileConfig> {
 
   getSettings(): ResourceSettings<AwsProfileConfig> {
     return {
       id: 'aws-profile',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleProfile,
+        example2: exampleAwsCliConfigs.example1,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['aws-cli'],
       schema: Schema,

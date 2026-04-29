@@ -1,4 +1,4 @@
-import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
+import { ParameterSetting, Plan, SpawnStatus, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
 import { MacportsConfig } from './macports.js';
 
@@ -20,9 +20,9 @@ export class MacportsInstallParameter extends StatefulParameter<MacportsConfig, 
 
   async refresh(desired: Array<PortPackage | string> | null, config: Partial<MacportsConfig>): Promise<Array<PortPackage | string> | null> {
     const $ = getPty()
-    const { data: installed } = await $.spawnSafe('port echo installed');
+    const { data: installed, status } = await $.spawnSafe('port echo installed');
 
-    if (!installed || installed === '') {
+    if (status === SpawnStatus.ERROR || !installed || installed === '' || installed.includes('Error:')) {
       return null;
     }
 

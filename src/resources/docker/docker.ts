@@ -1,12 +1,10 @@
-import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty, Utils, FileUtils } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { SpawnStatus } from '../../utils/codify-spawn.js';
-import { FileUtils } from '../../utils/file-utils.js';
-import { Utils } from '../../utils/index.js';
 import Schema from './docker-schema.json';
 
 export interface DockerConfig extends StringIndexedObject {
@@ -74,7 +72,7 @@ export class DockerResource extends Resource<DockerConfig> {
       const downloadLink = await Utils.isArmArch() ? ARM_DOWNLOAD_LINK : INTEL_DOWNLOAD_LINK;
 
       const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-docker'))
-      await Utils.downloadUrlIntoFile(path.join(tmpDir, 'Docker.dmg'), downloadLink);
+      await FileUtils.downloadFile(downloadLink, path.join(tmpDir, 'Docker.dmg'));
       const user = Utils.getUser();
 
       try {
@@ -87,13 +85,13 @@ export class DockerResource extends Resource<DockerConfig> {
 
         // TODO: Attempt to sleep until Docker is ready
         await this.sleep(1000);
-        await $.spawn('hdiutil detach /Volumes/Docker', { cwd: tmpDir })
+        await $.spawnSafe('hdiutil detach /Volumes/Docker', { cwd: tmpDir })
       } finally {
         await fs.rm(tmpDir, { recursive: true, force: true })
       }
 
       await $.spawn('xattr -r -d com.apple.quarantine /Applications/Docker.app', { requiresRoot: true });
-      await FileUtils.addPathToPrimaryShellRc('/Applications/Docker.app/Contents/Resources/bin', false);
+      await FileUtils.addPathToShellRc('/Applications/Docker.app/Contents/Resources/bin', true);
     } else if (Utils.isLinux()) {
       // Detect Linux distribution
       const isDebianBased = await this.isDebianBased($);
@@ -121,7 +119,7 @@ export class DockerResource extends Resource<DockerConfig> {
       await fs.rm(path.join(os.homedir(), '.docker'), { recursive: true, force: true });
       await $.spawn('rm -rf /Applications/Docker.app')
 
-      await FileUtils.removeLineFromStartupFile('/Applications/Docker.app/Contents/Resources/bin')
+      await FileUtils.removeLineFromShellRc('/Applications/Docker.app/Contents/Resources/bin')
     } else if (Utils.isLinux()) {
       const isDebianBased = await this.isDebianBased($);
       const isRedHatBased = await this.isRedHatBased($);
@@ -175,7 +173,7 @@ export class DockerResource extends Resource<DockerConfig> {
       { requiresRoot: true }
     );
     await $.spawn(
-      'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg',
+      `bash -c 'curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg'`,
       { requiresRoot: true }
     );
     await $.spawn(
@@ -189,7 +187,7 @@ export class DockerResource extends Resource<DockerConfig> {
     const distro = await this.getDebianDistro($);
 
     await $.spawn(
-      `echo "deb [arch=${arch} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${distro} $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null`,
+      `bash -c 'echo "deb [arch=${arch} signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${distro} $(lsb_release -cs 2>/dev/null) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null'`,
       { requiresRoot: true }
     );
 

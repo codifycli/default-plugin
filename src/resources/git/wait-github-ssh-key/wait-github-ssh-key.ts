@@ -6,6 +6,7 @@ import {
   getPty
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
+import { exampleSshConfigs } from '../../ssh/examples.js';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
@@ -16,6 +17,9 @@ export class WaitGithubSshKey extends Resource<WaitGithubSshKeyConfig> {
   getSettings(): ResourceSettings<WaitGithubSshKeyConfig> {
     return {
       id: 'wait-github-ssh-key',
+      exampleConfigs: {
+        example1: exampleSshConfigs.example2,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: [
         'ssh-key',

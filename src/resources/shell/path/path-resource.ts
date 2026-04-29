@@ -1,22 +1,24 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   getPty,
   ModifyPlan,
   ParameterChange,
   RefreshContext,
   resolvePathWithVariables,
   Resource,
-  ResourceSettings
+  ResourceSettings,
+  Utils,
+  FileUtils
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import { FileUtils } from '../../../utils/file-utils.js';
-import { Utils } from '../../../utils/index.js';
 import { untildify } from '../../../utils/untildify.js';
 import Schema from './path-schema.json';
+import os from 'node:os';
 
 export interface PathConfig extends StringIndexedObject {
   path: string;
@@ -25,14 +27,31 @@ export interface PathConfig extends StringIndexedObject {
   declarationsOnly: boolean;
 }
 
+const defaultConfig: Partial<PathConfig> = {
+  paths: [],
+  declarationsOnly: true,
+}
+
+const exampleConfig: ExampleConfig = {
+  title: 'Example path config',
+  configs: [{
+    type: 'path',
+    paths: ['~/.local', '~/bin'],
+    declarationsOnly: true,
+  }]
+}
+
 export class PathResource extends Resource<PathConfig> {
-  private readonly PATH_DECLARATION_REGEX = /((export PATH=)|(path+=\()|(path=\())(.+?)[\n;]/g;
-  private readonly PATH_REGEX = /(?<=[="':(])([^"'\n\r]+?)(?=["':)\n;])/g
+  private readonly PATH_DECLARATION_REGEX = /((export PATH=)|(path\+=\()|(path=\())(.+?)(?:[\n;]|$)/g;
   private readonly filePaths = Utils.getShellRcFiles()
 
   getSettings(): ResourceSettings<PathConfig> {
     return {
       id: 'path',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleConfig,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
@@ -198,7 +217,7 @@ export class PathResource extends Resource<PathConfig> {
 
   private async addPath(path: string, prepend = false): Promise<void> {
     // Escaping is done within file utils
-    await FileUtils.addPathToPrimaryShellRc(path, prepend);
+    await FileUtils.addPathToShellRc(path, prepend);
   }
   
   private async removePath(pathValue: string): Promise<void> {
@@ -237,22 +256,59 @@ export class PathResource extends Resource<PathConfig> {
 
     for (const declaration of pathDeclarations) {
       const trimmedDeclaration = declaration[0];
-      const paths = trimmedDeclaration.matchAll(this.PATH_REGEX);
+      // Extract the value portion after the = or ( and strip surrounding quotes/parens
+      const valueMatch = trimmedDeclaration.match(/(?:export PATH=|path\+=\(|path=\()(["']?)(.+?)\1(?:[\n;)"]|$)/s);
+      if (!valueMatch) {
+        continue;
+      }
+      const value = valueMatch[2];
+      const paths = this.splitPathValue(value);
 
-      for (const path of paths) {
-        const trimmedPath = path[0];
-        if (trimmedPath === '$PATH') {
+      for (const p of paths) {
+        if (!p || p.trim() === '' || p === '$PATH') {
           continue;
         }
 
         results.push({
           declaration: trimmedDeclaration.trim(),
-          path: trimmedPath,
+          path: p,
         });
       }
     }
 
     return results;
+  }
+
+  // Split a PATH value by ':' but treat ':' inside ${...} as literal
+  private splitPathValue(value: string): string[] {
+    const segments: string[] = [];
+    let current = '';
+    let depth = 0;
+
+    for (let i = 0; i < value.length; i++) {
+      const ch = value[i];
+      if (ch === '$' && value[i + 1] === '{') {
+        // Skip the '$', let the '{' handler increment depth
+        current += ch;
+      } else if (ch === '{') {
+        depth++;
+        current += ch;
+      } else if (ch === '}' && depth > 0) {
+        depth--;
+        current += ch;
+      } else if (ch === ':' && depth === 0) {
+        segments.push(current);
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+
+    if (current) {
+      segments.push(current);
+    }
+
+    return segments;
   }
 
   private async resolvePathWithVariables(pathWithVariables: string): Promise<string> {

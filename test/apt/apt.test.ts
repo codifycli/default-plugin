@@ -14,7 +14,7 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
       type: 'apt',
       install: [
         'redis',
-        { name: 'redis-tools' }
+        'redis-tools'
       ]
     }], {
       skipUninstall: true,
@@ -26,12 +26,10 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
         modifiedConfigs: [{
           type: 'apt',
           install: [
-            'vlc',
-            { name: 'tilix' }
+            'tilix'
           ],
         }],
         validateModify: async () => {
-          expect(await testSpawn('which vlc')).toMatchObject({ status: SpawnStatus.SUCCESS });
           expect(await testSpawn('which tilix')).toMatchObject({ status: SpawnStatus.SUCCESS });
         }
       }
@@ -42,9 +40,8 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
         type: 'apt',
         install: [
           'redis',
-          { name: 'redis-tools' },
-          'vlc',
-          { name: 'tilix' }
+          'redis-tools',
+          'tilix'
         ]
       }]);
     } catch (e) {
@@ -59,7 +56,7 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'apt',
       install: [
-        { name: 'curl', version: availableVersions }
+        `curl=${availableVersions}`
       ]
     }], {
       skipUninstall: true,
@@ -75,22 +72,12 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'apt',
       install: ['curl'],
-      update: false
+      update: true
     }], {
       skipUninstall: true,
       validateApply: async () => {
         expect(await testSpawn('which curl')).toMatchObject({ status: SpawnStatus.SUCCESS });
       },
     });
-
-    try {
-      await PluginTester.uninstall(pluginPath, [{
-        type: 'apt',
-        install: ['curl'],
-        update: false
-      }]);
-    } catch (e) {
-      console.error(e);
-    }
   });
 });

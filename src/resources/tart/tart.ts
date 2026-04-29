@@ -1,5 +1,6 @@
 import {
   CreatePlan,
+  ExampleConfig,
   FileUtils,
   ModifyPlan,
   ParameterChange,
@@ -44,10 +45,50 @@ const schema = z.object({
 
 export type TartConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<TartConfig> & { os: any } = {
+  clone: [],
+  os: ['macOS']
+}
+
+const exampleWithVm: ExampleConfig = {
+  title: 'Install Tart and pull a macOS VM',
+  description: 'Install Tart and clone a macOS Sequoia VM image ready to run locally.',
+  configs: [
+    {
+      type: 'tart',
+      os: ['macOS'],
+    },
+    {
+      type: 'tart-vm',
+      sourceName: 'ghcr.io/cirruslabs/macos-sequoia-base:latest',
+      localName: 'sequoia',
+      cpu: 4,
+      memory: 8192,
+      os: ['macOS'],
+      dependsOn: ['tart'],
+    },
+  ]
+}
+
+const exampleWithTartHome: ExampleConfig = {
+  title: 'Install Tart with a custom image storage location',
+  description: 'Install Tart and set a custom TART_HOME directory to control where VM images are stored.',
+  configs: [{
+    type: 'tart',
+    tartHome: '~/tart-vms',
+    os: ['macOS'],
+  }]
+}
+
 export class TartResource extends Resource<TartConfig> {
   getSettings(): ResourceSettings<TartConfig> {
     return {
       id: 'tart',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleWithVm,
+        example2: exampleWithTartHome,
+      },
       operatingSystems: [OS.Darwin],
       schema,
       dependencies: ['homebrew'],

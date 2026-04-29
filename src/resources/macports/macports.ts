@@ -1,11 +1,9 @@
-import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty, Utils, FileUtils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { FileUtils } from '../../utils/file-utils.js';
-import { Utils } from '../../utils/index.js';
 import { MacportsInstallParameter, PortPackage } from './install-parameter.js';
 import schema from './macports-schema.json';
 
@@ -67,12 +65,12 @@ export class MacportsResource extends Resource<MacportsConfig> {
     const installerPath = path.join(tmpDir, 'installer.pkg')
 
     console.log(`Downloading macports installer ${installerUrl}`)
-    await Utils.downloadUrlIntoFile(installerPath, installerUrl);
+    await FileUtils.downloadFile(installerUrl, installerPath);
 
     await $.spawn(`installer -pkg "${installerPath}" -target /;`, { requiresRoot: true })
 
-    await FileUtils.addToStartupFile('')
-    await FileUtils.addToStartupFile('export PATH=/opt/local/bin:/opt/local/sbin:$PATH')
+    await FileUtils.addToShellRc('')
+    await FileUtils.addToShellRc('export PATH=/opt/local/bin:/opt/local/sbin:$PATH')
   }
 
   override async destroy(): Promise<void> {
@@ -92,7 +90,7 @@ export class MacportsResource extends Resource<MacportsConfig> {
       '    /Library/Tcl/macports1.0 \\\n' +
       '    ~/.macports', { requiresRoot: true })
 
-    await FileUtils.removeLineFromStartupFile('export PATH=/opt/local/bin:/opt/local/sbin:$PATH');
+    await FileUtils.removeLineFromShellRc('export PATH=/opt/local/bin:/opt/local/sbin:$PATH');
 
   }
 

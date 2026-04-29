@@ -1,0 +1,30 @@
+name: Claude Test Fixer
+on:
+  workflow_run:
+    workflows: ["Test all cron (Linux)", "Test all cron (MacOS)"]
+    types: [completed]
+
+jobs:
+  fix-on-failure:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read # Allows Claude to read the logs of the failed run
+    steps:
+      - uses: actions/checkout@v4
+      - name: Claude Fix Failed Tests
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            The "CI Tests" workflow just failed. 
+            1. Analyze the logs from the last failed run.
+            2. Identify the root cause of the test failure.
+            3. Implement a fix and create a new pull request.
+            
+            
+
+          additional_permissions: |
+            actions: read

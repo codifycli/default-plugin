@@ -2,6 +2,7 @@ import {
   CodifyCliSender,
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   ModifyPlan,
   ParameterChange,
   RefreshContext,
@@ -27,10 +28,41 @@ export interface FileConfig extends ResourceConfig{
   onlyCreate: boolean;
 }
 
+const defaultConfig: Partial<FileConfig> = {
+  path: '<Replace me here!>',
+  remote: '<Replace me here!>',
+}
+
+const exampleSync: ExampleConfig = {
+  title: 'Sync a dotfile from Codify cloud',
+  description: 'Pull a remote file stored in Codify cloud and write it to a local path, keeping it in sync on every apply.',
+  configs: [{
+    type: 'remote-file',
+    path: '~/.zshrc',
+    remote: 'codify://<Replace me here!>:<Replace me here!>',
+  }]
+}
+
+const exampleOnlyCreate: ExampleConfig = {
+  title: 'Bootstrap a config file from Codify cloud without overwriting',
+  description: 'Write the file on first apply only - subsequent applies skip it, so manual local edits are preserved.',
+  configs: [{
+    type: 'remote-file',
+    path: '~/.config/myapp/settings.json',
+    remote: 'codify://<Replace me here!>:<Replace me here!>',
+    onlyCreate: true,
+  }]
+}
+
 export class RemoteFileResource extends Resource<FileConfig> {
   getSettings(): ResourceSettings<FileConfig> {
     return {
       id: 'remote-file',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleSync,
+        example2: exampleOnlyCreate,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       allowMultiple: true,
       schema,

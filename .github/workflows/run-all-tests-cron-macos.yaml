@@ -1,0 +1,55 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: Test all cron (MacOS)
+
+on:
+#  push:
+  pull_request:
+    branches:
+      - release
+  schedule:
+    - cron: '0 0 * * *'  # Every day at midnight UTC
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest]
+#        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest]
+        shard: ["1/5", "2/5", "3/5", "4/5", "5/5"]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - run: npm ci
+      - run: npx tsx scripts/cleanup-github-actions.ts
+
+#      - name: Setup tmate session
+#        uses: mxschmitt/action-tmate@v3
+
+      - name: Run tests (macOS - zsh login shell)
+        if: runner.os == 'macOS'
+        shell: zsh {0}
+        run: |
+          sudo chsh -s $(which zsh) $USER
+          echo $0
+
+          echo $ZSH_NAME $ZSH_VERSION
+          export SHELL=/bin/zsh
+          touch ~/.zshrc
+          unset JAVA_HOME
+          export PATH=/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/usr/bin:/bin:/usr/sbin:/sbin
+          export CI=true
+
+          npm run test -- ./test --no-file-parallelism --disable-console-intercept --exclude ./test/homebrew --shard ${{ matrix.shard }}
+

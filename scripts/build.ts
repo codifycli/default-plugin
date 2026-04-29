@@ -1,7 +1,8 @@
 import { JSONSchema } from '@apidevtools/json-schema-ref-parser';
+import { createRequire } from 'node:module';
 import { Ajv } from 'ajv';
 import { VerbosityLevel } from '@codifycli/plugin-core';
-import { SequentialPty } from '@codifycli/plugin-core/dist/pty/seqeuntial-pty';
+import { SequentialPty } from '@codifycli/plugin-core';
 import { IpcMessage, IpcMessageSchema, MessageStatus, ResourceSchema } from '@codifycli/schemas';
 import mergeJsonSchemas from 'merge-json-schemas';
 import { ChildProcess, fork } from 'node:child_process';
@@ -58,10 +59,11 @@ const initializeResult = await sendMessageAndAwaitResponse(plugin, {
   data: {}
 })
 
-const { resourceDefinitions } = initializeResult;
+const { resourceDefinitions, minSupportedCliVersion } = initializeResult;
 const resourceTypes = resourceDefinitions.map((i) => i.type);
 
 const schemasMap = new Map<string, JSONSchema>()
+const metadataList: Record<string, unknown>[] = [];
 for (const type of resourceTypes) {
   const resourceInfo = await sendMessageAndAwaitResponse(plugin, {
     cmd: 'getResourceInfo',
@@ -69,6 +71,9 @@ for (const type of resourceTypes) {
   })
 
   schemasMap.set(type, resourceInfo.schema);
+
+  const { schema: _schema, ...metadataWithoutSchema } = resourceInfo;
+  metadataList.push(metadataWithoutSchema);
 }
 
 const mergedSchemas = [...schemasMap.entries()].map(([type, schema]) => {
@@ -97,11 +102,32 @@ await $.spawn('npm run rollup', { interactive: true }); // re-run rollup without
 
 console.log('Generated JSON Schemas for all resources')
 
+const require = createRequire(import.meta.url);
+const rawSchema = require('./raw-codify-schema.json');
+
+const codifySchema = {
+  ...rawSchema,
+  items: {
+    oneOf: [
+      ...rawSchema.items.oneOf,
+      ...mergedSchemas,
+    ]
+  }
+};
+
 const distFolder = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', 'dist');
 const schemaOutputPath = path.resolve(distFolder, 'schemas.json');
-fs.writeFileSync(schemaOutputPath, JSON.stringify(mergedSchemas, null, 2));
+fs.writeFileSync(schemaOutputPath, JSON.stringify(codifySchema, null, 2));
 
 console.log('Successfully wrote schema to ./dist/schemas.json')
+
+const metadataOutputPath = path.resolve(distFolder, 'metadata.json');
+fs.writeFileSync(metadataOutputPath, JSON.stringify(metadataList, null, 2));
+console.log('Successfully wrote metadata to ./dist/metadata.json')
+
+const pluginManifestPath = path.resolve(distFolder, 'plugin-manifest.json');
+fs.writeFileSync(pluginManifestPath, JSON.stringify({ minSupportedCliVersion: minSupportedCliVersion ?? null }, null, 2));
+console.log('Successfully wrote plugin manifest to ./dist/plugin-manifest.json')
 
 
 plugin.kill(9);

@@ -2,11 +2,6 @@ import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/pl
 
 import { NpmConfig } from './npm.js';
 
-export interface NpmPackage {
-  name: string;
-  version?: string;
-}
-
 interface NpmLsResponse {
   version: string;
   name: string;
@@ -17,18 +12,24 @@ interface NpmLsResponse {
   }>;
 }
 
-export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Array<NpmPackage | string>> {
+// Extracts the package name without the version specifier (e.g. "nodemon@3.1.10" → "nodemon")
+function packageName(pkg: string): string {
+  const atIndex = pkg.lastIndexOf('@')
+  return atIndex > 0 ? pkg.slice(0, atIndex) : pkg
+}
+
+export class NpmInstallParameter extends StatefulParameter<NpmConfig, string[]> {
 
   getSettings(): ParameterSetting {
     return {
       type: 'array',
       isElementEqual: this.isEqual,
       filterInStatelessMode: (desired, current) =>
-        current.filter((c) => desired.some((d) => this.isSamePackage(d, c))),
+        current.filter((c) => desired.some((d) => packageName(d) === packageName(c))),
     }
   }
 
-  async refresh(desired: (NpmPackage | string)[] | null, config: Partial<NpmConfig>): Promise<(NpmPackage | string)[] | null> {
+  async refresh(desired: string[] | null, config: Partial<NpmConfig>): Promise<string[] | null> {
     const pty = getPty();
 
     const { data } = await pty.spawnSafe('npm ls --json --global --depth=0 --loglevel=silent')
@@ -37,32 +38,25 @@ export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Arra
     }
 
     const parsedData = JSON.parse(data) as NpmLsResponse;
-    const dependencies = Object.entries(parsedData.dependencies ?? {})
-      .map(([name, info]) => ({
-        name,
-        version: info.version,
-      }))
 
-    return dependencies.map((c) => {
-      if (desired?.some((d) => typeof d === 'string' && d === c.name)) {
-        return c.name;
-      }
-
-      if(desired?.some((d) => typeof d === 'object' && d.name === c.name && !d.version)) {
-        return { name: c.name };
-      }
-
-      return c;
-    })
+    return Object.entries(parsedData.dependencies ?? {})
+      .filter(([name]) => name !== 'corepack')
+      .map(([name, info]) => {
+        // If desired entry has a version specifier, return name@version so equality checks work
+        if (desired?.some((d) => d.includes('@') && packageName(d) === name)) {
+          return `${name}@${info.version}`
+        }
+        return name
+      })
   }
 
-  async add(valueToAdd: Array<NpmPackage | string>, plan: Plan<NpmConfig>): Promise<void> {
+  async add(valueToAdd: string[], plan: Plan<NpmConfig>): Promise<void> {
     await this.install(valueToAdd);
   }
 
-  async modify(newValue: (NpmPackage | string)[], previousValue: (NpmPackage | string)[], plan: Plan<NpmConfig>): Promise<void> {
-    const toInstall = newValue.filter((n) => !previousValue.some((p) => this.isSamePackage(n, p)));
-    const toUninstall = previousValue.filter((p) => !newValue.some((n) => this.isSamePackage(n, p)));
+  async modify(newValue: string[], previousValue: string[], plan: Plan<NpmConfig>): Promise<void> {
+    const toInstall = newValue.filter((n) => !previousValue.some((p) => packageName(n) === packageName(p)));
+    const toUninstall = previousValue.filter((p) => !newValue.some((n) => packageName(n) === packageName(p)));
 
     if (plan.isStateful && toUninstall.length > 0) {
       await this.uninstall(toUninstall);
@@ -70,73 +64,32 @@ export class NpmGlobalInstallParameter extends StatefulParameter<NpmConfig, Arra
     await this.install(toInstall);
   }
 
-  async remove(valueToRemove: (NpmPackage | string)[], plan: Plan<NpmConfig>): Promise<void> {
+  async remove(valueToRemove: string[], plan: Plan<NpmConfig>): Promise<void> {
     await this.uninstall(valueToRemove);
   }
 
-  async install(packages: Array<NpmPackage | string>): Promise<void> {
-    const $ = getPty();
-    const installStatements = packages.map((p) => {
-      if (typeof p === 'string') {
-        return p;
-      }
-
-      if (p.version) {
-        return `${p.name}@${p.version}`;
-      }
-
-      return p.name;
-    })
-
-    if (installStatements.length === 0) {
+  async install(packages: string[]): Promise<void> {
+    if (packages.length === 0) {
       return;
     }
-
-    await $.spawn(`npm install --global ${installStatements.join(' ')}`, { interactive: true });
+    const $ = getPty();
+    await $.spawn(`npm install --global ${packages.join(' ')}`, { interactive: true });
   }
 
-  async uninstall(packages: Array<NpmPackage | string>): Promise<void> {
-    const $ = getPty();
-    const uninstallStatements = packages.map((p) => {
-      if (typeof p === 'string') {
-        return p;
-      }
-
-      return p.name;
-    })
-
-    if (uninstallStatements.length === 0) {
+  async uninstall(packages: string[]): Promise<void> {
+    if (packages.length === 0) {
       return;
     }
-
-    await $.spawn(`npm uninstall --global ${uninstallStatements.join(' ')}`, { interactive: true });
+    const $ = getPty();
+    await $.spawn(`npm uninstall --global ${packages.map(packageName).join(' ')}`, { interactive: true });
   }
 
-
-  isSamePackage(desired: NpmPackage | string, current: NpmPackage | string): boolean {
-    if (typeof desired === 'string' && typeof current === 'string') {
-      return desired === current;
+  isEqual(desired: string, current: string): boolean {
+    // If no version specified in desired, match by name only
+    if (!desired.includes('@') || desired.startsWith('@')) {
+      return packageName(desired) === packageName(current)
     }
-
-    if (typeof desired === 'object' && typeof current === 'object') {
-      return desired.name === current.name;
-    }
-
-    return false;
-  }
-
-  isEqual(desired: NpmPackage | string, current: NpmPackage | string): boolean {
-    if (typeof desired === 'string' && typeof current === 'string') {
-      return desired === current;
-    }
-
-    if (typeof desired === 'object' && typeof current === 'object') {
-      return desired.version
-        ? desired.name === current.name && desired.version === current.version
-        : desired.name === current.name;
-    }
-
-    return false;
+    return desired === current
   }
 
 }

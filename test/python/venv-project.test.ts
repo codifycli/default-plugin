@@ -13,7 +13,7 @@ describe('Virtualenv project tests', () => {
     console.log(await fs.readdir('Projects/python-project'));
 
     await PluginTester.fullTest(pluginPath, [
-      { type: 'pyenv', pythonVersions: ['3.11'], global: '3.11' },
+      { type: 'uv', pythonVersions: ['3.11'], global: '3.11' },
       { type: 'venv-project', envDir: '.venv', cwd: 'Projects/python-project', automaticallyInstallRequirementsTxt: true },
     ])
   })

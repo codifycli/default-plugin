@@ -1,5 +1,5 @@
 import {
-  CreatePlan, DestroyPlan, ModifyPlan, ParameterChange, RefreshContext, Resource,
+  CreatePlan, DestroyPlan, ExampleConfig, ModifyPlan, ParameterChange, RefreshContext, Resource,
   ResourceSettings,
   getPty
 } from '@codifycli/plugin-core';
@@ -20,12 +20,50 @@ export interface VirtualenvProjectConfig extends ResourceConfig {
   automaticallyInstallRequirementsTxt?: boolean;
 }
 
+const defaultConfig: Partial<VirtualenvProjectConfig> = {
+  dest: '.venv',
+  automaticallyInstallRequirementsTxt: true,
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Create a virtualenv environment for a project',
+  description: 'Create an isolated Python environment in a project directory and install dependencies from requirements.txt.',
+  configs: [{
+    type: 'virtualenv-project',
+    dest: '.venv',
+    cwd: '~/projects/my-python-project',
+    automaticallyInstallRequirementsTxt: true,
+  }]
+}
+
+const exampleWithVirtualenv: ExampleConfig = {
+  title: 'Install virtualenv and set up a project environment',
+  description: 'Install virtualenv and create an isolated environment for a Python project, automatically installing dependencies from requirements.txt.',
+  configs: [
+    {
+      type: 'virtualenv',
+    },
+    {
+      type: 'virtualenv-project',
+      dest: '.venv',
+      cwd: '~/projects/my-python-project',
+      automaticallyInstallRequirementsTxt: true,
+      dependsOn: ['virtualenv'],
+    },
+  ]
+}
+
 // TODO: Remove path.resolve from cwd.
 export class VirtualenvProject extends Resource<VirtualenvProjectConfig> {
 
   getSettings(): ResourceSettings<VirtualenvProjectConfig> {
     return {
       id: 'virtualenv-project',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleWithVirtualenv,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

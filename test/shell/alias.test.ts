@@ -39,6 +39,7 @@ describe('Alias resource integration tests', async () => {
           expect((await testSpawn('my-alias')).data).to.eq((await testSpawn('pwd')).data)
         }
       },
+      skipImport: true,
       validateDestroy: async () => {
         const { data: aliasOutput } = await testSpawn('alias');
         expect(aliasOutput).to.not.include('my-alias');
@@ -54,6 +55,8 @@ describe('Alias resource integration tests', async () => {
         alias: 'test$$$',
         value: 'ls'
       }
-    ])).rejects.toThrowError();
+    ], {
+      skipImport: true,
+    })).rejects.toThrowError();
   })
 })

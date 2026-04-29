@@ -247,6 +247,16 @@ const { data } = await $.spawn('command', {
 })
 ```
 
+**Never use `sudo` inside `$.spawn` or `$.spawnSafe`.** Use `{ requiresRoot: true }` in the options instead. The framework handles privilege escalation through the parent process.
+
+```typescript
+// Wrong
+await $.spawn('sudo rm -f /usr/local/bin/ollama');
+
+// Correct
+await $.spawn('rm -f /usr/local/bin/ollama', { requiresRoot: true });
+```
+
 **File Operations:**
 ```typescript
 await FileUtils.addToStartupFile(lineToAdd)
@@ -262,6 +272,34 @@ await FileUtils.dirExists(path)
 Utils.isMacOS()
 Utils.isLinux()
 Utils.isWindows()
+```
+
+**Package Installation:**
+
+Always use `Utils.installViaPkgMgr(pkg)` from `@codifycli/plugin-core` to install system packages. This is platform-agnostic and automatically dispatches to the correct package manager (Homebrew on macOS, apt on Debian/Ubuntu, etc.). Never hardcode package manager calls like `brew install`, `apt-get install -y`, or `sudo apt install` in resource code.
+
+```typescript
+// Correct — works on macOS and Linux
+await Utils.installViaPkgMgr('curl');
+await Utils.uninstallViaPkgMgr('curl');
+
+// Wrong — hardcoded to a specific platform/package manager
+await $.spawn('sudo apt-get install -y curl');
+await $.spawn('brew install curl');
+```
+
+This applies to prerequisite checks too. When a resource needs a system dependency (e.g. `curl`, `git`, `make`), always install via `Utils.installViaPkgMgr` rather than spawning a package manager directly.
+
+**Imports — `Utils` from plugin-core vs local utils:**
+
+Always import `Utils` from `@codifycli/plugin-core`, not from `../../utils` or `../../../utils`. The local `src/utils/` module contains macOS-specific helpers (`findApplication`, `isArmArch`, `isRosetta2Installed`, `downloadUrlIntoFile`, etc.) that are only needed when those specific capabilities are required. For everything else — OS detection, package management, shell utilities — use the plugin-core `Utils`.
+
+```typescript
+// Correct
+import { Utils } from '@codifycli/plugin-core';
+
+// Only use local utils when you specifically need macOS/spotlight helpers
+import { Utils as LocalUtils } from '../../../utils/index.js';
 ```
 
 ## Build Process
@@ -282,6 +320,36 @@ The `dist/schemas.json` file is used by the CLI for validation and documentation
 Deployment (`scripts/deploy.ts`) uploads the built plugin to Cloudflare R2:
 - Production: `plugins/{name}/{version}/index.js`
 - Beta: `plugins/{name}/beta/index.js`
+
+## Completions System
+
+The Codify Editor supports auto-complete for certain resource parameters (e.g. Homebrew formula names, Node.js versions). These completions are pre-fetched by a Cloudflare Workers cron job that lives in `completions-cron/`.
+
+### Adding completions for a parameter
+
+1. Create `src/resources/<category>/<resource>/completions/<type>.<param>.ts`
+2. Export a default async function returning `Promise<string[]>` — fetch the values, return them, nothing else
+3. The filename determines the Supabase metadata automatically:
+   - `homebrew.formulae.ts` → `resource_type=homebrew`, `parameter_path=/formulae`
+4. Run `npm run build:completions` to regenerate the index
+
+```bash
+npm run build:completions   # regenerate completions-cron/src/__generated__/completions-index.ts
+npm run deploy:completions  # build + deploy to Cloudflare Workers
+```
+
+### How it fits together
+
+```
+src/resources/**/completions/*.ts   ← per-resource fetch scripts (return string[])
+        ↓  npm run build:completions
+completions-cron/src/__generated__/completions-index.ts   ← AUTO-GENERATED, do not edit
+completions-cron/src/index.ts       ← orchestrator: Supabase writes, scheduled handler
+        ↓  wrangler deploy
+Cloudflare Workers (runs daily at 05:00 UTC)
+```
+
+See `completions-cron/README.md` for full details.
 
 ## Key Patterns
 
@@ -344,6 +412,70 @@ parameterSettings: {
 }
 ```
 
+### defaultConfig and exampleConfigs
+
+Every resource should have a `defaultConfig` and `exampleConfigs`. These are surfaced in the Codify Editor to help users get started quickly.
+
+**`defaultConfig`** — pre-fills the resource form with sensible starting values:
+- Use Syncthing's/asdf's/AWS's own documented defaults where applicable
+- For required fields with no sensible default (e.g. `deviceId`, `plugin`, `awsAccessKeyId`), use the placeholder string `'<Replace me here!'>`
+- For optional array fields that default to empty (e.g. `plugins`, `aliases`, `paths`), set them to `[]`
+- Omit fields that are purely user-specific (e.g. paths, names, credentials) — don't guess
+- If the resource declares `operatingSystems: [OS.Darwin]` or `operatingSystems: [OS.Linux]` (i.e. only one OS, not both), do NOT add `os` to `defaultConfig` (it's not on the typed config interface). Instead, add the correct `os` value only to the config entries inside `exampleConfigs`. Skip entirely when the resource supports both OS.
+- The `os` field values come from the `ResourceOs` enum in `@codifycli/schemas` (`../codify-schemas/src/types/index.ts`): use `'macOS'` for Darwin, `'linux'` for Linux, `'windows'` for Windows (e.g. `os: ['macOS']`, not `os: ['darwin']`).
+
+**`exampleConfigs`** — up to two named examples (`example1`, `example2`):
+- `example1`: a substantive example showing the most common real-world use case with meaningful configuration — not a trivial "just install it" with no parameters
+- `example2`: either a more advanced single-resource variant, OR a multi-resource example that shows the full end-to-end setup (e.g. install the tool + configure it)
+- Multi-resource examples (configs array with multiple types) are especially useful when the resource `dependsOn` another — show installing the dependency too
+- Every example needs a `title` (short, noun-phrase) and a `description` (one sentence explaining what it does and why)
+- Use realistic but obviously-placeholder values for sensitive fields (`'<Replace me here!'>`), not real credentials
+- Don't add step-numbering ("Step 1 of 3") in descriptions — it doesn't make sense when viewed from a single resource page
+- If the resource is OS-specific (only Darwin or only Linux), add the correct `os` value to each config entry in the example so the editor filters it correctly (e.g. `os: ['macOS']`)
+
+**Structure:**
+```typescript
+import { ExampleConfig } from '@codifycli/plugin-core';
+
+const defaultConfig: Partial<MyConfig> = {
+  someField: 'sensible-default',
+  optionalArray: [],
+  // Add os: ['macOS'] or os: ['linux'] if operatingSystems is not [OS.Darwin, OS.Linux]
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Basic my-resource setup',
+  description: 'One sentence explaining what this example does and who it is for.',
+  configs: [{
+    type: 'my-resource',
+    someField: 'example-value',
+    // Add os: ['macOS'] or os: ['linux'] if the resource is OS-specific
+  }]
+}
+
+const exampleWithDependency: ExampleConfig = {
+  title: 'Full my-resource setup',
+  description: 'Install the prerequisite and configure my-resource in one go.',
+  configs: [
+    { type: 'prerequisite-resource' },
+    { type: 'my-resource', someField: 'example-value' },
+  ]
+}
+
+// Inside getSettings():
+return {
+  id: 'my-resource',
+  defaultConfig,
+  exampleConfigs: {
+    example1: exampleBasic,
+    example2: exampleWithDependency,
+  },
+  // ...
+}
+```
+
+**When there is a shared multi-resource example** (e.g. the asdf full-install example used across `asdf`, `asdf-plugin`, and `asdf-install`): define it once in a separate `examples.ts` file in the resource folder and spread it into `exampleConfigs` using `...exampleSharedConfigs`. Use a consistent description across all three rather than per-resource step labels.
+
 ### Dependencies
 
 Resources can declare dependencies on other resources:
@@ -402,9 +534,16 @@ The framework automatically validates dependencies exist and orders execution.
 **Build:**
 - `/scripts/build.ts` - Build process with schema collection
 - `/scripts/deploy.ts` - Deployment to Cloudflare R2
+- `/scripts/generate-completions-index.ts` - Generates completions-cron entry index
 - `/rollup.config.js` - Bundling configuration
 - `/tsconfig.json` - TypeScript config (ES2024, strict mode)
 - `/vitest.config.ts` - Test runner config
+
+**Completions cron:**
+- `/completions-cron/src/index.ts` - Cloudflare Workers scheduled handler
+- `/completions-cron/src/__generated__/completions-index.ts` - Auto-generated, do not edit
+- `/completions-cron/wrangler.toml` - Worker config (schedule, env vars)
+- `/completions-cron/README.md` - Full documentation
 
 **Testing:**
 - `/test/setup.ts` - Global test setup/teardown
