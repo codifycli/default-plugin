@@ -35,6 +35,8 @@ import { RbenvResource } from './resources/ruby/rbenv/rbenv.js';
 import { ActionResource } from './resources/scripting/action.js';
 import { AliasResource } from './resources/shell/alias/alias-resource.js';
 import { AliasesResource } from './resources/shell/aliases/aliases-resource.js';
+import { EnvVarResource } from './resources/shell/env-var/env-var-resource.js';
+import { EnvVarsResource } from './resources/shell/env-vars/env-vars-resource.js';
 import { PathResource } from './resources/shell/path/path-resource.js';
 import { SnapResource } from './resources/snap/snap.js';
 import { SyncthingResource } from './resources/syncthing/syncthing.js';
@@ -60,6 +62,8 @@ runPlugin(Plugin.create(
     new PathResource(),
     new AliasResource(),
     new AliasesResource(),
+    new EnvVarResource(),
+    new EnvVarsResource(),
     new HomebrewResource(),
     new PyenvResource(),
     new UvResource(),

@@ -54,6 +54,7 @@ export class PathResource extends Resource<PathConfig> {
       },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
+      dependencies: ['env-var', 'env-vars'],
       parameterSettings: {
         path: { type: 'directory' },
         paths: { canModify: true, type: 'array', itemType: 'directory' },
