@@ -65,6 +65,9 @@ export class TerraformResource extends Resource<TerraformConfig> {
       parameterSettings: {
         directory: {
           type: 'directory',
+        },
+        version: {
+          type: 'version',
         }
       },
       importAndDestroy:{
@@ -95,8 +98,14 @@ export class TerraformResource extends Resource<TerraformConfig> {
     if (parameters.version) {
       const versionQuery = await $.spawn('terraform version -json');
       const versionJson = JSON.parse(versionQuery.data.trim().replaceAll('\n', '')) as TerraformVersionInfo;
+      const installedVersion = versionJson.terraform_version;
 
-      results.version = versionJson.terraform_version;
+      if (parameters.version === 'latest') {
+        const latestInfo = await this.getLatestTerraformInfo();
+        results.version = semver.eq(installedVersion, latestInfo.version) ? 'latest' : installedVersion;
+      } else {
+        results.version = installedVersion;
+      }
     }
 
     return results;

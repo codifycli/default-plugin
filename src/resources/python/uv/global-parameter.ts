@@ -30,15 +30,19 @@ export class UvGlobalParameter extends StatefulParameter<UvConfig, string> {
       return null;
     }
 
-    // Symlink target is a path like .../cpython-3.12.3-.../bin/python3.12
-    const match = data.trim().match(/cpython-(\d+\.\d+(?:\.\d+)?)/);
+    const { status: versionStatus, data: versionData } = await $.spawnSafe('python --version');
+    if (versionStatus === SpawnStatus.ERROR) {
+      return null;
+    }
 
-    return match ? match[1] : null;
+    const match = versionData.trim().match(/Python\s+(\S+)/);
+    return match ? match[1] ?? null : null;
   }
 
   override async add(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`uv python install ${version} --default`, { interactive: true });
+    await $.spawnSafe(`uv python install ${version} --default`, { interactive: true });
+    await $.spawnSafe('uv python update-shell', { interactive: true })
   }
 
   override async modify(newVersion: string): Promise<void> {

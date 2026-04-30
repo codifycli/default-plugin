@@ -76,6 +76,7 @@ export class UvResource extends Resource<UvConfig> {
       },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
+      removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
         pythonVersions: { type: 'stateful', definition: new UvPythonVersionsParameter(), order: 1 },
         global: { type: 'stateful', definition: new UvGlobalParameter(), order: 2 },
