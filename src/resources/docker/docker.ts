@@ -19,7 +19,7 @@ export class DockerResource extends Resource<DockerConfig> {
   getSettings(): ResourceSettings<DockerConfig> {
     return {
       id: 'docker',
-      operatingSystems: [OS.Darwin],
+      operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
         acceptLicense: {

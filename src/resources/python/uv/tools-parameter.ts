@@ -27,7 +27,7 @@ export class UvToolsParameter extends ArrayStatefulParameter<UvConfig, string> {
 
   override async addItem(tool: string): Promise<void> {
     const $ = getPty();
-    await $.spawnSafe(`uv tool install --force ${tool}`, { interactive: true });
+    await $.spawnSafe(`uv tool install ${tool}`, { interactive: true });
   }
 
   override async removeItem(tool: string): Promise<void> {

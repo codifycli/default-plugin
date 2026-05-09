@@ -141,8 +141,8 @@ export class OllamaResource extends Resource<OllamaConfig> {
     // The official install script installs the binary, creates the `ollama`
     // system user, and registers + starts a systemd service automatically.
     await $.spawn(
-      'curl -fsSL https://ollama.com/install.sh | sh',
-      { interactive: true }
+      'bash -c "curl -fsSL https://ollama.com/install.sh | sh"',
+      { interactive: true, requiresRoot: true }
     );
   }
 
