@@ -73,26 +73,40 @@ export class Pnpm extends Resource<PnpmConfig> {
       : path.join(os.homedir(), '.local', 'share', 'pnpm');
 
     const { data: pnpmLocation } = await $.spawn('which pnpm', { interactive: true });
-    if (pnpmLocation.trim().toLowerCase() !== path.join(expectedPnpmHome, 'pnpm').trim().toLowerCase()) {
-      throw new Error('pnpm was installed outside of Codify. Please uninstall manually and re-run Codify');
-    }
+    const actual = pnpmLocation.trim().toLowerCase();
 
-    const { data: pnpmHome } = await $.spawnSafe('echo $PNPM_HOME', { interactive: true });
-    if (!pnpmHome) {
-      throw new Error('$PNPM_HOME variable is not set. Unable to determine how to uninstall pnpm. Please uninstall manually and re-run Codify.')
-    }
+    const expectedPnpmBin = path.join(expectedPnpmHome, 'bin', 'pnpm').toLowerCase();
+    const expectedPnpmBinFallback = path.join(expectedPnpmHome, 'pnpm').toLowerCase();
+    const isInstalledByScript = actual === expectedPnpmBin || actual === expectedPnpmBinFallback;
+    const isInstalledByNpm = actual.includes('node_modules/.bin/pnpm') || actual.includes('node_modules/pnpm');
+    const isInstalledByHomebrew = actual.includes('/homebrew/') || actual.includes('/linuxbrew/') || actual.includes('/opt/homebrew/');
 
-    await fs.rm(pnpmHome, { recursive: true, force: true });
-    console.log('Successfully uninstalled pnpm');
+    if (isInstalledByScript) {
+      const { data: pnpmHome } = await $.spawnSafe('echo $PNPM_HOME', { interactive: true });
+      await fs.rm(pnpmHome?.trim() || expectedPnpmHome, { recursive: true, force: true });
 
-    const shellRc = Utils.getPrimaryShellRc();
-    await FileUtils.removeLineFromStartupFile('# pnpm')
-    await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${expectedPnpmHome}"`)
-    await FileUtils.removeFromFile(shellRc,
+      const shellRc = Utils.getPrimaryShellRc();
+      await FileUtils.removeLineFromStartupFile('# pnpm')
+      await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${expectedPnpmHome}"`)
+      await FileUtils.removeFromFile(shellRc,
+`case ":$PATH:" in
+  *":$PNPM_HOME/bin:"*) ;;
+  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
+esac`)
+      await FileUtils.removeFromFile(shellRc,
 `case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac`)
-    await FileUtils.removeLineFromStartupFile('# pnpm end')
+      await FileUtils.removeLineFromStartupFile('# pnpm end')
+    } else if (isInstalledByNpm) {
+      await $.spawn('npm uninstall -g pnpm', { interactive: true });
+    } else if (isInstalledByHomebrew) {
+      await Utils.uninstallViaPkgMgr('pnpm');
+    } else {
+      throw new Error(`pnpm is installed at an unrecognized location: ${actual}. Please uninstall manually and re-run Codify`);
+    }
+
+    console.log('Successfully uninstalled pnpm');
   }
 }
