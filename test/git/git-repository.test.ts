@@ -16,6 +16,7 @@ describe('Git repository integration tests', async () => {
       }
     ], {
       skipUninstall: true,
+      skipImport: true,
       validatePlan: async (plans) => {
         console.log('plans', plans);
       },
