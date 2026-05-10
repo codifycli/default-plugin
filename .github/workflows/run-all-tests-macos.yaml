@@ -4,6 +4,7 @@
 name: Test all (MacOS)
 
 on:
+  push:
   schedule:
     - cron: '0 0 * * *'  # Every day at midnight UTC
   workflow_dispatch:
