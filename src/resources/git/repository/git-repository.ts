@@ -135,7 +135,9 @@ export class GitRepositoryResource extends Resource<GitRepositoryConfig> {
       await FileUtils.createDirIfNotExists(resolvedParent);
       await $.spawn(`git clone ${repository}`, { cwd: resolvedParent });
     } else {
-      await $.spawn(`git clone ${repository} ${path.resolve(directory!)}`);
+      const resolvedDir = path.resolve(directory!);
+      await FileUtils.createDirIfNotExists(path.dirname(resolvedDir));
+      await $.spawn(`git clone ${repository} ${resolvedDir}`);
     }
   }
 
