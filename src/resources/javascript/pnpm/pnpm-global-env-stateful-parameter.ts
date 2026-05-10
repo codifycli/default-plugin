@@ -26,12 +26,12 @@ export class PnpmGlobalEnvStatefulParameter extends StatefulParameter<PnpmConfig
 
   async add(valueToAdd: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`pnpm env use --global ${valueToAdd}`, { interactive: true });
+    await $.spawn(`pnpm runtime set node -g ${valueToAdd}`, { interactive: true });
   }
 
   async modify(newValue: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`pnpm env use --global ${newValue}`, { interactive: true })
+    await $.spawn(`pnpm runtime set node -g  ${newValue}`, { interactive: true })
   }
 
   async remove(): Promise<void> {
