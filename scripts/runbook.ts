@@ -43,6 +43,7 @@ it can be easily understood by Claude.
     allowedTools: ["WebSearch", "WebFetch"],
     mcpServers: {},
     permissionMode: 'plan',
+    continue: true,
     cwd: '../'
   }
 })) {
@@ -76,12 +77,15 @@ Guidelines:
 - Keep the resource simple and focused on the core functionality of ${toolName}
 - Use the research to guide the software design
 - Remember to split up functions if they get too long and complicated to understand. Create helper functions instead with idiomatic names.
+- Add default and example configs to help the user use the resource better
+- Remember not to use reserved keywords for parameter names: such as "name", "type", "os", "distro"
 
 Steps:
 - Write code to fulfill the requirements laid out in the research.
 - Add the resource to @src/index.ts so that it is visible
 - Write tests for the code to test ${toolName}
 - Ensure typescript is correct using tsx
+- Write documentation to a appropriate folder under @docs/resources/(resources)
 // - Run the test using 'npm run test:integration:dev -- $PathToTheTestFile'. Make sure the $PathToTheTestFile is replaced with the relative path to the test file.
 // - Do not try to test the code in any other ways. It may brick the current computer if you do.
 
@@ -91,7 +95,8 @@ ${researchResults.join('\n\n')}
   options: {
     settingSources: ['project'],
     permissionMode: "bypassPermissions", // Auto-approve file edits
-    cwd: '../'
+    cwd: '../',
+    continue: true,
   }
 })) {
   // Print human-readable output
