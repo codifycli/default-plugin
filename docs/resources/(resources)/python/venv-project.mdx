@@ -1,0 +1,76 @@
+---
+title: venv-project
+description: A reference page for the venv-project resource
+---
+The `venv-project` resource handles the creation (and also the destruction) of Python virtual environments in
+a directory. This resource differs from `virtualenv-project` in that it uses the native Python
+`python -m venv` instead of relying on the third party `virtualenv` tool.
+This resource will not activate virtual environments for you. That will need be done separately using `source .<dest>/bin/activate` where
+`<dest>` is the name of the `dest` directory.
+
+## Parameters:
+
+- **envDir**: *(string, required)* A directory to create the environment in. If `cwd` is specified then this value is a relative path to `cwd`.
+
+- **systemSitePackages**: *(boolean)* Give the virtual environment access to the system site-packages dir.
+
+- **symlinks**: *(boolean)* Try to use symlinks rather than copies, when symlinks are not the default for the platform.
+
+- **copies**: *(boolean)* Delete the contents of the environment directory if it already exists, before environment creation.
+
+- **clear**: *(boolean)* Try to use symlinks rather than copies (default: true).
+
+- **upgrade**: *(boolean)* Upgrade the environment directory to use this version of Python, assuming Python has been upgraded in-place.
+
+- **withoutPip**: *(boolean)* Skips installing or upgrading pip in the virtual environment (pip is bootstrapped by default).
+
+- **prompt**: *(string)* Provides an alternative prompt prefix for this environment.
+
+- **upgradeDeps**: *(boolean)* Upgrade core dependencies: pip setuptools to the latest version in PyPI.
+
+- **cwd**: *(string)* The cwd to create virtualenv from. This allows a relative path to be used for dest. Also, the directory `automaticallyInstallRequirementsTxt` will attempt to install from.
+
+- **automaticallyInstallRequirementsTxt**: *(boolean)* If an requirements.txt is available in the cwd, automatically install it when a virtual env is first created.
+
+## Example usage:
+```json title="codify.json"
+[
+  {
+    "type": "venv-project",
+    "dest": ".venv",
+    "cwd": "~/Projects/example-project2",
+    "automaticallyInstallRequirementsTxt": true
+  }
+]
+```
+
+In this example, we initialize a virtual environment in the project located at `~/Projects/example-project2`. The virtual environment itself is
+located in the `.venv` folder and uses the global `python3` version.
+
+```json title="codify.json"
+[
+  {
+    "type":  "pyenv",
+    "global": "3.12",
+    "pythonVersions": [
+      "3.12"
+    ]
+  },
+  {
+    "type": "git-repository",
+    "directory": "~/Projects/example-project2",
+    "repository": "git@github.com:daniel-dqsdatalabs/python-template.git"
+  },
+  {
+    "type": "virtualenv-project",
+    "dest": ".venv",
+    "cwd": "~/Projects/example-project2",
+    "automaticallyInstallRequirementsTxt": true,
+    "dependsOn": ["git-repository"]
+  }
+]
+```
+
+In this example, we use the `git-repository` resource to first clone a python
+project from Github. We then use the `venv-project` resources to setup Python in
+a virtual environment and install the dependencies listed in `requirements.txt`

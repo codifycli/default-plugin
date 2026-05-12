@@ -1,0 +1,4 @@
+{
+  "title": "ssh",
+  "pages": ["ssh-add", "ssh-config", "ssh-key"]
+}

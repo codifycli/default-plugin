@@ -1,0 +1,42 @@
+---
+title: file
+description: A reference page for the file resource
+---
+The file resource can create and maintain files. It checks for the existence and contents of a file on the system to
+determine if any changes need to be made. An `onlyCreate` flag is provided so that the content is only applied when
+a file is first created. Subsequent content changes are ignored when the `onlyCreate` flag is set to true.
+This is useful for creating file templates.
+
+## Parameters:
+
+- **path**: *(string, required)* The path of the file (including the file name).
+
+- **contents**: *(string, required)* The contents of the file
+
+- **onlyCreate**: *(boolean)* Specify that the contents only matter when Codify creates a file.
+Additional file changes will not show up in the plan. Useful for templates
+
+## Example usage:
+
+**Create an .env file**
+```json title="codify.json"
+[
+  {
+    "type":  "file",
+    "path": "~/projects/my-project/.env",
+    "contents": "AWS_ACCESS_KEY_ID=\nAWS_SECRET_ACCESS_KEY=",
+    "onlyCreate": true
+  }
+]
+```
+
+**Configuration file**
+```json title="codify.json"
+[
+  {
+    "type":  "file",
+    "path": "~/config.json",
+    "contents": "... my configs"
+  }
+]
+```

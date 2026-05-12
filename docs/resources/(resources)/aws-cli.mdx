@@ -1,0 +1,28 @@
+---
+title: aws-cli
+description: A reference page for the aws-cli resource
+---
+
+The aws-cli resource reference. This resource will install the latest version of AWS
+CLI v3.
+
+## Parameters:
+
+No parameters are currently available for the awscli install
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  { "type":  "aws-cli" }
+]
+```
+
+## Dependencies:
+
+The arm version of aws-cli has a dependency on `homebrew`. A working version of homebrew must be installed in order for this
+resource to work. See [the homebrew resource](/docs/core-resources/homebrew) to see how to install it using
+Codify. The dependency between the two resources will be automatically resolved and homebrew will be installed
+first if both are specified in a config.
+
+The x86 version of this resource will be installed directly using the AWS provided installer.

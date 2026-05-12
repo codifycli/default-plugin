@@ -1,0 +1,66 @@
+---
+title: virtualenv-project
+description: A reference page for the virtualenv-project resource
+---
+
+The `virtualenv-project` resource handles the creation (and also the destruction) of Python virtual environments in
+a directory. This resource requires that [virtualenv](/docs/core-resources/python/virtualenv) be already installed on the system.
+This resource will not activate virtual environments for you. That will need be done separately using `source .<dest>/bin/activate` where
+`<dest>` is the name of the `dest` directory.
+
+## Parameters:
+
+- **dest**: *(string, required)* The path to the destination folder for the virtual environment. If `cwd` is specified then this value is a relative path to `cwd`.
+
+- **python**: *(string)* The path to the python interpreter to use to create the virtualenv. This defaults to the global python3 version
+
+- **noVcsIgnore**: *(boolean)* Don't create VCS ignore directive in the destination directory (default: false)
+
+- **systemSitePackages**: *(boolean)* Give the virtual environment access to the system site-packages dir (default: false)
+
+- **symlinks**: *(boolean)* Try to use symlinks rather than copies (default: true)
+
+- **cwd**: *(string)* The cwd to create virtualenv from. This allows a relative path to be used for dest. Also, the directory `automaticallyInstallRequirementsTxt` will attempt to install from.
+
+- **automaticallyInstallRequirementsTxt**: *(boolean)* If an requirements.txt is available in the cwd, automatically install it when a virtual env is first created.
+
+## Example usage:
+```json title="codify.json"
+[
+  { "type": "homebrew" },
+  { "type": "virtualenv" },
+  {
+    "type": "virtualenv-project",
+    "dest": ".venv",
+    "cwd": "~/Projects/example-project2",
+    "automaticallyInstallRequirementsTxt": true
+  }
+]
+```
+
+In this example we install virtualenv (and homebrew which is a dependency) and then we initialize
+virtualenv in the project located at `~/Projects/example-project2`. The virtual environment itself is
+located in the `.venv` folder and uses the global `python3` version.
+
+```json title="codify.json"
+[
+  { "type": "homebrew" },
+  { "type": "virtualenv" },
+  {
+    "type": "git-repository",
+    "directory": "~/Projects/example-project2",
+    "repository": "git@github.com:daniel-dqsdatalabs/python-template.git"
+  },
+  {
+    "type": "virtualenv-project",
+    "dest": ".venv",
+    "cwd": "~/Projects/example-project2",
+    "automaticallyInstallRequirementsTxt": true,
+    "dependsOn": ["git-repository"]
+  }
+]
+```
+
+In this example, we use the `git-repository` resource to first clone a python
+project from Github. We then use the `virtualenv-project` resources to setup Python in
+a virtual environment and install the dependencies listed in `requirements.txt`

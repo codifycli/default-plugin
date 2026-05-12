@@ -1,0 +1,76 @@
+---
+title: asdf-plugin
+description: A reference page for the asdf plugin resource
+---
+
+Asdf is an all-in-one tool manager designed to replace individual language specific version managers
+such as pyenv, nvm, rbenv, etc.
+
+The `asdf-plugin` resource installs and
+manages plugins. A full list of plugins can be found at https://github.com/asdf-community.
+Optionally `asdf-plugin` can also install and manage versions of the tool using the
+`versions` parameter. This will install the tool and not just the plugin that manages
+the tool. Tools are still not usable after they are installed until they are loaded
+with `asdf-local` or `asdf-global`.
+
+See [the main page](/docs/core-resources/asdf/asdf) for an overview of the various asdf
+resources.
+
+## Parameters:
+
+- **plugin**: *(string, required)* The name of the asdf plugin. The name must match one of the plugins
+found in https://github.com/asdf-community.
+
+- **versions**: *(array[string])* An optional list of tool versions to install. The versions
+must match one of the versions listed in `asdf list all <plugin>`, asdf does not perform
+any fuzzy matching. Asdf provides the `latest` version to install the latest version of a tool.
+
+- **gitUrl**: *(string)* Optionally, specify a git url to clone the asdf plugin from.
+
+## Example usage:
+
+#### Install asdf and the golang plugin:
+```json title="codify.jsonc"
+[
+  {
+    "type":  "asdf"
+  },
+  {
+    "type": "asdf-plugin",
+    "plugin": "golang"
+  }
+]
+```
+
+#### Install asdf, the golang plugin, and the latest version of golang:
+```json title="codify.jsonc"
+[
+  {
+    "type":  "asdf"
+  },
+  {
+    "type": "asdf-plugin",
+    "plugin": "golang",
+    "versions": ["latest"]
+  }
+]
+```
+
+#### Fully specify the url of the golang plugin
+```json title="codify.jsonc"
+[
+  {
+    "type":  "asdf"
+  },
+  {
+    "type": "asdf-plugin",
+    "plugin": "golang",
+    "gitUrl": "https://github.com/asdf-community/asdf-golang.git"
+  }
+]
+```
+
+## Dependencies:
+
+asdf-plugin has a hard dependency on asdf being installed on the system already or
+`asdf` being in the config.

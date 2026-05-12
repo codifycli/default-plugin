@@ -1,0 +1,64 @@
+---
+title: remote file
+description: A reference page for the remote file resource
+---
+The `remote-file` resource syncs files from Codify Cloud to your local machine. This resource is ideal for managing sensitive configuration files like `.env` files, API keys, credentials, and other secrets that you want to keep secure and synchronized across machines without committing them to version control.
+
+When you run `codify apply`, the resource downloads the file from Codify Cloud and saves it to the specified local path. When you run `codify refresh` or `codify import`, local changes are uploaded back to Codify Cloud (unless `onlyCreate` is set to true).
+
+## Parameters:
+
+- **path**: *(string, required)* The local file path where the remote file should be saved (including the file name).
+
+- **remote**: *(string, required)* The Codify Cloud file path. This should be in the format `codify://<document-id>:<file-id>`. You can get this URL from the Codify Cloud dashboard when you upload a file.
+
+- **hash**: *(string, optional)* Leave empty. This is automatically managed by Codify and contains the MD5 hash of the file for change detection.
+
+- **onlyCreate**: *(boolean, optional)* When set to `true`, the file is only created if it doesn't exist locally. Subsequent content changes in Codify Cloud won't trigger updates, and local changes won't be uploaded during refresh/import. Useful for initial file templates that users customize locally.
+
+## Example usage:
+
+**Sync environment variables from Codify Cloud**
+```json title="codify.json"
+[
+  {
+    "type": "remote-file",
+    "path": "~/projects/my-project/.env",
+    "remote": "codify://14d1c15b-baa9-47fb-a298-a50a9d809687:production.env"
+  }
+]
+```
+
+**Create a local template file (one-time download)**
+```json title="codify.json"
+[
+  {
+    "type": "remote-file",
+    "path": "~/.config/app/config.json",
+    "remote": "codify://abc123-def456-ghi789:default-config.json",
+    "onlyCreate": true
+  }
+]
+```
+
+**Sync AWS credentials**
+```json title="codify.json"
+[
+  {
+    "type": "remote-file",
+    "path": "~/.aws/credentials",
+    "remote": "codify://14d1c15b-baa9-47fb-a298-a50a9d809687:aws-credentials"
+  }
+]
+```
+
+## How it works:
+
+1. **Apply**: Downloads the file from Codify Cloud and saves it to the local path. Creates parent directories if they don't exist.
+2. **Refresh/Import**: Uploads local file changes to Codify Cloud (unless `onlyCreate` is true).
+3. **Destroy**: Moves the local file to trash.
+
+## Operating Systems:
+
+- macOS (Darwin)
+- Linux

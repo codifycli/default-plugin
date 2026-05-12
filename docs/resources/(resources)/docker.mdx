@@ -1,0 +1,39 @@
+---
+title: docker
+description: A reference page for the docker resource
+---
+
+The docker resource reference. This resource installs docker. This resource
+installs docker using the recommended approach from
+[the docker docs](https://docs.docker.com/desktop/setup/install/mac-install/#install-from-the-command-line).
+This installs Docker Desktop, Docker Engine, Docker CLI and Docker compose.
+
+By default, permissions are configured for the current user, and the license is automatically accepted.
+**Note**: the installation may take several minutes to complete, and the Docker installer does not
+display logs during the process.
+
+## Parameters:
+
+- **acceptLicense**: *(boolean)* Automatically accepts the license agreement. Corresponds to the `--accept-license` flag. Defaults to true
+
+- **useCurrentUser**: *(boolean)* Use the current user to install docker. Corresponds to the `--username=<user>` flag. Defaults to true
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "docker"
+  }
+]
+```
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "docker",
+    "acceptLicense": false,
+    "useCurrentUser": false
+  }
+]
+```

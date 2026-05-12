@@ -1,0 +1,145 @@
+---
+title: tart-vm
+description: A reference page for the tart-vm resource
+---
+
+The tart-vm resource reference. This resource creates and manages individual virtual machines using [Tart](https://tart.run). Each VM is cloned from a source image (typically from an OCI registry) and can be customized with specific CPU, memory, disk, and display configurations.
+
+## Parameters:
+
+- **sourceName**: *(string, required)* The source image to clone from. This can be:
+- An OCI registry image (e.g., `ghcr.io/cirruslabs/macos-ventura-base:latest`)
+- A locally available Tart image (cloned via the [tart](/docs/resources/tart/tart) resource)
+
+- **localName**: *(string, required)* The local name for the VM. This is the name you'll use to manage the VM with Tart commands (e.g., `tart run <localName>`).
+
+- **memory**: *(number, optional)* The amount of memory (RAM) allocated to the VM in megabytes (MB). This can be modified after VM creation.
+
+- **cpu**: *(number, optional)* The number of CPU cores allocated to the VM. This can be modified after VM creation.
+
+- **display**: *(string, optional)* The display resolution in the format `<width>x<height>` (e.g., `1920x1080`, `2560x1440`). This can be modified after VM creation.
+
+- **diskSize**: *(number, optional)* The disk size in gigabytes (GB). **Important**: Disk size can only be increased, never decreased. This can be modified after VM creation to increase the disk size.
+
+## Example usage:
+
+### Creating a basic VM
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "tart",
+    "clone": [
+      {
+        "sourceName": "ghcr.io/cirruslabs/macos-ventura-base:latest",
+        "name": "ventura-base"
+      }
+    ]
+  },
+  {
+    "type": "tart-vm",
+    "sourceName": "ventura-base",
+    "localName": "my-dev-vm"
+  }
+]
+```
+
+### Creating a VM with custom resources
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "tart-vm",
+    "sourceName": "ghcr.io/cirruslabs/macos-sonoma-base:latest",
+    "localName": "sonoma-ci",
+    "memory": 8192,
+    "cpu": 4,
+    "diskSize": 50,
+    "display": "1920x1080"
+  }
+]
+```
+
+### Creating multiple VMs from the same base image
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "tart",
+    "clone": [
+      {
+        "sourceName": "ghcr.io/cirruslabs/macos-ventura-base:latest",
+        "name": "ventura-base"
+      }
+    ]
+  },
+  {
+    "type": "tart-vm",
+    "sourceName": "ventura-base",
+    "localName": "dev-vm-1",
+    "memory": 4096,
+    "cpu": 2
+  },
+  {
+    "type": "tart-vm",
+    "sourceName": "ventura-base",
+    "localName": "dev-vm-2",
+    "memory": 8192,
+    "cpu": 4
+  }
+]
+```
+
+### Full configuration with Tart and VMs
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "homebrew"
+  },
+  {
+    "type": "tart",
+    "tartHome": "~/.tart-vms",
+    "clone": [
+      {
+        "sourceName": "ghcr.io/cirruslabs/macos-sonoma-base:latest",
+        "name": "sonoma"
+      }
+    ]
+  },
+  {
+    "type": "tart-vm",
+    "sourceName": "sonoma",
+    "localName": "ci-runner",
+    "memory": 8192,
+    "cpu": 6,
+    "diskSize": 100,
+    "display": "2560x1440"
+  }
+]
+```
+
+## Related Resources:
+
+- **[tart](/docs/resources/tart/tart)**: Install Tart and clone base images from registries.
+
+## Notes:
+
+- The tart-vm resource depends on the [tart](/docs/resources/tart/tart) resource being installed.
+- VM cloning happens once when the resource is created. The VM is a full copy of the source image.
+- All modifiable parameters (`memory`, `cpu`, `display`, `diskSize`) can be changed after VM creation by updating the configuration.
+- **Disk size can only be increased**, never decreased. Attempting to reduce disk size will result in an error.
+- VMs are managed using Tart's native commands:
+- Start a VM: `tart run <localName>`
+- List VMs: `tart list`
+- Delete a VM: `tart delete <localName>`
+- Get VM info: `tart get <localName>`
+- Tart is only available on macOS and requires macOS 12.0 (Monterey) or later.
+- Memory values are in megabytes (MB): `4096` = 4 GB, `8192` = 8 GB, `16384` = 16 GB
+- CPU allocation depends on your host machine's CPU count. You can allocate up to the number of physical cores.
+
+## Getting started:
+
+- Tart CLI documentation: https://tart.run/quick-start/
+- Running VMs: https://tart.run/integrations/gitlab-ci/
+- VM image templates: https://github.com/cirruslabs/macos-image-templates

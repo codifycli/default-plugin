@@ -1,0 +1,91 @@
+---
+title: pgcli
+description: A reference page for the pgcli resource
+---
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The Pgcli resource reference. This resource installs [pgcli](https://www.pgcli.com) a command line REPL to
+manipulate postgres databases.
+
+## Parameters:
+
+No parameters are currently available for the pgcli install
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "pgcli"
+  }
+]
+```
+
+### Dependencies
+
+This resource has a dependency on `homebrew`. A working version of homebrew must be installed in order for this
+resource to work. See [the homebrew resource](/docs/core-resources/homebrew) to see how to install it using
+Codify. The dependency between the two resources will be automatically resolved and homebrew will be installed
+first if both are specified in a config.
+
+The pgcli tool also has a dependency on `postgres`. The pgcli resources uses homebrew underneath and will
+automatically install postgres if it's not installed.
+
+### Setting up a local Postgres DB
+
+<Steps>
+  <Step>Create a `codify.jsonc` file anywhere.</Step>
+  <Step>Open `codify.json` with your file editor and paste in the follow configs.</Step>
+</Steps>
+
+```json title="codify.json"
+[
+  {
+    "type":  "homebrew",
+    "formulae": [
+      "postgresql@14"
+    ]
+  },
+  { "type": "pgcli" }
+]
+```
+
+<Steps>
+  <Step>Run `codify apply` in the directory of the file. And it should install `postgres` and `pgcli` to your system</Step>
+</Steps>
+
+```sh title="terminal"
+codify apply
+```
+
+<Steps>
+  <Step>Open a new terminal window and start the database server with this command</Step>
+</Steps>
+
+```sh title="terminal"
+brew services start postgresql
+```
+
+<Steps>
+  <Step>Create a new database. Replace `mydb` with your desired name</Step>
+</Steps>
+
+```sh title="terminal"
+createdb mydb
+```
+
+<Steps>
+  <Step>Connect to the database using `pgcli` and you're done!</Step>
+</Steps>
+
+```sh title="terminal"
+pgcli mydb
+```
+
+<Steps>
+  <Step>Once you're done using postgres, stop the service.</Step>
+</Steps>
+
+```sh title="terminal"
+brew services stop postgresql
+```

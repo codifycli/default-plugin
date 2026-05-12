@@ -1,0 +1,116 @@
+---
+title: Overview
+description: Introduction to the Codify default plugin and its 50+ resources
+---
+
+The **default plugin** is the core plugin for Codify, providing 50+ declarative resources for managing development tools and system configuration across macOS and Linux. It's automatically included with Codify and covers the most common development environment needs.
+
+## Overview
+
+The default plugin brings Infrastructure-as-Code principles to your local development machine. Instead of manually installing packages, configuring tools, and setting up your environment, you describe your desired system state in a JSON configuration file and let Codify handle the implementation.
+
+## What's Included?
+
+The default plugin provides resources organized into several categories:
+
+### Package Managers
+
+Manage system packages across different platforms:
+
+- **[homebrew](/docs/resources/homebrew)** - Install and manage Homebrew formulae and casks (macOS)
+- **apt** - Debian/Ubuntu package management
+- **yum** - RedHat/CentOS package management
+- **dnf** - Fedora package management
+- **snap** - Universal Linux packages
+- **[macports](/docs/resources/macports)** - MacPorts package manager
+
+### Version Managers
+
+Install and manage multiple versions of programming languages:
+
+- **nvm** - Node.js version management
+- **pyenv** - Python version management
+- **[jenv](/docs/resources/jenv)** - Java version management
+- **[asdf](/docs/resources/asdf)** - Universal version manager for multiple languages
+
+### Programming Languages & Tools
+
+Manage language-specific packages and environments:
+
+- **npm** - Node.js packages (global installs)
+- **npm-login** - NPM authentication
+- **pnpm** - Fast, disk-efficient package manager
+- **pip** - Python package installation
+- **pip-sync** - Python dependency synchronization
+- **virtualenv** - Python virtual environments
+- **venv-project** - Python venv projects
+
+### Version Control
+
+Configure Git and manage repositories:
+
+- **[git](/docs/resources/git)** - Git configuration (name, email, signing)
+- **git-lfs** - Git Large File Storage
+- **git-repository** - Clone and manage git repositories
+- **wait-github-ssh-key** - Wait for GitHub SSH key availability
+
+### Cloud & DevOps
+
+Set up cloud and infrastructure tools:
+
+- **[aws-cli](/docs/resources/aws-cli)** - AWS Command Line Interface
+- **[aws-profile](/docs/resources/aws-profile)** - AWS credential profiles
+- **[docker](/docs/resources/docker)** - Docker container platform
+- **[terraform](/docs/resources/terraform)** - Infrastructure as Code
+
+### Shell Configuration
+
+Customize your shell environment:
+
+- **[alias](/docs/resources/alias)** - Individual shell aliases
+- **aliases** - Manage multiple aliases at once
+- **[path](/docs/resources/path)** - PATH environment variable management
+- **action** - Custom shell scripts and actions
+
+### SSH & Security
+
+Manage SSH keys and configuration:
+
+- **[ssh](/docs/resources/ssh)-key** - Generate and manage SSH keys
+- **[ssh](/docs/resources/ssh)-config** - SSH client configuration
+- **[ssh](/docs/resources/ssh)-add** - Add SSH keys to agent
+
+### Development Tools
+
+Configure popular development environments:
+
+- **[vscode](/docs/resources/vscode)** - Visual Studio Code extensions and settings
+- **[android-studio](/docs/resources/android-studio)** - Android Studio IDE
+- **[xcode-tools](/docs/resources/xcode-tools)** - Xcode Command Line Tools
+- **[pgcli](/docs/resources/pgcli)** - Postgres CLI with auto-completion
+
+### Virtualization
+
+Manage virtual machines:
+
+- **tart** - macOS and Linux VM management
+- **tart-vm** - Individual Tart VMs
+
+### File Management
+
+Handle local and remote files:
+
+- **file** - Local file management
+- **remote-file** - Download and manage remote files
+
+## Contributing
+
+The default plugin is open source and welcomes contributions. Visit the [GitHub repository](https://github.com/kevinwang5658/codify-homebrew-plugin) to:
+- Report bugs or request features
+- Contribute new resources
+- Improve documentation
+- Share your configurations
+
+---
+
+**Need help?** Check the documentation for individual resources in the sidebar or visit the [Codify community](https://github.com/codifycli/codify/discussions) for support.

@@ -1,0 +1,76 @@
+---
+title: homebrew
+description: A reference page for the homebrew resource
+---
+
+The Homebrew resource reference. This resource will allow Codify to install homebrew as well as casks and
+formulas.
+
+## Parameters:
+
+- **casks**: *(array[string])* A list of homebrew casks to install. Homebrew casks are GUI programs
+that can be installed by homebrew. See [homebrew](https://formulae.brew.sh/cask/) for a full list of
+installable casks.
+
+- **directory**: *(string)* A custom directory to install homebrew into. This will initialize homebrew there
+and set the global HOMEBREW_PREFIX to point there. This option is not recommended because it can cause undefined
+behaviour but it is useful for installing multiple copies of homebrew for the same user or different users. A
+relative or absolute path is accepted
+
+- **formulae**: *(array[string])* A list of homebrew casks to install. Homebrew formulae (plural of formula)
+are command line tools  that can be installed by homebrew. See [homebrew](https://formulae.brew.sh/formula/)
+for a full list of installable formulae.
+
+- **taps**: *(array[string])* Taps allow additional third party formulae and casks to be installed.
+
+- **skipAlreadyInstalledCasks**: *(boolean)* Skips installing casks which have already been installed externally.
+This prevents homebrew from conflicting with the existing install and throwing an error. Defaults to true.
+
+## Example usage:
+
+```json title="codify.json"
+[
+  {
+    "type":  "homebrew",
+    "formulae": [
+      "jq", "docker", "jenv"
+    ],
+    "casks": [
+      "google-chrome"
+    ]
+  }
+]
+```
+
+### Installing homebrew across multiple users on the same machine
+
+Sometimes one system can have multiple users share the same machine. In this situation, permission conflicts
+happen because homebrew installs to the same global path for all accounts (`/opt/homebrew` for arm based macs
+and `/usr/local` for intel macs). To avoid this, homebrew can also be initialized and installed to a custom
+directory for one of the accounts to avoid conflicts.
+
+Specify a local directory to install homebrew only for a particular user. This feature is only available
+with the Codify homebrew resource.
+
+```json title="codify.json"
+[
+  {
+    "type":  "homebrew",
+    "directory": "~/.homebrew",
+    "formulae": [
+      "jq", "docker", "jenv"
+    ],
+    "casks": [
+      "google-chrome"
+    ]
+  }
+]
+```
+
+Note that some formulas and casks don't work well with custom homebrew directories.
+
+## Notes:
+
+The homebrew resource will need additional permissions to install. A pop-up might be shown that requests
+the user enter their password in order to use sudo to install homebrew to the default directory `/opt/homebrew`
+(arm64) or `/usr/local` (x86).

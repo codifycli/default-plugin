@@ -1,0 +1,35 @@
+---
+title: ssh-add
+description: A reference page for the ssh-add resource
+---
+
+The `ssh-add` resource sets up and manages the command `ssh-add` which is responsible
+for loading SSH keys into the ssh-agent. For more information, visit the
+[man pages](https://www.unix.com/man-page/osx/1/ssh-add/) for ssh-add.
+
+## Parameters:
+
+- **path**: *(string, required)* The path to the SSH key to add.
+
+- **appleUseKeychain**: *(boolean)* Corresponds to the `--apple-use-keychain`
+parameter. Controls whether the key should be loaded into the Apple keychain.
+Only keys with a passphrase can be loaded.
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "ssh-add",
+    "path": "~/.ssh/id_ed25519",
+    "appleUseKeychain": true
+  }
+]
+```
+
+The above example will add the `id_ed25519` key to the ssh-agent using `ssh-add`
+if it hasn't been added already. It is configured to use the user's Apple Keychain
+so it won't need to prompt the user for their passphrase again going forward.
+
+For a full example, visit [the recipes page](/docs/getting-started/recipes#github-ssh-setup) to see a full set up
+of [SSH for github access](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)
