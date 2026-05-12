@@ -1,0 +1,59 @@
+---
+title: uv
+description: A reference page for the uv resource
+---
+
+The uv resource installs [uv](https://github.com/astral-sh/uv), an extremely fast Python package and project manager from [Astral](https://astral.sh/). uv can replace pip, pip-tools, pyenv, virtualenv, and Poetry in a single tool. On macOS it is installed via Homebrew; on Linux the official install script is used.
+
+## Parameters:
+
+- **pythonVersions**: *(array[string])* Python versions to install via `uv python install` (e.g. `["3.12", "3.11"]`). Codify adds missing versions and removes versions that are no longer listed.
+
+- **global**: *(string)* The Python version to set as the global default. This runs `uv python pin --global <version>` with the `--default` flag, which exposes `python` and `python3` on PATH as shims pointing to the selected version.
+
+- **tools**: *(array[string])* Global CLI tools to install via `uv tool install` (e.g. `["ruff", "black", "httpie"]`). Each tool is installed into its own isolated environment and exposed on PATH. Codify adds missing tools and removes tools that are no longer listed.
+
+## Example usage:
+
+### Install uv with Python versions and set a global default
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "uv",
+    "pythonVersions": ["3.12", "3.11"],
+    "global": "3.12"
+  }
+]
+```
+
+### Install uv with Python and global CLI tools
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "uv",
+    "pythonVersions": ["3.12"],
+    "global": "3.12",
+    "tools": ["ruff", "black", "httpie"]
+  }
+]
+```
+
+### Install uv only (no Python versions)
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "uv"
+  }
+]
+```
+
+## Notes:
+
+- On macOS, Homebrew must be installed before applying the uv resource. The [homebrew](/docs/resources/homebrew) resource can install it.
+- On Linux, the official install script places the `uv` and `uvx` binaries in `~/.local/bin`. Codify adds this directory to `PATH` in your shell RC file automatically.
+- The `global` parameter requires the version to be installed (either via `pythonVersions` or already present on the system).
+- Tools installed via `tools` are managed as a stateful list — tools present in your configuration are added; tools removed from the list are uninstalled.
+- uv is compatible with existing `pyproject.toml`, `requirements.txt`, and `pip` workflows. It does not conflict with pip or virtualenv.

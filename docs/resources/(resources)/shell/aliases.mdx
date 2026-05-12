@@ -17,9 +17,9 @@ alias ALIAS_NAME='ALIAS_VALUE'
   - **alias**: *(string, required)* The name of the alias.
   - **value**: *(string, required)* The value/command for the alias.
 
-- **declarationsOnly**: *(boolean, optional)* Controls whether the resource operates in stateless or stateful mode. Defaults to `false`.
-  - `false` (default): Stateful mode - manages all aliases declared in shell RC files
-  - `true`: Stateless/Declarative mode - only manages the aliases explicitly listed in the configuration
+- **declarationsOnly**: *(boolean, optional)* Controls whether the resource operates in declarative or stateful mode. Defaults to `true`.
+  - `true` (default): Declarative mode — only manages the aliases explicitly listed in the configuration. Other aliases in your shell RC files are left untouched.
+  - `false`: Stateful mode — Codify tracks and manages all aliases declared in your shell RC files that match the configured list.
 
 ## Example usage:
 

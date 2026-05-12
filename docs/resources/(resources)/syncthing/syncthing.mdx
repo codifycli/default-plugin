@@ -1,0 +1,95 @@
+---
+title: syncthing
+description: A reference page for the syncthing resource
+---
+
+The syncthing resource installs and configures [Syncthing](https://syncthing.net/), a continuous file-synchronisation program that keeps folders in sync across two or more devices. On macOS it is installed via Homebrew; on Linux the official Syncthing APT repository is used.
+
+## Parameters:
+
+- **launchAtStartup**: *(boolean)* Start Syncthing automatically at login. Uses `brew services` on macOS and `systemctl --user enable` on Linux. Defaults to `true`.
+
+- **guiAddress**: *(string)* Address the web GUI and REST API listen on. Defaults to `127.0.0.1:8384`.
+
+- **globalAnnounceEnabled**: *(boolean)* Announce this device to the global discovery server so peers can find it without knowing the IP address. Defaults to `true`.
+
+- **localAnnounceEnabled**: *(boolean)* Announce via local network broadcast so peers on the same LAN are found automatically. Defaults to `true`.
+
+- **relaysEnabled**: *(boolean)* Allow traffic to be routed through relay servers when a direct connection is not possible. Defaults to `true`.
+
+- **natEnabled**: *(boolean)* Attempt NAT traversal to improve connectivity through routers. Defaults to `true`.
+
+- **maxSendKbps**: *(number)* Maximum outgoing transfer rate in KiB/s. `0` means unlimited.
+
+- **maxRecvKbps**: *(number)* Maximum incoming transfer rate in KiB/s. `0` means unlimited.
+
+- **startBrowser**: *(boolean)* Open the GUI in a browser automatically when Syncthing starts. Defaults to `true` in Syncthing itself; set to `false` to suppress it.
+
+- **urAccepted**: *(number)* Usage-reporting consent level. Set to `-1` to opt out of usage reporting.
+
+## Example usage:
+
+### Install Syncthing with recommended defaults
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "syncthing",
+    "launchAtStartup": true,
+    "globalAnnounceEnabled": true,
+    "localAnnounceEnabled": true,
+    "relaysEnabled": true,
+    "natEnabled": true,
+    "startBrowser": false,
+    "urAccepted": -1
+  }
+]
+```
+
+### Install Syncthing with bandwidth limits
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "syncthing",
+    "launchAtStartup": true,
+    "maxSendKbps": 5120,
+    "maxRecvKbps": 10240,
+    "urAccepted": -1
+  }
+]
+```
+
+### Full Syncthing setup — daemon, peer device, and shared folder
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "syncthing",
+    "launchAtStartup": true,
+    "urAccepted": -1
+  },
+  {
+    "type": "syncthing-device",
+    "deviceId": "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX",
+    "deviceName": "My Laptop",
+    "addresses": ["dynamic"],
+    "autoAcceptFolders": false
+  },
+  {
+    "type": "syncthing-folder",
+    "id": "my-docs",
+    "path": "~/Documents",
+    "label": "My Documents",
+    "devices": ["XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX"]
+  }
+]
+```
+
+## Notes:
+
+- On macOS, Homebrew must be installed before applying the syncthing resource.
+- On Linux, the official Syncthing APT repository is added to `/etc/apt/sources.list.d/` and the release key is installed to `/etc/apt/keyrings/`. This requires `sudo` privileges.
+- The daemon must be running for Syncthing option values (bandwidth limits, announce settings, etc.) to be read and applied. Codify waits for the daemon to start after installation before applying options.
+- Removing the syncthing resource stops and uninstalls Syncthing but does **not** remove your synced data or the `~/.config/syncthing` directory.
+- Use the [`syncthing-device`](/docs/resources/syncthing/syncthing-device) and [`syncthing-folder`](/docs/resources/syncthing/syncthing-folder) resources to add peers and shared folders declaratively.

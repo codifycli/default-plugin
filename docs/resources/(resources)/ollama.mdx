@@ -1,0 +1,52 @@
+---
+title: ollama
+description: A reference page for the ollama resource
+---
+
+The ollama resource installs [Ollama](https://ollama.com/), a runtime for running large language models locally. On macOS it is installed via Homebrew and started as a background service; on Linux the official install script is used, which registers a systemd service automatically.
+
+## Parameters:
+
+- **models**: *(array[string])* AI models to pull and keep installed. Model names match those listed in the [Ollama library](https://ollama.com/library) (e.g. `"llama3.2"`, `"mistral"`, `"qwen2.5-coder:7b"`). Codify adds models that are missing and removes models that are no longer listed.
+
+## Example usage:
+
+### Install Ollama with a single model
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "ollama",
+    "models": ["llama3.2"]
+  }
+]
+```
+
+### Install Ollama with multiple models
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "ollama",
+    "models": ["llama3.2", "mistral", "qwen2.5-coder"]
+  }
+]
+```
+
+### Install Ollama without pulling any models
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "ollama"
+  }
+]
+```
+
+## Notes:
+
+- On macOS, Homebrew must be installed before applying the ollama resource. The [homebrew](/docs/resources/homebrew) resource can install it.
+- On Linux, the official install script (`https://ollama.com/install.sh`) requires `curl` and `sudo` privileges. The script creates an `ollama` system user and registers a systemd service.
+- Models can be large (several gigabytes each). Make sure you have sufficient disk space before adding them to your configuration.
+- To see available model names and tags, visit [ollama.com/library](https://ollama.com/library) or run `ollama list` after installation.
+- Removing the ollama resource stops and uninstalls the Ollama binary but does **not** automatically remove downloaded model data (stored in `~/.ollama` on macOS or `/usr/share/ollama` on Linux for system-level data).

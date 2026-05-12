@@ -3,76 +3,62 @@ title: asdf
 description: A reference page for the asdf resource
 ---
 
-Asdf is an all-in-one tool manager designed to replace individual language specific version managers
-such as pyenv, nvm, rbenv, etc. Asdf operates on a plugin based system
-to support the different tools. A full list of the supported plugins can be found here
-https://github.com/asdf-community. Asdf uses shims similar to pyenv, nvm, etc. and has the
-ability to install a tool globally, within a specific directory, or within a shell.
+Asdf is an all-in-one tool version manager designed to replace individual language-specific version managers such as pyenv, nvm, rbenv, and others. It operates on a plugin-based system to support different tools. A full list of supported plugins can be found at https://github.com/asdf-community.
 
 Installing a tool with asdf is a multistep process:
 1. Install asdf
-2. Install the plugin corresponding to the desired language/tool (ex: nodejs, golang, python, etc...)
-`asdf plugin add <name>`
-3. Install the desired version of the language/tool `asdf install <name> <version>`
-4. Load the language/tool to the global or local .tool-versions before it can used
-`asdf local <name> <version>` or `asdf global <name> <version>`. Installing the language/tool
-to locally means it can be used in the current directory or any subdirectories. Installing to global
-means that it can be used anywhere on the system. Tools that are not loaded cannot be used.
+2. Install the plugin for the desired language/tool: `asdf plugin add <name>`
+3. Install the desired version of the tool: `asdf install <name> <version>`
+4. Set the version globally or locally before it can be used: `asdf global <name> <version>` or `asdf local <name> <version>`
 
-Additionally, asdf supports using a `.tool-versions` file to install multiple tools.
-Running `asdf install` in a directory with a `.tool-versions` will install the tools listed
-in the file. The installed tools are only be available in that directory or any subdirectories.
+Asdf also supports `.tool-versions` files. Running `asdf install` in a directory containing a `.tool-versions` file installs all the tools listed in it. The installed tools are then available in that directory and its subdirectories.
+
+#### Platform-specific installation
+
+- **macOS**: Installed via Homebrew (`brew install asdf`). Homebrew must be present.
+- **Linux**: The latest release binary is downloaded directly from GitHub and placed in `~/.local/bin`. Codify also adds the asdf shims directory to `PATH` in your shell RC file.
 
 #### Codify Resources
 
-The Codify asdf resources are designed to replicate the same design model as the original tool.
-
-- **asdf:** Installs asdf itself and optionally this resource can install plugins
-(as an added feature to help improve usability)
-- **asdf-plugin:** Installs an asdf plugin and optionally and install specific versions of the
-tool using the plugin (added feature).
-- **asdf-local:** Loads the asdf tool version locally to a directory or multiple directories.
-- **asdf-global:** Loads the asdf tool version globally.
-- **asdf-install:** Installs the `.tool-versions` file in a directory or installs
-a version of a tool. asdf-install will add missing plugins automatically (added feature)
+- **asdf** — Installs asdf itself and optionally installs plugins.
+- **[asdf-plugin](/docs/resources/asdf/asdf-plugin)** — Installs an asdf plugin and optionally installs specific versions of the tool.
+- **[asdf-install](/docs/resources/asdf/asdf-install)** — Installs a `.tool-versions` file in a directory, or installs specific versions of a tool. Automatically installs missing plugins.
 
 ## Parameters:
 
-- **plugins**: *(array[string])* An optional array of plugins to install. The plugin names must match
-the names found in https://github.com/asdf-community.
+- **plugins**: *(array[string])* An optional list of asdf plugins to install. The plugin names must match those found at https://github.com/asdf-community. This list is managed statefully — plugins are added when they appear in the list and removed when they are taken off.
 
 ## Example usage:
 
-#### Install asdf:
+### Install asdf
+
 ```json title="codify.jsonc"
 [
   {
-    "type":  "asdf"
+    "type": "asdf"
   }
 ]
 ```
 
-#### Install asdf and the `nodejs` and `golang` plugins:
+### Install asdf with plugins
+
 ```json title="codify.jsonc"
 [
   {
-    "type":  "asdf",
-    "plugins": ["nodejs", "golang"]
+    "type": "asdf",
+    "plugins": ["nodejs", "python"]
   }
 ]
 ```
 
-#### A full config for installing a .tool-versions file
+### Install a `.tool-versions` file
 
-The `asdf-install` resource will automatically install missing plugins if they exist in a
-`.tool-versions` file. This is additional functionality added by Codify. The config below
-installs asdf, installs the necessary plugins and then installs the tool versions specified
-in `~/path/to/dir/.tool-versions`.
+The `asdf-install` resource automatically installs missing plugins when using the `directory` parameter. The config below installs asdf and then installs all tool versions specified in `~/path/to/dir/.tool-versions`.
 
 ```json title="codify.jsonc"
 [
   {
-    "type":  "asdf"
+    "type": "asdf"
   },
   {
     "type": "asdf-install",
@@ -81,27 +67,20 @@ in `~/path/to/dir/.tool-versions`.
 ]
 ```
 
-#### Installing nodejs globally
+### Install and version-pin a tool
 
-Asdf provides the `latest` keyword shortcut. Other-wise fully
-qualified version (down to the patch level) must be used. This config will install asdf,
-the nodejs plugin, install node versions `latest` and `20.18.0`, and then load
-`20.18.0` as the globally available version.
+Asdf provides the `latest` keyword as a shortcut. Otherwise a fully qualified version (down to the patch level) must be used. The config below installs asdf, the Node.js plugin, and two Node.js versions.
 
 ```json title="codify.jsonc"
 [
   {
-    "type":  "asdf"
+    "type": "asdf",
+    "plugins": ["nodejs"]
   },
   {
-    "type": "asdf-plugin",
+    "type": "asdf-install",
     "plugin": "nodejs",
     "versions": ["latest", "20.18.0"]
-  },
-  {
-    "type": "asdf-global",
-    "plugin": "nodejs",
-    "version": "20.18.0"
   }
 ]
 ```

@@ -3,24 +3,23 @@ title: apt
 description: A reference page for the apt resource
 ---
 
-The apt resource reference. This resource manages packages on Debian-based Linux systems using the APT (Advanced Package Tool) package manager. APT is the standard package manager for Ubuntu, Debian, Linux Mint, and other Debian-based distributions.
+The apt resource manages packages on Debian-based Linux systems using the APT (Advanced Package Tool) package manager. APT is the standard package manager for Ubuntu, Debian, Linux Mint, and other Debian-based distributions.
 
 ## Parameters:
 
-- **install**: *(array[string | object])* A list of packages to install using apt. Each package can be specified as:
-  - A simple string with the package name (e.g., `"curl"`)
-  - An object with `name` and optional `version` fields for version-specific installations
+- **install**: *(array[string])* A list of packages to install using apt. Each entry is a string with the package name, optionally including a version constraint using the `name=version` syntax (e.g. `"nodejs=20.*"`). Codify adds packages that are missing and removes packages that are no longer listed.
 
-- **update**: *(boolean)* Whether to run `apt-get update` before installing packages to refresh the package index. Defaults to `true`. Set to `false` to skip the update step if you've recently updated your package lists.
+- **update**: *(boolean)* Whether to run `apt-get update` before installing packages to refresh the package index. Defaults to `true`. Set to `false` to skip the update step if you have recently refreshed your package lists.
 
 ## Example usage:
 
-### Installing packages with simple names
+### Install packages by name
 
 ```json title="codify.jsonc"
 [
   {
     "type": "apt",
+    "os": ["linux"],
     "install": [
       "curl",
       "git",
@@ -31,33 +30,31 @@ The apt resource reference. This resource manages packages on Debian-based Linux
 ]
 ```
 
-### Installing specific package versions
+### Pin specific package versions
+
+Use the `name=version` syntax to install a particular version. Wildcards (`*`) are supported.
 
 ```json title="codify.jsonc"
 [
   {
     "type": "apt",
+    "os": ["linux"],
     "install": [
       "curl",
-      {
-        "name": "nginx",
-        "version": "1.18.0-0ubuntu1"
-      },
-      {
-        "name": "postgresql",
-        "version": "12+214ubuntu0.1"
-      }
+      "nodejs=20.*",
+      "python3=3.12.*"
     ]
   }
 ]
 ```
 
-### Skipping the update step
+### Skip the update step
 
 ```json title="codify.jsonc"
 [
   {
     "type": "apt",
+    "os": ["linux"],
     "install": [
       "jq",
       "htop"
@@ -69,7 +66,8 @@ The apt resource reference. This resource manages packages on Debian-based Linux
 
 ## Notes:
 
-- The apt resource requires sudo privileges to install packages. Codify will prompt for your password when needed.
+- The apt resource requires `sudo` privileges to install and remove packages. Codify handles privilege escalation automatically.
 - APT is only available on Debian-based Linux distributions. For Red Hat-based systems, use the [yum](/docs/resources/yum) or [dnf](/docs/resources/dnf) resources instead.
-- Package names must match those available in your configured APT repositories. Use `apt search <package>` to find available packages.
-- When specifying versions, use the exact version string as shown by `apt-cache policy <package>`.
+- The `install` list is stateful — Codify tracks which packages it installed and removes them when they are taken off the list. Packages installed outside of Codify are not affected.
+- Package names must match those available in your configured APT repositories. Use `apt-cache search <package>` to find available packages and `apt-cache policy <package>` to see available versions.
+- The `os` field should be set to `["linux"]` when combining this resource with macOS-only resources in the same configuration file, so Codify only applies it on Linux systems.

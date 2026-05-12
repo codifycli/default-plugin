@@ -1,4 +1,4 @@
 {
   "title": "python",
-  "pages": ["pip", "pip-sync", "pyenv", "venv-project", "virtualenv", "virtualenv-project"]
+  "pages": ["pip", "pip-sync", "pyenv", "uv", "venv-project", "virtualenv", "virtualenv-project"]
 }
