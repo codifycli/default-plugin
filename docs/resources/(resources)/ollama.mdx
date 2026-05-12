@@ -45,7 +45,7 @@ The ollama resource installs [Ollama](https://ollama.com/), a runtime for runnin
 
 ## Notes:
 
-- On macOS, Homebrew must be installed before applying the ollama resource. The [homebrew](/docs/resources/homebrew) resource can install it.
+- On macOS, Homebrew must be installed before applying the ollama resource. The [homebrew](/docs/resources/package-managers/homebrew) resource can install it.
 - On Linux, the official install script (`https://ollama.com/install.sh`) requires `curl` and `sudo` privileges. The script creates an `ollama` system user and registers a systemd service.
 - Models can be large (several gigabytes each). Make sure you have sufficient disk space before adding them to your configuration.
 - To see available model names and tags, visit [ollama.com/library](https://ollama.com/library) or run `ollama list` after installation.

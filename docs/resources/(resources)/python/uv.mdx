@@ -52,7 +52,7 @@ The uv resource installs [uv](https://github.com/astral-sh/uv), an extremely fas
 
 ## Notes:
 
-- On macOS, Homebrew must be installed before applying the uv resource. The [homebrew](/docs/resources/homebrew) resource can install it.
+- On macOS, Homebrew must be installed before applying the uv resource. The [homebrew](/docs/resources/package-managers/homebrew) resource can install it.
 - On Linux, the official install script places the `uv` and `uvx` binaries in `~/.local/bin`. Codify adds this directory to `PATH` in your shell RC file automatically.
 - The `global` parameter requires the version to be installed (either via `pythonVersions` or already present on the system).
 - Tools installed via `tools` are managed as a stateful list — tools present in your configuration are added; tools removed from the list are uninstalled.

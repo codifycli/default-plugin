@@ -70,7 +70,7 @@ The dnf resource reference. This resource manages packages on modern Red Hat-bas
 ## Notes:
 
 - The dnf resource requires sudo privileges to install packages. Codify will prompt for your password when needed.
-- DNF is only available on modern Red Hat-based Linux distributions. For older RHEL/CentOS systems (version 7 and below), use the [yum](/docs/resources/yum) resource instead. For Debian-based systems, use the [apt](/docs/resources/apt) resource.
+- DNF is only available on modern Red Hat-based Linux distributions. For older RHEL/CentOS systems (version 7 and below), use the [yum](/docs/resources/package-managers/yum) resource instead. For Debian-based systems, use the [apt](/docs/resources/package-managers/apt) resource.
 - DNF is faster and more efficient than YUM, with better dependency resolution and lower memory usage.
 - Package names must match those available in your configured DNF repositories. Use `dnf search <package>` to find available packages.
 - When specifying versions, use the exact version string as shown by `dnf list <package>`.

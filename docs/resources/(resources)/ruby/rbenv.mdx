@@ -49,7 +49,7 @@ The rbenv resource installs [rbenv](https://github.com/rbenv/rbenv), a Ruby vers
 
 ## Notes:
 
-- On macOS, Homebrew must be installed before applying the rbenv resource. The [homebrew](/docs/resources/homebrew) resource can install it.
+- On macOS, Homebrew must be installed before applying the rbenv resource. The [homebrew](/docs/resources/package-managers/homebrew) resource can install it.
 - On Linux, building Ruby requires several system dependencies (`curl`, `autoconf`, `patch`, `build-essential`, `rustc`, `libssl-dev`, `libyaml-dev`, `libreadline6-dev`, `zlib1g-dev`, and others). Codify installs these automatically via the system package manager.
 - On Linux, rbenv is cloned to `~/.rbenv` and added to `PATH` in your shell RC file. On macOS, Homebrew manages the installation path.
 - After applying, open a new terminal session (or source your shell RC file) for the `rbenv` shims to become active.

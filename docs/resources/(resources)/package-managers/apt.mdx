@@ -67,7 +67,7 @@ Use the `name=version` syntax to install a particular version. Wildcards (`*`) a
 ## Notes:
 
 - The apt resource requires `sudo` privileges to install and remove packages. Codify handles privilege escalation automatically.
-- APT is only available on Debian-based Linux distributions. For Red Hat-based systems, use the [yum](/docs/resources/yum) or [dnf](/docs/resources/dnf) resources instead.
+- APT is only available on Debian-based Linux distributions. For Red Hat-based systems, use the [yum](/docs/resources/package-managers/yum) or [dnf](/docs/resources/package-managers/dnf) resources instead.
 - The `install` list is stateful — Codify tracks which packages it installed and removes them when they are taken off the list. Packages installed outside of Codify are not affected.
 - Package names must match those available in your configured APT repositories. Use `apt-cache search <package>` to find available packages and `apt-cache policy <package>` to see available versions.
 - The `os` field should be set to `["linux"]` when combining this resource with macOS-only resources in the same configuration file, so Codify only applies it on Linux systems.

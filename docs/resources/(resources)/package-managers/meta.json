@@ -1,0 +1,4 @@
+{
+  "title": "package-managers",
+  "pages": ["homebrew", "apt", "dnf", "macports", "snap", "yum"]
+}

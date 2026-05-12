@@ -70,6 +70,6 @@ The yum resource reference. This resource manages packages on Red Hat-based Linu
 ## Notes:
 
 - The yum resource requires sudo privileges to install packages. Codify will prompt for your password when needed.
-- YUM is primarily for older Red Hat-based Linux distributions. For modern RHEL 8+, Fedora, Rocky Linux, and AlmaLinux systems, use the [dnf](/docs/resources/dnf) resource instead, as DNF is the successor to YUM. For Debian-based systems, use the [apt](/docs/resources/apt) resource.
+- YUM is primarily for older Red Hat-based Linux distributions. For modern RHEL 8+, Fedora, Rocky Linux, and AlmaLinux systems, use the [dnf](/docs/resources/package-managers/dnf) resource instead, as DNF is the successor to YUM. For Debian-based systems, use the [apt](/docs/resources/package-managers/apt) resource.
 - Package names must match those available in your configured YUM repositories. Use `yum search <package>` to find available packages.
 - When specifying versions, use the exact version string as shown by `yum list <package>`.
