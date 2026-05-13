@@ -7,7 +7,7 @@ on:
 #  push:
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'  # Every day at midnight UTC
+    - cron: '0 0 * * 1,3,6'  # Mon/Wed/Sat at midnight UTC
 
 jobs:
   build-and-test:
