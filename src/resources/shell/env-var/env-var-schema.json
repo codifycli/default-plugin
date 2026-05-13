@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "$id": "https://www.codifycli.com/env-var.json",
+  "$comment": "https://codifycli.com/docs/resources/shell/env-var/",
+  "title": "Env-var resource",
+  "description": "Manages a single shell environment variable by writing an export declaration to the shell startup script.",
+  "type": "object",
+  "properties": {
+    "variable": {
+      "type": "string",
+      "pattern": "^[A-Z_a-z][A-Z0-9_a-z]*$",
+      "description": "The environment variable name (e.g. PNPM_HOME)"
+    },
+    "value": {
+      "type": "string",
+      "description": "The environment variable value (e.g. $HOME/.local/share/pnpm)"
+    }
+  },
+  "required": ["variable", "value"],
+  "additionalProperties": false
+}

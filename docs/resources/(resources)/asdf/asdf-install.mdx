@@ -1,0 +1,92 @@
+---
+title: asdf-install
+description: A reference page for the asdf install resource
+---
+
+Asdf is an all-in-one tool manager designed to replace individual language specific version managers
+such as pyenv, nvm, rbenv, etc.
+
+The `asdf-install` resource is responsible for installing
+`.tool-versions` files and/or installing specific versions of tools. The `directory` parameter
+installs all the tools found within the `${directory}/.tool-versions` file and loads it for
+that directory and any subdirectories. When using the `directory` parameter, Codify
+will also automatically install all the required plugins found in that file unlike
+the `asdf` CLI.
+
+The `plugin` and `versions` parameters install specific versions of a tool and must be
+used together but cannot be used with the `directory` parameter. Tools installed using `plugin`
+and `version` parameters must be loaded separately using the `asdf-local` or `asdf-global`
+resources.
+
+See [the main page](/docs/core-resources/asdf/asdf) for an overview of the various asdf resources.
+
+## Parameters:
+
+- **directory**: *(string)* The directory that contains `.tool-versions` file to install. This
+parameter cannot be used together with the plugin and versions parameter.
+
+- **plugin**: *(string)* The name of the asdf plugin. The plugin must already exist on the system.
+Install plugins using [`asdf`](/docs/core-resources/asdf/asdf) or
+[`asdf-plugin`](/docs/core-resources/asdf/asdf-plugin). This parameter must be used together
+with the versions parameter.
+
+- **versions**: *(array[string])* An list of tool versions to install. The versions
+must match one of the versions listed in `asdf list all <plugin>`, asdf does not perform
+any fuzzy matching. Asdf provides the `latest` version to install the latest version of a tool.
+This parameter must be used together with the `plugin` parameter
+
+## Example usage:
+
+#### Install a `.tool-versions` file
+```json title="codify.jsonc"
+[
+  {
+    "type":  "asdf"
+  },
+  {
+    "type": "asdf-install",
+    "directory": "~/projects/my-project"
+  }
+]
+```
+
+#### Install the global `.tool-versions` file
+```json title="codify.jsonc"
+[
+  {
+    "type":  "asdf"
+  },
+  {
+    "type": "asdf-install",
+    "directory": "~"
+  }
+]
+```
+
+#### Install the latest version of ruby
+```json title="codify.jsonc"
+[
+  {
+    "type":  "asdf",
+    "plugins": ["ruby"]
+  },
+  {
+    "type": "asdf-install",
+    "plugin": "ruby",
+    "versions": ["latest"]
+  },
+  {
+    "type": "asdf-global",
+    "plugin": "ruby",
+    "version": "ruby"
+  }
+]
+```
+
+## Dependencies:
+
+asdf-install has a hard dependency on asdf being installed on the system already or
+`asdf` being in the config.
+
+asdf-install using the `plugin` and `versions` parameters requires that the plugin be
+already installed on the system or `asdf.plugins` or `asdf-plugins` exists in the config.

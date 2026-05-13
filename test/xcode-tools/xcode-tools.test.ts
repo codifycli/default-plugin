@@ -5,7 +5,7 @@ import { Utils } from '@codifycli/plugin-core';
 
 const pluginPath = path.resolve('./src/index.ts');
 
-describe('XCode tools install tests', { skip: !Utils.isMacOS() }, async () => {
+describe('XCode tools install tests', { skip: !Utils.isMacOS() || process.env.CI }, async () => {
   it('Can uninstall xcode tools', { timeout: 300_000 }, async () => {
     await PluginTester.uninstall(pluginPath, [{
       type: 'xcode-tools'

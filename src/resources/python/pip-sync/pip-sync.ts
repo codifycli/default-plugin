@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, getPty, RefreshContext, Resource, ResourceSettings } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, getPty, RefreshContext, Resource, ResourceSettings } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import schema from './pip-sync-schema.json'
@@ -10,10 +10,30 @@ export interface PipSyncConfig extends ResourceConfig {
   cwd?: string;
 }
 
+const defaultConfig: Partial<PipSyncConfig> = {
+  requirementFiles: ['requirements.txt'],
+  cwd: '<Replace me here!>'
+}
+
+const exampleWithVirtualenv: ExampleConfig = {
+  title: 'Sync packages into a virtualenv',
+  description: 'Install pip-tools and sync dependencies from a compiled requirements file into a dedicated virtualenv.',
+  configs: [{
+    type: 'pip-sync',
+    requirementFiles: ['requirements.txt'],
+    virtualEnv: '.venv',
+    cwd: '<Replace me here!>',
+  }]
+}
+
 export class PipSync extends Resource<PipSyncConfig> {
   getSettings(): ResourceSettings<PipSyncConfig> {
     return {
       id: 'pip-sync',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleWithVirtualenv,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

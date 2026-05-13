@@ -1,0 +1,78 @@
+---
+title: tart
+description: A reference page for the tart resource
+---
+
+The tart resource reference. This resource installs and configures [Tart](https://tart.run), a virtualization toolset for macOS that allows you to create and manage macOS and Linux virtual machines. Tart leverages Apple's Virtualization.framework and is designed for CI/CD environments and development workflows.
+
+Tart is installed via Homebrew and provides a lightweight, fast alternative to traditional virtualization solutions. It uses OCI (Open Container Initiative) registries to distribute VM images, making it easy to share and version virtual machine configurations.
+
+## Parameters:
+
+- **tartHome**: *(string, optional)* A custom directory where Tart will store VM images and configuration data. This sets the `TART_HOME` environment variable in your shell. If not specified, Tart uses its default location. This is useful for managing storage locations or having separate VM collections.
+
+- **clone**: *(array[object], optional)* A list of VM images to clone from OCI registries. Each clone entry is an object with:
+  - **sourceName**: *(string, required)* The source image to clone from an OCI registry (e.g., `ghcr.io/cirruslabs/macos-ventura-base:latest`)
+  - **name**: *(string, required)* The local name for the cloned image
+
+## Example usage:
+
+### Installing Tart
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "tart"
+  }
+]
+```
+
+### Installing Tart with a custom home directory
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "tart",
+    "tartHome": "~/.tart-vms"
+  }
+]
+```
+
+### Cloning VM images from registries
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "tart",
+    "clone": [
+      {
+        "sourceName": "ghcr.io/cirruslabs/macos-ventura-base:latest",
+        "name": "ventura-base"
+      },
+      {
+        "sourceName": "ghcr.io/cirruslabs/macos-sonoma-base:latest",
+        "name": "sonoma-base"
+      }
+    ]
+  }
+]
+```
+
+## Related Resources:
+
+- **[tart-vm](/docs/resources/tart/tart-vm)**: Create and configure individual virtual machines from cloned or existing images.
+
+## Notes:
+
+- Tart is only available on macOS (Darwin). It requires macOS 12.0 (Monterey) or later.
+- Tart depends on the [Homebrew](/docs/resources/package-managers/homebrew) resource and will automatically install it if not present.
+- The resource will install Tart from the Cirrus Labs Homebrew tap: `cirruslabs/cli/tart`
+- VM images are pulled from OCI-compatible registries using the same infrastructure as Docker images.
+- Tart requires Apple Silicon (M1/M2/M3) or Intel processors with virtualization support.
+- Setting a custom `tartHome` directory allows you to control where VM images are stored, which can be useful for managing disk space or organizing different VM collections.
+
+## Getting started:
+
+- Official Tart documentation: https://tart.run
+- Available VM images: https://github.com/orgs/cirruslabs/packages?repo_name=macos-image-templates
+- Tart GitHub repository: https://github.com/cirruslabs/tart

@@ -1,0 +1,27 @@
+---
+title: macports
+description: A reference page for the macports resource
+---
+The macports resource reference. This resource installs global npm packages.
+
+## Parameters:
+
+- **install**: *(array[string | \{ name: string, version: string \}])* An array of packages to install. This array accepts
+either the name of the package (installs the latest version) or an object with name and version.
+
+## Example usage:
+
+```json title="codify.json"
+[
+  {
+    "type":  "macports",
+    "install": [
+      "git",
+      {
+        "name": "ffmpeg",
+        "version": "4.4.6"
+      }
+    ]
+  }
+]
+```

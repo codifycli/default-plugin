@@ -1,0 +1,31 @@
+---
+title: terraform
+description: A reference page for the terraform resource
+---
+
+The terraform resource reference. This resource adds the infrastructure as code tool [terraform](https://www.terraform.io).
+Terraform is the tool that inspired the design of Codify. It allows infrastructure developers to use
+config files to set up cloud environments like GCP, AWS and Azure. See more on the Terraform
+[help pages](https://developer.hashicorp.com/terraform?product_intent=terraform).
+
+## Parameters:
+
+- **directory**: *(string)* A custom directory to install the terraform executable into. The default is
+`/usr/local/bin`.
+
+- **version**:  *(string)* A specific version of terraform to install. By default, the latest version will be
+installed.
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "terraform"
+  }
+]
+```
+
+## Getting started:
+
+Getting started guides: https://developer.hashicorp.com/terraform?product_intent=terraform

@@ -15,7 +15,7 @@ describe('Virtualenv project tests', () => {
 
     await PluginTester.fullTest(pluginPath, [
       { type: 'virtualenv' },
-      { type: 'pyenv', pythonVersions: ['3.11'], global: '3.11' },
+      { type: 'uv', pythonVersions: ['3.11'], global: '3.11' },
       { type: 'virtualenv-project', dest: '.venv', cwd: 'Projects/python-project', automaticallyInstallRequirementsTxt: true },
     ])
   })

@@ -1,0 +1,69 @@
+---
+title: aws-profile
+description: A reference page for aws-profile resource
+---
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The AWS CLI resource reference. This resource will install the latest version of AWS
+CLI v3.
+
+## Parameters:
+
+- **awsAccessKeyId**: *(string)*
+The access key id from AWS to use for the profile. The aws-profile
+resource requires either `awsAccessKeyId` and `awsSecretAccessKey` or `csvCredentials` to
+be specified.
+
+- **awsSecretAccessKey**: *(string)* The secret access key to be added to the profile.
+
+- **csvCredentials**: *(string)* Instead of passing in credentials in plaintext, a `csv`
+credentials file path can be used instead. Both relative and absolute paths are supported.
+
+- **profile**: *(string, required)* The profile to configure
+
+## Dependencies
+
+The aws cli must be installed before aws-profile can be used.
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  { "type":  "aws-cli" },
+  {
+    "type":  "aws-profile",
+    "profile": "sandbox",
+    "csvCredentials": "~/Documents/rootkey.csv"
+  },
+  {
+    "type":  "aws-profile",
+    "profile": "production",
+    "awsAccessKeyId": "AKIA...",
+    "awsSecretAccessKey": "adADSjsada..."
+  }
+]
+```
+
+### Setting up AWS CLI locally
+
+Basic instructions for getting AWS CLI up and running locally using Codify.
+
+<Steps>
+  <Step>Login to your AWS environment and navigate to `IAM > Security credentials`</Step>
+  <Step>Under the access keys section click `Create access key`. Note that it is not
+  recommended to create access keys for the root account.</Step>
+  <Step>On the `Retrieve access key` page, click `Download .csv file`.</Step>
+  <Step>Apply the following `codify.jsonc` file to install AWS CLI with that account
+  as the default profile.</Step>
+</Steps>
+
+```json title="codify.json"
+[
+  { "type":  "aws-cli" },
+  {
+    "type":  "aws-profile",
+    "profile": "default",
+    "csvCredentials": "path/to/csv/file.csv"
+  }
+]
+```

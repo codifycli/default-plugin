@@ -1,0 +1,60 @@
+---
+title: pyenv
+description: A reference page for the pyenv resource
+---
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The pyenv resource reference. This resource installs [pyenv](https://github.com/pyenv/pyenv), a python version
+manager that allows you to switch between multiple versions of Python.
+
+## Parameters:
+
+- **global**: *(string)* The global version of python to use.
+
+- **pythonVersions**: *(array[string])* Python versions to be installed.
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "pyenv",
+    "global": "3.12",
+    "pythonVersions": [
+      "3.9.6", "3.12"
+    ]
+  }
+]
+```
+
+### Setting up Python
+
+<Steps>
+  <Step>Create a `codify.jsonc` file anywhere.</Step>
+  <Step>Open `codify.jsonc` with your file editor and paste in the follow configs.</Step>
+</Steps>
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "pyenv",
+    "global": "3.12",
+    "pythonVersions": [
+      "3.12"
+    ]
+  }
+]
+```
+
+<Steps>
+  <Step>Run `codify apply` in the directory of the file. Open a new terminal and run the command `python --version`
+  to check that Python was installed. It should return `Python 3.12.2`.</Step>
+</Steps>
+
+```sh title="terminal"
+codify apply
+```
+
+## Notes:
+
+This resource currently does not support virtual envs. This is something that will be added in the future.

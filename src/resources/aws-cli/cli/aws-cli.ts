@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { exampleAwsCliConfigs } from '../examples.js';
 import Schema from './aws-cli-schema.json';
 
 export interface AwsCliConfig extends StringIndexedObject {
@@ -17,11 +18,13 @@ export class AwsCliResource extends Resource<AwsCliConfig> {
   getSettings(): ResourceSettings<AwsCliConfig> {
     return {
       schema: Schema,
+      exampleConfigs: {
+        ...exampleAwsCliConfigs,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       id: 'aws-cli',
     };
   }
-
 
   override async refresh(): Promise<Partial<AwsCliConfig> | null> {
     const $ = getPty();
@@ -81,6 +84,11 @@ softwareupdate --install-rosetta
         : 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip';
 
       console.log(`Installing AWS CLI for Linux (${isArmArch ? 'ARM64' : 'x86_64'})...`);
+      const unzipCheck = await $.spawnSafe('which unzip');
+      if (unzipCheck.status === SpawnStatus.ERROR) {
+        await Utils.installViaPkgMgr('unzip');
+      }
+
       await FileUtils.downloadFile(downloadUrl, path.join(tmpDir, 'awscliv2.zip'));
       await $.spawn('unzip -q awscliv2.zip', { cwd: tmpDir });
       await $.spawn('./aws/install', { cwd: tmpDir, requiresRoot: true });
@@ -101,9 +109,20 @@ softwareupdate --install-rosetta
       return;
     }
 
-    await $.spawnSafe(`rm ${installLocation}`, { requiresRoot: true });
-    await $.spawnSafe(`rm ${installLocation}_completer`, { requiresRoot: true });
-    await $.spawnSafe('rm -rf $HOME/.aws/');
+    if (Utils.isLinux()) {
+      // Remove symlinks from bin dir
+      await $.spawnSafe(`rm -f ${installLocation}`, { requiresRoot: true });
+      await $.spawnSafe(`rm -f ${installLocation}_completer`, { requiresRoot: true });
+
+      // Remove the install directory (always /usr/local/aws-cli for the standalone installer)
+      await $.spawnSafe('rm -rf /usr/local/aws-cli', { requiresRoot: true });
+    } else {
+      await $.spawnSafe(`rm ${installLocation}`, { requiresRoot: true });
+      await $.spawnSafe(`rm ${installLocation}_completer`, { requiresRoot: true });
+
+      // Remove the install directory (always /usr/local/aws-cli for the standalone installer)
+      await $.spawnSafe('rm -rf /usr/local/aws-cli', { requiresRoot: true });
+    }
   }
 
   private async findInstallLocation(): Promise<null | string> {

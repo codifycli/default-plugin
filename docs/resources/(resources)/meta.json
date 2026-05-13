@@ -1,0 +1,16 @@
+{
+  "pages": [
+    "package-managers",
+    "asdf",
+    "git",
+    "javascript",
+    "python",
+    "ruby",
+    "scripting",
+    "shell",
+    "ssh",
+    "syncthing",
+    "tart",
+    "..."
+  ]
+}

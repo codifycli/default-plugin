@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   Resource,
   ResourceSettings,
   SpawnStatus,
@@ -30,6 +31,38 @@ const schema = z.object({
   .describe('Install specific version of tools using asdf.');
 
 export type AsdfInstallConfig = z.infer<typeof schema>;
+
+const defaultConfig: Partial<AsdfInstallConfig> = {
+  plugin: '<Replace me here!>',
+  versions: ['latest'],
+}
+
+const examplePluginInstall: ExampleConfig = {
+  title: 'Install specific versions via asdf',
+  description: 'Install one or more specific versions of a language runtime using an asdf plugin.',
+  configs: [{
+    type: 'asdf-install',
+    plugin: 'nodejs',
+    versions: ['22.0.0', 'latest'],
+  }]
+}
+
+const exampleFullInstall: ExampleConfig = {
+  title: 'Full asdf setup — install, plugin, and version',
+  description: 'Install asdf, add the Node.js plugin, and activate a specific version - a complete setup from scratch.',
+  configs: [
+    {
+      type: 'asdf',
+      plugins: ['nodejs'],
+    },
+    {
+      type: 'asdf-install',
+      plugin: 'nodejs',
+      versions: ['22.0.0'],
+    },
+  ]
+}
+
 const CURRENT_VERSION_REGEX = /^([^ ]+?)\s+([^ ]+?)\s+.*/;
 const TOOL_VERSIONS_REGEX = /^([^ ]+) +([^ ]+)$/;
 
@@ -38,12 +71,20 @@ export class AsdfInstallResource extends Resource<AsdfInstallConfig> {
   getSettings(): ResourceSettings<AsdfInstallConfig> {
     return {
       id: 'asdf-install',
+      defaultConfig,
+      exampleConfigs: {
+        example1: examplePluginInstall,
+        example2: exampleFullInstall,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['asdf'],
       schema,
       parameterSettings: {
         directory: { type: 'directory' },
         versions: { type: 'array' }
+      },
+      allowMultiple: {
+        identifyingParameters: ['plugin', 'directory'],
       },
       importAndDestroy:{
         requiredParameters: ['directory'],

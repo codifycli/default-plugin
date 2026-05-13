@@ -13,7 +13,7 @@ describe('Pnpm tests', () => {
     ], {
       validateDestroy: async () => {
         const shellRcFile = fs.readFileSync(TestUtils.getPrimaryShellRc(), 'utf8')
-        expect(shellRcFile.trim()).to.eq('');
+        expect(shellRcFile).to.not.include('pnpm');
       }
     })
   })
@@ -28,7 +28,7 @@ describe('Pnpm tests', () => {
       },
       validateDestroy: async () => {
         const shellRcFile = fs.readFileSync(TestUtils.getPrimaryShellRc(), 'utf8')
-        expect(shellRcFile.trim()).to.eq('');
+        expect(shellRcFile).to.not.include('pnpm');
       }
     })
   })

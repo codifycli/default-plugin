@@ -1,5 +1,5 @@
 import { Ajv } from 'ajv';
-import { SudoError, VerbosityLevel } from '@codifycli/plugin-core';
+import { SudoError, VerbosityLevel, Utils } from '@codifycli/plugin-core';
 import {
   CommandRequestResponseData, CommandRequestResponseDataSchema,
   IpcMessageV2,
@@ -8,8 +8,6 @@ import {
 import { nanoid } from 'nanoid';
 import { SpawnOptions, spawn } from 'node:child_process';
 import stripAnsi from 'strip-ansi';
-
-import { Utils } from './index.js';
 
 const ajv = new Ajv({
   strict: true,

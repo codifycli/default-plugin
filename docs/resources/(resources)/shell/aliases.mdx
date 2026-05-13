@@ -1,0 +1,122 @@
+---
+title: aliases
+description: A reference page for the aliases resource
+---
+
+The aliases resource reference. This resource manages multiple shell aliases in a single resource configuration. Unlike the singular [alias](/docs/resources/alias) resource which creates one alias per resource instance, the `aliases` resource allows you to define and manage multiple aliases together as an array.
+
+This resource adds alias entries to your shell startup script (`.zshrc`, `.bashrc`, etc.):
+
+```sh title=".zshrc"
+alias ALIAS_NAME='ALIAS_VALUE'
+```
+
+## Parameters:
+
+- **aliases**: *(array[object], optional)* An array of alias definitions. Each alias object contains:
+  - **alias**: *(string, required)* The name of the alias.
+  - **value**: *(string, required)* The value/command for the alias.
+
+- **declarationsOnly**: *(boolean, optional)* Controls whether the resource operates in declarative or stateful mode. Defaults to `true`.
+  - `true` (default): Declarative mode — only manages the aliases explicitly listed in the configuration. Other aliases in your shell RC files are left untouched.
+  - `false`: Stateful mode — Codify tracks and manages all aliases declared in your shell RC files that match the configured list.
+
+## Example usage:
+
+### Managing multiple aliases in one resource
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "aliases",
+    "aliases": [
+      { "alias": "gch", "value": "git checkout" },
+      { "alias": "gpull", "value": "git pull" },
+      { "alias": "gpush", "value": "git push" },
+      { "alias": "gst", "value": "git status" },
+      { "alias": "ll", "value": "ls -la" }
+    ]
+  }
+]
+```
+
+### Using declarationsOnly mode (stateless)
+
+In this mode, Codify only manages the aliases you explicitly declare. Any other aliases in your shell RC files are ignored.
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "aliases",
+    "declarationsOnly": true,
+    "aliases": [
+      { "alias": "k", "value": "kubectl" },
+      { "alias": "tf", "value": "terraform" }
+    ]
+  }
+]
+```
+
+### Organizing development aliases
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "aliases",
+    "aliases": [
+      { "alias": "dc", "value": "docker-compose" },
+      { "alias": "dps", "value": "docker ps" },
+      { "alias": "dex", "value": "docker exec -it" },
+      { "alias": "npm-i", "value": "npm install" },
+      { "alias": "npm-d", "value": "npm run dev" },
+      { "alias": "vim", "value": "nvim" }
+    ]
+  }
+]
+```
+
+## Comparison: aliases vs alias
+
+**Use `aliases` when:**
+- You want to manage multiple aliases in a single resource
+- You prefer a more compact configuration
+- You want to manage all your aliases together
+
+**Use `alias` when:**
+- You want fine-grained control over individual aliases
+- You want to use Codify's resource dependency features for specific aliases
+- You prefer to distribute alias definitions across your configuration
+
+### Example comparison
+
+Using `alias` (multiple resources):
+```json
+[
+  { "type": "alias", "alias": "gch", "value": "git checkout" },
+  { "type": "alias", "alias": "gpull", "value": "git pull" },
+  { "type": "alias", "alias": "gpush", "value": "git push" }
+]
+```
+
+Using `aliases` (single resource):
+```json
+[
+  {
+    "type": "aliases",
+    "aliases": [
+      { "alias": "gch", "value": "git checkout" },
+      { "alias": "gpull", "value": "git pull" },
+      { "alias": "gpush", "value": "git push" }
+    ]
+  }
+]
+```
+
+## Notes:
+
+- The `aliases` resource works with both zsh and bash shells on macOS and Linux.
+- When modifying aliases, Codify will intelligently add, update, or remove aliases as needed.
+- In stateful mode (default), Codify tracks all aliases declared in your shell RC files that match the ones in your configuration.
+- In declarationsOnly mode, Codify filters the current system state to only include the aliases you've explicitly listed.
+- Alias values are automatically escaped when written to the shell RC file to ensure proper formatting.
+- Both `alias` and `aliases` resources can be used in the same configuration without conflicts.

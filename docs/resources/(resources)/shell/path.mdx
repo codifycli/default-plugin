@@ -1,0 +1,42 @@
+---
+title: path
+description: A reference page for the path resource
+---
+
+The path resource reference. This resource adds additional values to your path by adding it to your shell startup
+script. Currently only `zsh` is supported but additional shells will be added in the future. A path resource
+adds the follow entry:
+
+```sh title=".zshrc"
+path+=('/your/path/value')
+```
+
+## Parameters:
+
+- **path**: *(string)* The path to add. The path value is escaped prior to being inserted. If a Tilde was used
+for the home directory, the path will be resolved to an absolute path before being inserted. Zsh and bash do not
+expand `~` when it's used in a path.
+
+- **paths**: *(array[string])* Multiple can be added at the same time. One of `path` or `paths` must be included
+but not both at the same time. The individual paths follow the same rules as the `path` parameter.
+
+- **prepend**: *(boolean)* Prepending the instead of post-pending it.
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "path",
+    "path": "~/projects/myproject/bin"
+  },
+  {
+    "type":  "path",
+    "paths": [
+      "~/projects/myproject2/bin",
+      "$HOME/projects/myproject3/bin",
+      "/dir/to/add"
+    ]
+  }
+]
+```

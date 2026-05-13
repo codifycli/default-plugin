@@ -1,0 +1,136 @@
+---
+title: npm-login
+description: A reference page for the npm-login resource
+---
+
+The npm-login resource reference. This resource manages npm authentication by configuring authentication tokens in your `~/.npmrc` file. It allows you to authenticate with npm registries (including private registries) and optionally map scoped packages to specific registries.
+
+This resource writes authentication entries to your `.npmrc` file:
+
+```ini title="~/.npmrc"
+//registry.npmjs.org/:_authToken=npm_your_token_here
+@myorg:registry=https://npm.pkg.github.com/
+//npm.pkg.github.com/:_authToken=ghp_your_github_token_here
+```
+
+## Parameters:
+
+- **authToken**: *(string, required)* The npm authentication token used for authenticating with the registry. This is typically an npm access token or a personal access token for private registries (e.g., GitHub Packages, GitLab Package Registry).
+
+- **scope**: *(string, optional)* An optional npm scope (e.g., `@myorg`, `@company`) to bind to a specific registry. Scopes are used to associate packages under a namespace with a particular registry. Must start with `@`.
+
+- **registry**: *(string, optional)* The registry URL to use for authentication and optional scope mapping. Defaults to `https://registry.npmjs.org/` if not specified. Common registries include:
+  - `https://registry.npmjs.org/` - Official npm registry
+  - `https://npm.pkg.github.com/` - GitHub Packages
+  - `https://gitlab.com/api/v4/packages/npm/` - GitLab Package Registry
+
+## Example usage:
+
+### Authenticating with npm registry
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "npm-login",
+    "authToken": "npm_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  }
+]
+```
+
+### Authenticating with a scoped package on GitHub Packages
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "npm-login",
+    "authToken": "ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "scope": "@myorg",
+    "registry": "https://npm.pkg.github.com/"
+  }
+]
+```
+
+### Multiple registry configurations
+
+You can configure multiple registries by creating separate npm-login resources:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "npm-login",
+    "authToken": "npm_public_registry_token"
+  },
+  {
+    "type": "npm-login",
+    "authToken": "ghp_github_token",
+    "scope": "@company",
+    "registry": "https://npm.pkg.github.com/"
+  },
+  {
+    "type": "npm-login",
+    "authToken": "gitlab_token",
+    "scope": "@myteam",
+    "registry": "https://gitlab.com/api/v4/packages/npm/"
+  }
+]
+```
+
+### Private registry setup
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "npm-login",
+    "authToken": "custom_registry_token_here",
+    "scope": "@private",
+    "registry": "https://npm.mycompany.com/"
+  }
+]
+```
+
+## Related Resources:
+
+- **[npm](/docs/resources/javascript/npm)**: Install and manage npm itself
+
+## Notes:
+
+- This resource depends on the [npm](/docs/resources/javascript/npm) resource being installed.
+- **Security**: The `authToken` parameter is marked as sensitive and will be handled securely by Codify. However, tokens are stored in plain text in `~/.npmrc`, so ensure your home directory has appropriate permissions.
+- The resource automatically normalizes registry URLs to include a trailing slash for consistency.
+- When using scopes, the resource creates two entries in `.npmrc`:
+  1. A scope-to-registry mapping: `@scope:registry=https://registry.url/`
+  2. An authentication token for that registry: `//registry.url/:_authToken=token`
+- You can configure multiple scopes and registries by creating multiple `npm-login` resources with different `scope` and `registry` combinations.
+- The resource identifies unique configurations using the combination of `scope` and `registry` parameters.
+
+## Getting started:
+
+### Obtaining npm tokens:
+
+**npm Registry:**
+1. Log in to [npmjs.com](https://www.npmjs.com/)
+2. Go to Account Settings → Access Tokens
+3. Generate a new token with appropriate permissions
+
+**GitHub Packages:**
+1. Go to GitHub Settings → Developer settings → Personal access tokens
+2. Generate a token with `read:packages` and/or `write:packages` scope
+3. Use the token as `authToken` with registry `https://npm.pkg.github.com/`
+
+**GitLab Package Registry:**
+1. Go to GitLab Settings → Access Tokens
+2. Create a token with `read_api` and/or `write_api` scope
+3. Use the token with registry `https://gitlab.com/api/v4/packages/npm/`
+
+### Understanding npm scopes:
+
+Scopes are a way of grouping related packages together. When you install a scoped package:
+
+```bash
+npm install @myorg/my-package
+```
+
+npm looks for the registry configured for the `@myorg` scope. This allows you to:
+- Use private packages from your organization
+- Separate public and private dependencies
+- Use multiple registries in the same project

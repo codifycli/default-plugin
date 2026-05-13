@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   getPty,
   ModifyPlan,
   ParameterChange,
@@ -21,10 +22,40 @@ export interface NpmLoginConfig extends ResourceConfig {
   registry?: string; // Example: "https://registry.npmjs.org/"
 }
 
+const defaultConfig: Partial<NpmLoginConfig> = {
+  registry: 'https://registry.npmjs.org/',
+}
+
+const exampleBasicLogin: ExampleConfig = {
+  title: 'npm registry login',
+  description: 'Authenticate with the public npm registry using a personal access token stored in ~/.npmrc. Tokens are generated at https://www.npmjs.com/settings/<username>/tokens by creating a Classic Token',
+  configs: [{
+    type: 'npm-login',
+    authToken: '<Replace me here!>',
+    registry: 'https://registry.npmjs.org/',
+  }]
+}
+
+const exampleScopedLogin: ExampleConfig = {
+  title: 'Scoped private registry login',
+  description: 'Authenticate with a private npm registry and bind it to a package scope, so all @myorg/* packages resolve to that registry. Tokens are generated at https://www.npmjs.com/settings/<username>/tokens by creating a Classic Token',
+  configs: [{
+    type: 'npm-login',
+    authToken: '<Replace me here!>',
+    scope: '@myorg',
+    registry: 'https://npm.pkg.github.com/',
+  }]
+}
+
 export class NpmLoginResource extends Resource<NpmLoginConfig> {
   getSettings(): ResourceSettings<NpmLoginConfig> {
     return {
       id: 'npm-login',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasicLogin,
+        example2: exampleScopedLogin,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       isSensitive: true,

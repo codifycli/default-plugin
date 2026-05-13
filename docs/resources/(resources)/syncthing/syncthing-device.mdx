@@ -1,0 +1,98 @@
+---
+title: syncthing-device
+description: A reference page for the syncthing-device resource
+---
+
+The syncthing-device resource adds and manages a remote peer device in your Syncthing configuration. Each remote machine you want to sync with is represented by one `syncthing-device` entry, identified by its unique device ID.
+
+See the [syncthing](/docs/resources/syncthing/syncthing) page for an overview of the full Syncthing resource family.
+
+## Parameters:
+
+- **deviceId**: *(string, required)* The Syncthing device ID of the remote peer (e.g. `XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX`). This is the identifying parameter — each unique device ID is a separate resource instance.
+
+- **deviceName**: *(string)* A human-readable label for this device shown in the Syncthing GUI.
+
+- **addresses**: *(array[string])* Connection addresses to use when connecting to this device. Use `["dynamic"]` to let Syncthing discover the address automatically (default: `["dynamic"]`). You can also provide explicit TCP addresses such as `["tcp://192.168.1.10:22000"]`.
+
+- **autoAcceptFolders**: *(boolean)* Automatically accept folder shares offered by this device without manual confirmation in the GUI. Defaults to `false`.
+
+- **paused**: *(boolean)* Pause syncing with this device without removing it from the configuration. Defaults to `false`.
+
+- **compression**: *(string)* Data compression mode for transfers to this device. One of `always`, `metadata` (default), or `never`.
+
+- **maxSendKbps**: *(number)* Per-device outgoing rate limit in KiB/s. `0` means unlimited.
+
+- **maxRecvKbps**: *(number)* Per-device incoming rate limit in KiB/s. `0` means unlimited.
+
+## Example usage:
+
+### Add a peer device with automatic discovery
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "syncthing",
+    "launchAtStartup": true
+  },
+  {
+    "type": "syncthing-device",
+    "deviceId": "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX",
+    "deviceName": "My Laptop",
+    "addresses": ["dynamic"],
+    "autoAcceptFolders": false,
+    "compression": "metadata"
+  }
+]
+```
+
+### Add a device at a fixed IP address
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "syncthing",
+    "launchAtStartup": true
+  },
+  {
+    "type": "syncthing-device",
+    "deviceId": "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX",
+    "deviceName": "Home Server",
+    "addresses": ["tcp://192.168.1.100:22000"],
+    "compression": "always"
+  }
+]
+```
+
+### Add multiple peer devices
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "syncthing",
+    "launchAtStartup": true
+  },
+  {
+    "type": "syncthing-device",
+    "deviceId": "AAAAAAA-AAAAAAA-AAAAAAA-AAAAAAA-AAAAAAA-AAAAAAA-AAAAAAA-AAAAAAA",
+    "deviceName": "Laptop",
+    "addresses": ["dynamic"]
+  },
+  {
+    "type": "syncthing-device",
+    "deviceId": "BBBBBBB-BBBBBBB-BBBBBBB-BBBBBBB-BBBBBBB-BBBBBBB-BBBBBBB-BBBBBBB",
+    "deviceName": "Home Server",
+    "addresses": ["tcp://192.168.1.100:22000"]
+  }
+]
+```
+
+## Dependencies:
+
+`syncthing-device` requires the `syncthing` resource to be applied first. The Syncthing daemon must be running to add or modify devices.
+
+## Notes:
+
+- Find your device ID in the Syncthing GUI under **Actions → Show ID**, or by running `syncthing --device-id` in the terminal.
+- Adding a device only authorises a connection — the remote device must also add your device ID on its end before syncing begins.
+- To share specific folders with a device, use the [`syncthing-folder`](/docs/resources/syncthing/syncthing-folder) resource and list the device ID in the `devices` array.

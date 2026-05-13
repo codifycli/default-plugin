@@ -8,7 +8,7 @@
   "properties": {
     "authToken": {
       "type": "string",
-      "description": "The npm auth token used for authenticating with the registry. If not provided, then web login is assumed"
+      "description": "The npm auth token used for authenticating with the registry. If not provided, then web login is assumed. Generate one at https://www.npmjs.com/settings/<username>/tokens by creating a 'Classic Token' (Automation or Read/Write). Tokens look like: npm_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
     },
     "scope": {
       "type": "string",

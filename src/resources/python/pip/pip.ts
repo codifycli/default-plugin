@@ -1,6 +1,7 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   ModifyPlan,
   ParameterChange,
   Resource,
@@ -23,11 +24,55 @@ export interface PipResourceConfig extends ResourceConfig {
   virtualEnv?: string;
 }
 
+const defaultConfig: Partial<PipResourceConfig> = {
+  install: [],
+  installFiles: [],
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Install packages with pip',
+  description: 'Install a set of Python packages globally using pip.',
+  configs: [{
+    type: 'pip',
+    install: ['requests', 'boto3', 'click'],
+  }]
+}
+
+const exampleWithPyenvAndVirtualenv: ExampleConfig = {
+  title: 'Full Python setup with pyenv, virtualenv, and pip',
+  description: 'Install Python via pyenv, create a project virtualenv, then install packages into it with pip.',
+  configs: [
+    {
+      type: 'pyenv',
+      pythonVersions: ['3.12'],
+      global: '3.12',
+    },
+    {
+      type: 'virtualenv-project',
+      dest: '.venv',
+      cwd: '<Replace me here!>',
+      automaticallyInstallRequirementsTxt: false,
+      dependsOn: ['pyenv'],
+    },
+    {
+      type: 'pip',
+      install: ['requests', 'boto3', 'click'],
+      virtualEnv: '.venv',
+      dependsOn: ['virtualenv-project'],
+    },
+  ]
+}
+
 export class Pip extends Resource<PipResourceConfig> {
 
   getSettings(): ResourceSettings<PipResourceConfig> {
     return {
       id: 'pip',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleWithPyenvAndVirtualenv,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

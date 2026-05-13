@@ -1,0 +1,109 @@
+---
+title: git-repository
+description: A reference page for the git-clone resource
+---
+import { Callout } from 'fumadocs-ui/components/callout';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+<Callout type="warn">This resource was named `git-clone` in version 0.12 and below of the Codify core plugin</Callout>
+
+The Git repository resource reference. This resource will allow Codify to clone repos from any git remote (Github,
+Bitbucket, GitLab, etc...)
+
+## Parameters:
+
+- **repository**: *(string)* The repository url. This can be any url supported by
+git clone (ssh, https, ftp).
+
+- ~~**remote**: *(string)* The remote url. This can be any url supported by git clone (ssh, https, ftp).~~ (removed in version 0.7.0 use repository instead)
+
+- **directory**: *(string)* The directory to git clone into. Note that a nested folder will not be created and files from the
+root level of the git repository will be copied into the directory. Use the `parentDirectory` parameter instead
+to specify the parent directory to clone into. Equivalent to using the `<directory>` option of git clone. Both
+relative and absolute paths work.
+
+- **parentDirectory**: *(string)* The parent directory to clone into. This option will call git clone within the parent directory
+and create a folder name using the last part of the git url (ex: `repo` for `/path/to/repo.git`).
+
+## Example usage:
+
+```json title="codify.json"
+[
+  {
+    "type":  "git-repository",
+    "parentDirectory": "~/projects",
+    "remote": "git@github.com:kevinwang5658/codify-plugin-lib.git"
+  },
+  {
+    "type":  "git-repository",
+    "directory": "~/projects/npm",
+    "repository": "https://github.com/npm/npm.git"
+  }
+]
+```
+
+### Setting up Github ssh and clone a repo
+
+Starter instructions for setting up Github SSH and cloning a repo.
+
+<Steps>
+  <Step>Generate a ssh key and start the ssh-agent.</Step>
+</Steps>
+
+```shell title="terminal"
+ssh-keygen -t ed25519 -C "your_email@example.com"
+eval "$(ssh-agent -s)"
+```
+
+<Steps>
+  <Step>Create a ssh config if it doesn't exist</Step>
+</Steps>
+
+```shell title="terminal"
+touch ~/.ssh/config
+```
+
+<Steps>
+  <Step>Open the `~/.ssh/config` file with your favourite text editor and add the following. If a custom identity
+  file name was used. Substitute `~/.ssh/id_ed25519` with your custom name.</Step>
+</Steps>
+
+```
+Host github.com
+  AddKeysToAgent yes
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519
+```
+
+<Steps>
+  <Step>Add ssh key to your keychain</Step>
+</Steps>
+
+```shell title="terminal"
+ssh-add --apple-use-keychain ~/.ssh/id_ed25519
+```
+
+<Steps>
+  <Step>Copy the ssh public key to your clipboard.</Step>
+</Steps>
+
+```shell title="terminal"
+pbcopy < ~/.ssh/id_ed25519.pub
+```
+
+<Steps>
+  <Step>Login to your github account online and paste the public key under `Settings > SSH and GPG keys > New SSH Key`.
+  More detailed instructions can be found on [github](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)</Step>
+  <Step>For every repo you want to clone get the SSH url under the Code drop down on the home page of a repository</Step>
+  <Step>Copy the url into your `codify.json` file and use `codify apply` to clone the repo.</Step>
+</Steps>
+
+```json title="codify.json"
+[
+  {
+    "type":  "git-repository",
+    "parentDirectory": "~/projects",
+    "remote": "git@github.com:kevinwang5658/codify-plugin-lib.git"
+  }
+]
+```

@@ -1,0 +1,60 @@
+---
+title: pip
+description: A reference page for the pip resource
+---
+
+Manage python dependencies using pip. The pip resource can install, upgrade and uninstall Python
+dependencies via pip. It can also support installing dependencies into virtual environments using the `virtualEnv` parameter.
+
+## Parameters:
+
+- **install**: *(array[string | \{ name: string, version?: string \}], required)* A list of PyPI dependencies to install. If a specific version is desired use `{ "name": "my_package", "version": "my_version" }`
+
+- **virtualEnv**: *(string)* An optional virtual env to use. Specify the path to the virtual environment folder.
+
+## Example usage:
+
+```json title="codify.json"
+[
+  {
+    "type":  "pip",
+    "virtualEnv": "~/Projects/my-project/.venv",
+    "install": [
+      "ffmpeg",
+      { "name": "numpy", "version":  "2.2.2" },
+      { "name": "ansible-roster" }
+    ]
+  },
+  {
+    "type":  "pip",
+    "install": [
+      "pip-tools"
+    ]
+  }
+]
+```
+
+In the example above we are installing `pip-tools` globally (without a virtual environment) and
+`ffmpeg`, `numpy===2.2.2`, and `ansible-roster` into the virtual environment located at
+`~/Projects/my-project/.venv`.
+
+```json title="codify.json"
+[
+  {
+    "type":  "pyenv",
+    "global": "3.10",
+    "pythonVersions": [
+      "3.10"
+    ]
+  },
+  {
+    "type":  "pip",
+    "install": [
+      "pip-tools"
+    ]
+  }
+]
+```
+
+A more realistic example shows using `pyenv` to install Python first before
+installing `pip-tools` via `pip`.

@@ -1,0 +1,56 @@
+---
+title: rbenv
+description: A reference page for the rbenv resource
+---
+
+The rbenv resource installs [rbenv](https://github.com/rbenv/rbenv), a Ruby version manager that lets you install and switch between multiple Ruby versions. On macOS it is installed via Homebrew along with the `ruby-build` plugin; on Linux it is cloned from GitHub and `ruby-build` is added as a plugin.
+
+## Parameters:
+
+- **rubyVersions**: *(array[string])* Ruby versions to install via rbenv (e.g. `["3.3.0", "3.2.4"]`). Versions must match those available from `rbenv install --list`. Codify adds missing versions and removes versions that are no longer listed.
+
+- **global**: *(string)* The Ruby version to set as the global default (equivalent to running `rbenv global <version>`). The version must be in `rubyVersions` or already installed on the system.
+
+## Example usage:
+
+### Install rbenv with a single Ruby version
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rbenv",
+    "rubyVersions": ["3.3.0"],
+    "global": "3.3.0"
+  }
+]
+```
+
+### Install rbenv with multiple Ruby versions
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rbenv",
+    "rubyVersions": ["3.3.0", "3.2.4"],
+    "global": "3.3.0"
+  }
+]
+```
+
+### Install rbenv without installing any Ruby versions
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rbenv"
+  }
+]
+```
+
+## Notes:
+
+- On macOS, Homebrew must be installed before applying the rbenv resource. The [homebrew](/docs/resources/package-managers/homebrew) resource can install it.
+- On Linux, building Ruby requires several system dependencies (`curl`, `autoconf`, `patch`, `build-essential`, `rustc`, `libssl-dev`, `libyaml-dev`, `libreadline6-dev`, `zlib1g-dev`, and others). Codify installs these automatically via the system package manager.
+- On Linux, rbenv is cloned to `~/.rbenv` and added to `PATH` in your shell RC file. On macOS, Homebrew manages the installation path.
+- After applying, open a new terminal session (or source your shell RC file) for the `rbenv` shims to become active.
+- To find available Ruby versions, run `rbenv install --list` after installing rbenv.

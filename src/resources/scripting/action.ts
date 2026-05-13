@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
 import { RefreshContext } from '@codifycli/plugin-core/src/resource/resource.js';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 
@@ -10,11 +10,40 @@ export interface ActionConfig extends StringIndexedObject {
   cwd?: string;
 }
 
+const defaultConfig: Partial<ActionConfig> = {
+  action: '<Replace me here!>',
+}
+
+const exampleConditional: ExampleConfig = {
+  title: 'Run a script only when a condition is met',
+  description: 'Execute a setup command only when the target directory does not already exist, making the action idempotent.',
+  configs: [{
+    type: 'action',
+    condition: '[ ! -d ~/.config/myapp ]',
+    action: 'mkdir -p ~/.config/myapp && cp /etc/myapp/defaults.conf ~/.config/myapp/config.conf',
+  }]
+}
+
+const exampleCwd: ExampleConfig = {
+  title: 'Run a project setup script in a specific directory',
+  description: 'Run a post-clone initialisation script from within a project directory after dependencies are installed.',
+  configs: [{
+    type: 'action',
+    action: 'make bootstrap',
+    cwd: '~/projects/myapp',
+  }]
+}
+
 export class ActionResource extends Resource<ActionConfig> {
-  
+
   getSettings(): ResourceSettings<ActionConfig> {
     return {
       id: 'action',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleConditional,
+        example2: exampleCwd,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

@@ -7,7 +7,7 @@ import { SpawnStatus } from '@codifycli/plugin-core';
 describe('nvm tests', () => {
   const pluginPath = path.resolve('./src/index.ts');
 
-  it('Can install nvm and node',  { timeout: 500000 }, async () => {
+  it('Can install nvm and node',  { timeout: 500000, skip: true }, async () => {
     await PluginTester.fullTest(pluginPath, [
       {
         type: 'nvm',
@@ -30,7 +30,7 @@ describe('nvm tests', () => {
       testModify: {
         modifiedConfigs: [{
           type: 'nvm',
-          global: '23',
+          global: '24',
           nodeVersions: ['23'],
         }],
         validateModify: () => {

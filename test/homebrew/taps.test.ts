@@ -11,7 +11,7 @@ describe('Homebrew taps tests', { skip: !Utils.isMacOS() }, () => {
     // Plans correctly and detects that brew is not installed
     await PluginTester.fullTest(pluginPath, [{
       type: 'homebrew',
-      taps: ['cirruslabs/cli'],
+      taps: ['cirruslabs/cli', 'hashicorp/tap'],
     }], {
       validateApply: async () => {
         expect(await testSpawn('brew tap')).toMatchObject({ data: expect.stringContaining('cirruslabs/cli') });

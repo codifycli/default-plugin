@@ -3,29 +3,33 @@
   "$id": "https://www.codifycli.com/homebrew-main.json",
   "title": "Homebrew plugin main resource",
   "$comment": "https://codifycli.com/docs/resources/homebrew/",
-  "description": "Install homebrew and manages formulae, casks and taps.",
+  "description": "Installs Homebrew and declaratively manages formulae, casks, and taps.",
   "type": "object",
   "properties": {
     "formulae": {
       "type": "array",
+      "description": "A list of Homebrew formulae (command-line packages) to install.",
       "items": {
         "type": "string"
       }
     },
     "casks": {
       "type": "array",
+      "description": "A list of Homebrew casks (GUI applications) to install.",
       "items": {
         "type": "string"
       }
     },
     "taps": {
       "type": "array",
+      "description": "A list of Homebrew taps (third-party repositories) to add.",
       "items": {
         "type": "string"
       }
     },
     "directory": {
-      "type": "string"
+      "type": "string",
+      "description": "The directory where Homebrew is installed. Defaults to the standard Homebrew prefix for your platform."
     },
     "skipAlreadyInstalledCasks": {
       "type": "boolean",

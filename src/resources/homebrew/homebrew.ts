@@ -1,5 +1,6 @@
 import {
   CreatePlan,
+  ExampleConfig,
   FileUtils,
   Resource,
   ResourceSettings,
@@ -9,7 +10,9 @@ import {
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
+import { nanoid } from 'nanoid';
 
 import { untildify } from '../../utils/untildify.js';
 import { CasksParameter } from './casks-parameter.js'
@@ -26,6 +29,31 @@ export interface HomebrewConfig extends ResourceConfig {
   onlyPlanUserInstalled: boolean
 }
 
+const defaultConfig: Partial<HomebrewConfig> = {
+  formulae: [],
+  casks: [],
+}
+
+const exampleFormulae: ExampleConfig = {
+  title: 'Install common CLI tools',
+  description: 'Install Homebrew and a set of essential command-line utilities for development.',
+  configs: [{
+    type: 'homebrew',
+    formulae: ['git', 'wget', 'jq', 'ripgrep', 'tree', 'htop'],
+    casks: [],
+  }]
+}
+
+const exampleWithCasks: ExampleConfig = {
+  title: 'Install CLI tools and GUI apps',
+  description: 'Install Homebrew with developer CLI tools and popular GUI applications via casks.',
+  configs: [{
+    type: 'homebrew',
+    formulae: ['git', 'wget', 'jq', 'ripgrep'],
+    casks: ['visual-studio-code', 'iterm2', 'google-chrome'],
+  }]
+}
+
 export class HomebrewResource extends Resource<HomebrewConfig> {
 
   override getSettings(): ResourceSettings<HomebrewConfig> {
@@ -33,6 +61,11 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
       schema: HomebrewSchema,
       operatingSystems: [OS.Darwin, OS.Linux],
       id: 'homebrew',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleFormulae,
+        example2: exampleWithCasks,
+      },
       parameterSettings: {
         taps: { type: 'stateful', definition: new TapsParameter(), order: 1 },
         formulae: { type: 'stateful', definition: new FormulaeParameter(), order: 2 },
@@ -67,10 +100,16 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
       return this.installBrewInCustomDir(plan.desiredConfig.directory)
     }
 
+
     await $.spawn(
       '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
-      { stdin: true, env: { NONINTERACTIVE: 1 } }
-    )
+      {
+        requiresSudoAskpass: true,
+        env: {
+          NONINTERACTIVE: 1,
+        },
+      }
+    );
 
     const brewPath = Utils.isLinux() ? '/home/linuxbrew/.linuxbrew/bin/brew' : '/opt/homebrew/bin/brew';
     await FileUtils.addToShellRc(`eval "$(${brewPath} shellenv)"`);
@@ -81,14 +120,24 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
 
   override async destroy(): Promise<void> {
     const $ = getPty();
+
+    const { status } = await $.spawnSafe('which brew', { interactive: true });
+    if (status === SpawnStatus.ERROR) {
+      return;
+    }
+
     const homebrewInfo = await $.spawn('brew config', { interactive: true });
     const homebrewDirectory = this.getCurrentLocation(homebrewInfo.data)
 
     if (homebrewDirectory === '/opt/homebrew') {
       await $.spawnSafe(
         '/bin/bash -c "$(/usr/bin/curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/uninstall.sh)"',
-        { stdin: true, env: { NONINTERACTIVE: 1 } }
-      )
+        {
+          requiresSudoAskpass: true,
+          env: {
+            NONINTERACTIVE: 1,
+          },
+        })
     } else {
       await $.spawn(`rm -rf ${homebrewDirectory}`, { requiresRoot: true });
     }

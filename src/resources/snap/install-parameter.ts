@@ -71,7 +71,9 @@ export class SnapInstallParameter extends StatefulParameter<SnapConfig, Array<Sn
     const valuesToAdd = newValue.filter((n) => !previousValue.some((p) => this.isSamePackage(n, p)));
     const valuesToRemove = previousValue.filter((p) => !newValue.some((n) => this.isSamePackage(n, p)));
 
-    await this.uninstall(valuesToRemove);
+    if (_plan.isStateful) {
+      await this.uninstall(valuesToRemove);
+    }
     await this.install(valuesToAdd);
   }
 
@@ -104,7 +106,7 @@ export class SnapInstallParameter extends StatefulParameter<SnapConfig, Array<Sn
         }
       }
 
-      await $.spawn(command, { requiresRoot: true, interactive: true });
+      await $.spawn(command, { requiresRoot: true, interactive: true, env: { SNAP_QUIET: 1 } });
     }
   }
 
@@ -118,7 +120,7 @@ export class SnapInstallParameter extends StatefulParameter<SnapConfig, Array<Sn
     // Uninstall packages one by one
     for (const p of packages) {
       const name = typeof p === 'string' ? p : p.name;
-      await $.spawn(`snap remove ${name}`, { requiresRoot: true, interactive: true });
+      await $.spawn(`snap remove ${name}`, { requiresRoot: true, interactive: true, env: { SNAP_QUIET: 1 } });
     }
   }
 

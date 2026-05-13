@@ -78,10 +78,10 @@ export class SshAddResource extends Resource<SshAddConfig> {
 
     if (Utils.isLinux()) {
       if ((await $.spawnSafe('ssh-agent -l')).status === SpawnStatus.ERROR) {
-        await FileUtils.addToStartupFile('eval "$(ssh-agent -s)"');
+        await FileUtils.addToStartupFile('eval "$(ssh-agent -s)" >/dev/null');
       }
 
-      await FileUtils.addToStartupFile('ssh-add ' + path);
+      await FileUtils.addToStartupFile('ssh-add ' + path + ' >/dev/null 2>&1');
     }
 
     if (Utils.isMacOS()) {

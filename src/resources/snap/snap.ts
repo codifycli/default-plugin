@@ -1,5 +1,13 @@
-import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty, Utils } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from '@codifycli/schemas';
+import {
+  CreatePlan,
+  ExampleConfig,
+  getPty,
+  Resource,
+  ResourceSettings,
+  SpawnStatus,
+  Utils
+} from '@codifycli/plugin-core';
+import { OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
 
 import { SnapInstallParameter, SnapPackage } from './install-parameter.js';
 import schema from './snap-schema.json';
@@ -8,11 +16,44 @@ export interface SnapConfig extends ResourceConfig {
   install: Array<SnapPackage | string>;
 }
 
+const defaultConfig: Partial<SnapConfig> = {
+  install: [],
+  os: [ResourceOs.LINUX],
+}
+
+const exampleBasic: ExampleConfig = {
+  title: 'Install common apps with snap',
+  description: 'Install a set of popular applications via snap on an Ubuntu or other snap-enabled Linux system.',
+  configs: [{
+    type: 'snap',
+    install: ['spotify', 'vlc', 'slack'],
+    os: ['linux'],
+  }]
+}
+
+const exampleClassic: ExampleConfig = {
+  title: 'Install developer tools with classic snaps',
+  description: 'Install developer tools that require classic confinement for full system access.',
+  configs: [{
+    type: 'snap',
+    install: [
+      { name: 'code', classic: true },
+      { name: 'node', channel: '20/stable', classic: true },
+    ],
+    os: ['linux'],
+  }]
+}
+
 export class SnapResource extends Resource<SnapConfig> {
 
   override getSettings(): ResourceSettings<SnapConfig> {
     return {
       id: 'snap',
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleClassic,
+      },
       operatingSystems: [OS.Linux],
       removeStatefulParametersBeforeDestroy: true,
       schema,

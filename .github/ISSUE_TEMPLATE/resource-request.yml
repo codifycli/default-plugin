@@ -1,0 +1,52 @@
+name: New Resource Request
+description: Request a new Codify resource — it will be automatically generated, tested, and queued for human review.
+title: "New resource request: "
+labels: ["New resource request"]
+body:
+  - type: input
+    id: tool_name
+    attributes:
+      label: Tool Name
+      description: The name of the tool or application
+      placeholder: e.g. Syncthing, k9s, rbenv
+    validations:
+      required: true
+
+  - type: input
+    id: homepage
+    attributes:
+      label: Homepage / Documentation URL
+      description: The official homepage or documentation URL for the tool
+      placeholder: https://...
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What should the resource manage?
+      description: Describe what you want the Codify resource to install and configure
+      placeholder: |
+        e.g. The syncthing resource should install syncthing and allow users to manage
+        its configuration including device IDs, shared folders, and GUI settings.
+        Syncthing has a CLI so direct configuration should be possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: install_notes
+    attributes:
+      label: Installation Notes (optional)
+      description: Any known installation details, quirks, or preferred installation method
+      placeholder: e.g. Prefer homebrew on macOS; uses the official install script on Linux
+    validations:
+      required: false
+
+  - type: textarea
+    id: use_cases
+    attributes:
+      label: Use Cases (optional)
+      description: How do you plan to use this resource? Any specific config parameters that matter?
+      placeholder: e.g. I want to pin the version and configure custom data directories
+    validations:
+      required: false

@@ -10,9 +10,10 @@ describe('Pip resource integration tests', () => {
   it('Installs python', { timeout: 500000 }, async () => {
     await PluginTester.fullTest(pluginPath, [
       {
-        type: 'pyenv',
+        type: 'uv',
         pythonVersions: ['3.11'],
-        global: '3.11'
+        global: '3.11',
+        tools: ['pip'],
       },
     ], {
       skipUninstall: true,

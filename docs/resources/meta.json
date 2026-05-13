@@ -1,0 +1,12 @@
+{
+  "title": "Core Resources",
+  "description": "Default supported tools and applications",
+  "root": true,
+  "defaultOpen": true,
+  "icon": "Blocks",
+  "pages": [
+    "index",
+    "--- Resources ---",
+    "...(resources)"
+  ]
+}

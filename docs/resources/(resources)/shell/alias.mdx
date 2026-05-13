@@ -1,0 +1,40 @@
+---
+title: alias
+description: A reference page for the alias resource
+---
+
+The alias resource reference. This resource creates aliases for you within the startup script of your chosen
+shell. Currently only `zsh` is supported but additional shells will be added in the future. An alias resource
+adds the follow entry:
+
+```sh title=".zshrc"
+alias ALIAS_NAME=ALIAS_VALUE
+```
+
+## Parameters:
+
+- **alias**: *(string, required)* The name of the alias.
+
+- **value**: *(string, required)* The value of the alias. This value will be escaped prior to being inserted.
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "alias",
+    "alias": "gch",
+    "value": "git checkout"
+  },
+  {
+    "type":  "alias",
+    "alias": "gpull",
+    "value": "git pull"
+  },
+  {
+    "type":  "alias",
+    "alias": "gpush",
+    "value": "git push"
+  }
+]
+```

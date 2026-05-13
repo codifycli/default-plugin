@@ -1,0 +1,86 @@
+---
+title: asdf
+description: A reference page for the asdf resource
+---
+
+Asdf is an all-in-one tool version manager designed to replace individual language-specific version managers such as pyenv, nvm, rbenv, and others. It operates on a plugin-based system to support different tools. A full list of supported plugins can be found at https://github.com/asdf-community.
+
+Installing a tool with asdf is a multistep process:
+1. Install asdf
+2. Install the plugin for the desired language/tool: `asdf plugin add <name>`
+3. Install the desired version of the tool: `asdf install <name> <version>`
+4. Set the version globally or locally before it can be used: `asdf global <name> <version>` or `asdf local <name> <version>`
+
+Asdf also supports `.tool-versions` files. Running `asdf install` in a directory containing a `.tool-versions` file installs all the tools listed in it. The installed tools are then available in that directory and its subdirectories.
+
+#### Platform-specific installation
+
+- **macOS**: Installed via Homebrew (`brew install asdf`). Homebrew must be present.
+- **Linux**: The latest release binary is downloaded directly from GitHub and placed in `~/.local/bin`. Codify also adds the asdf shims directory to `PATH` in your shell RC file.
+
+#### Codify Resources
+
+- **asdf** — Installs asdf itself and optionally installs plugins.
+- **[asdf-plugin](/docs/resources/asdf/asdf-plugin)** — Installs an asdf plugin and optionally installs specific versions of the tool.
+- **[asdf-install](/docs/resources/asdf/asdf-install)** — Installs a `.tool-versions` file in a directory, or installs specific versions of a tool. Automatically installs missing plugins.
+
+## Parameters:
+
+- **plugins**: *(array[string])* An optional list of asdf plugins to install. The plugin names must match those found at https://github.com/asdf-community. This list is managed statefully — plugins are added when they appear in the list and removed when they are taken off.
+
+## Example usage:
+
+### Install asdf
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "asdf"
+  }
+]
+```
+
+### Install asdf with plugins
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "asdf",
+    "plugins": ["nodejs", "python"]
+  }
+]
+```
+
+### Install a `.tool-versions` file
+
+The `asdf-install` resource automatically installs missing plugins when using the `directory` parameter. The config below installs asdf and then installs all tool versions specified in `~/path/to/dir/.tool-versions`.
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "asdf"
+  },
+  {
+    "type": "asdf-install",
+    "directory": "~/path/to/dir"
+  }
+]
+```
+
+### Install and version-pin a tool
+
+Asdf provides the `latest` keyword as a shortcut. Otherwise a fully qualified version (down to the patch level) must be used. The config below installs asdf, the Node.js plugin, and two Node.js versions.
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "asdf",
+    "plugins": ["nodejs"]
+  },
+  {
+    "type": "asdf-install",
+    "plugin": "nodejs",
+    "versions": ["latest", "20.18.0"]
+  }
+]
+```

@@ -16,7 +16,7 @@ export default {
     json(),
     nodeResolve({ exportConditions: ['node'] }),
     typescript({ 
-      exclude: ['**/*.test.ts', '**/*.d.ts', 'test']
+      exclude: ['**/*.test.ts', '**/*.d.ts', 'test', '**/completions/*.ts']
     }),
     commonjs(),
     terser()

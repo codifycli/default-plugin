@@ -1,0 +1,78 @@
+---
+title: jenv
+description: A reference page for the jenv resource
+---
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The jenv resource reference. This resource installs jenv, a Java version manager that allows the system to
+switch between multiple versions of Java and use one as the global default. For more information on jenv,
+[see here](https://www.jenv.be). Normally, jenv will not automatically install java on your behalf unlike
+[nvm](/docs/core-resources/javascript/nvm) or [pyenv](/docs/core-resources/python/pyenv). However, this resources has
+additional custom functionality and will attempt to install LTS versions of Java using the `openjdk@` formulas
+if Homebrew is installed.
+
+## Parameters:
+
+- **global**: *(string)* The global version of Java to use.
+
+- **add**: *(array[string])* Java install location to add. This accepts a relative or absolute path to a java
+home directory. Some common locations for Java installations are:
+  - Homebrew (aarch64): `/opt/homebrew/Cellar/`**`[openjdk@21]`**`/21.0.3/libexec/openjdk.jdk/Contents/Home`
+  - Homebrew (Intel): `/usr/local/opt/`**`[openjdk@21]`**`/libexec/openjdk.jdk/Contents/Home`
+  - Regular Java installs: `/Library/Java/JavaVirtualMachines/`**`[zulu-18.jdk]`**`/Contents/Home`
+  - Note that the **bolded** sections represent a specific installation of Java. Replace it your version to
+make it work.
+
+  Additionally a integer version number can be provided for LTS versions. This resource will attempt to install
+the Java version directly using homebrew if it's available using the [openjdk formulas](https://formulae.brew.sh/formula/openjdk).
+The versions that are available for automated install are `[8, 11, 17, 21, 22]`.
+
+## Dependencies:
+
+There is a dependency on `homebrew` only if automated Java installations are needed. Otherwise, `jenv` can
+operate independently of homebrew.
+
+## Example usage:
+
+```json title="codify.json"
+[
+  {
+    "type":  "jenv",
+    "global": "21",
+    "add": [
+      "21",
+      "8",
+      "/Library/Java/JavaVirtualMachines/zulu-18.jdk/Contents/Home"
+    ]
+  }
+]
+```
+
+### Setting up Java
+
+<Steps>
+  <Step>Create a `codify.json` file anywhere.</Step>
+  <Step>Open `codify.json` with your file editor and paste in the follow configs.</Step>
+</Steps>
+
+```json title="codify.json"
+[
+  { "type": "homebrew" },
+  {
+    "type":  "jenv",
+    "global": "21",
+    "add": [
+      "21"
+    ]
+  }
+]
+```
+
+<Steps>
+  <Step>Run `codify apply` in the directory of the file. Open a new terminal and run the command `java --version` to
+  confirm that Java has been installed</Step>
+</Steps>
+
+```sh title="terminal"
+codify apply
+```

@@ -11,7 +11,7 @@ describe('Macports resource integration tests', { skip: !Utils.isMacOS() }, () =
     await PluginTester.fullTest(pluginPath, [{
       type: 'macports',
       install: [
-        { name: 'libelf', version: '@0.8.13_4' },
+        { name: 'libelf', version: '@0.8.13_6' },
         'aom'
       ]
     }], {

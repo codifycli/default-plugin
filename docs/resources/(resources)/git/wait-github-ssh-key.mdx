@@ -1,0 +1,58 @@
+---
+title: wait-github-ssh-key
+description: A reference page for the wait-github-ssh-key resource
+---
+
+The `wait-github-ssh-key` is a useful helper to ensure that a user
+using Codify has added their SSH key to Github. If the
+resource detects that a user's SSH public-key has not been added to
+Github, a banner will be shown during the apply phase until it's been
+added.
+
+```sh title="terminal"
+Waiting for user to add ssh public to github
+Add ssh public key to: https://github.com/settings/ssh/new
+
+Public keys found:
+key 1:
+ssh-ed25519 abasdhdsjkhhfkjsahkhqw3234u98u7w89qD9AUSDSA098 tester@gmail.com
+
+Paste one of the above key/keys into github and then press any key to continue.
+
+For additional information visit: https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account
+
+<Press any key to continue>
+```
+
+## Example usage:
+
+```json title="codify.json"
+[
+  {
+    "type": "ssh-config",
+    "hosts": [
+      {
+        "Host": "github.com",
+        "AddKeysToAgent": true,
+        "UseKeychain": true,
+        "IgnoreUnknown": "UseKeychain",
+        "IdentityFile": "~/.ssh/id_ed25519"
+      }
+    ]
+  },
+  {
+    "type": "ssh-key",
+    "fileName": "id_ed25519",
+    "passphrase": "my_temp_pass",
+    "keyType": "ed25519"
+  },
+  {
+    "type": "ssh-add",
+    "path": "~/.ssh/id_ed25519",
+    "appleUseKeychain": true
+  },
+  { "type":  "wait-github-ssh-key" }
+]
+```
+In this example, we're doing a full SSH key setup for Github. The first three resources create an SSH key and adds it
+to the ssh agent. The `wait-github-ssh-key` resources allows the user to manually add the key to Github to complete the setup.

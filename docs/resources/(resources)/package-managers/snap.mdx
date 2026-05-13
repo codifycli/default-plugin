@@ -1,0 +1,106 @@
+---
+title: snap
+description: A reference page for the snap resource
+---
+
+The snap resource reference. This resource manages Snap packages on Linux systems. Snap is a universal package management system developed by Canonical that works across many Linux distributions. Snaps are containerized applications that bundle all dependencies and run in isolation.
+
+## Parameters:
+
+- **install**: *(array[string | object])* A list of snap packages to install. Each package can be specified as:
+  - A simple string with the snap name (e.g., `"code"`)
+  - An object with the following fields:
+    - **name**: *(string, required)* The name of the snap package
+    - **channel**: *(string, optional)* The channel to install from (e.g., `stable`, `edge`, `beta`, `candidate`). Defaults to `stable` if not specified.
+    - **classic**: *(boolean, optional)* Install the snap in classic mode, which grants the snap full system access instead of running in strict confinement. Some snaps require this flag.
+
+## Example usage:
+
+### Installing snaps with simple names
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "snap",
+    "install": [
+      "vlc",
+      "spotify",
+      "slack"
+    ]
+  }
+]
+```
+
+### Installing snaps from specific channels
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "snap",
+    "install": [
+      {
+        "name": "code",
+        "channel": "stable"
+      },
+      {
+        "name": "kubectl",
+        "channel": "latest/stable"
+      },
+      {
+        "name": "microk8s",
+        "channel": "1.28/stable"
+      }
+    ]
+  }
+]
+```
+
+### Installing snaps in classic mode
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "snap",
+    "install": [
+      {
+        "name": "code",
+        "classic": true
+      },
+      {
+        "name": "sublime-text",
+        "classic": true
+      }
+    ]
+  }
+]
+```
+
+### Mixed configuration
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "snap",
+    "install": [
+      "firefox",
+      {
+        "name": "code",
+        "classic": true
+      },
+      {
+        "name": "docker",
+        "channel": "latest/edge"
+      }
+    ]
+  }
+]
+```
+
+## Notes:
+
+- The snap resource will automatically install `snapd` (the snap daemon) if it's not already present on your system.
+- Snap requires sudo privileges to install packages. Codify will prompt for your password when needed.
+- Snaps are available on most modern Linux distributions including Ubuntu, Fedora, Debian, Arch, and many others.
+- Classic confinement allows snaps to access your system like traditional packages. Only use `classic: true` when required by the snap package.
+- Browse available snaps at [snapcraft.io](https://snapcraft.io/store).
+- Snap channels follow a track/risk format (e.g., `1.28/stable`). If you omit the track, it defaults to `latest`.

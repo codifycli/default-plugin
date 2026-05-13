@@ -1,0 +1,76 @@
+---
+title: dnf
+description: A reference page for the dnf resource
+---
+
+The dnf resource reference. This resource manages packages on modern Red Hat-based Linux systems using DNF (Dandified YUM) package manager. DNF is the next-generation version of YUM and is the default package manager for Fedora, RHEL 8+, CentOS 8+, Rocky Linux, and AlmaLinux.
+
+## Parameters:
+
+- **install**: *(array[string | object])* A list of packages to install using dnf. Each package can be specified as:
+  - A simple string with the package name (e.g., `"curl"`)
+  - An object with `name` and optional `version` fields for version-specific installations
+
+- **update**: *(boolean)* Whether to run `dnf check-update` before installing packages to refresh the package metadata. Defaults to `true`. Set to `false` to skip the update step if you've recently updated your package lists.
+
+## Example usage:
+
+### Installing packages with simple names
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "dnf",
+    "install": [
+      "curl",
+      "git",
+      "vim",
+      "gcc"
+    ]
+  }
+]
+```
+
+### Installing specific package versions
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "dnf",
+    "install": [
+      "curl",
+      {
+        "name": "nginx",
+        "version": "1.20.1-1.el9"
+      },
+      {
+        "name": "postgresql",
+        "version": "13.7-1.el9"
+      }
+    ]
+  }
+]
+```
+
+### Skipping the update step
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "dnf",
+    "install": [
+      "jq",
+      "htop"
+    ],
+    "update": false
+  }
+]
+```
+
+## Notes:
+
+- The dnf resource requires sudo privileges to install packages. Codify will prompt for your password when needed.
+- DNF is only available on modern Red Hat-based Linux distributions. For older RHEL/CentOS systems (version 7 and below), use the [yum](/docs/resources/package-managers/yum) resource instead. For Debian-based systems, use the [apt](/docs/resources/package-managers/apt) resource.
+- DNF is faster and more efficient than YUM, with better dependency resolution and lower memory usage.
+- Package names must match those available in your configured DNF repositories. Use `dnf search <package>` to find available packages.
+- When specifying versions, use the exact version string as shown by `dnf list <package>`.

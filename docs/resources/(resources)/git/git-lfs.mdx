@@ -1,0 +1,55 @@
+---
+title: git-lfs
+description: A reference page for the git-lfs resource
+---
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The git-lfs resource reference. This resource will install git-lfs or git large file system, an addon to git
+that allows repositories to replace large files with text pointers. For more info,
+[see here](https://git-lfs.com/).
+
+## Parameters:
+
+No parameters are currently available for the git-lfs install
+
+## Example usage:
+
+```json title="codify.json"
+[
+  {
+    "type":  "git-lfs"
+  }
+]
+```
+
+## Dependencies:
+
+The git-lfs resource has a dependency on `homebrew`. A working version of homebrew must be installed in order for this
+resource to work. See [the homebrew resource](/docs/core-resources/homebrew) to see how to install it using
+Codify. The dependency between the two resources will be automatically resolved and homebrew will be installed
+first if both are specified in a config.
+
+
+### Initializing git-lfs in a git repository
+
+<Steps>
+  <Step>Create a `codify.json` file anywhere.</Step>
+  <Step>Open `codify.json` with your file editor and paste in the follow configs.</Step>
+</Steps>
+
+```json title="codify.json"
+[
+  {
+    "type":  "git-lfs"
+  }
+]
+```
+
+<Steps>
+  <Step>Run `codify apply` in the directory of the file. Git lfs should now be installed.</Step>
+  <Step>Navigate to the repository that needs git-lfs and run:</Step>
+</Steps>
+
+```sh title="terminal"
+git lfs install
+```

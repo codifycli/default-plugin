@@ -1,4 +1,4 @@
-import { Resource, ResourceSettings, SpawnStatus, Utils, getPty } from '@codifycli/plugin-core';
+import { ExampleConfig, Resource, ResourceSettings, SpawnStatus, Utils, getPty } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 
 import { GitEmailParameter } from './git-email-paramater.js';
@@ -11,10 +11,23 @@ export interface GitConfig extends StringIndexedObject {
   // TODO: Allow upgrading git to the latest version in the future. This means installing git using homebrew
 }
 
+const exampleConfig: ExampleConfig = {
+  title: 'Configure global git identity',
+  description: 'Set the global git username and email used for all commits on this machine.',
+  configs: [{
+    type: 'git',
+    email: 'you@example.com',
+    username: 'Your Name',
+  }]
+}
+
 export class GitResource extends Resource<GitConfig> {
   getSettings(): ResourceSettings<GitConfig> {
     return {
       id: 'git',
+      exampleConfigs: {
+        example1: exampleConfig,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       removeStatefulParametersBeforeDestroy: true,

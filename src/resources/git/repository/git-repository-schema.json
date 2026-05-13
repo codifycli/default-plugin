@@ -1,29 +1,22 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "https://www.codifycli.com/git-clone.json",
+  "$id": "https://www.codifycli.com/git-repository.json",
   "$comment": "https://codifycli.com/docs/resources/git/git-repository/",
-  "title": "Git-clone resource",
-  "description": "Git clone a repository. Choose either to specify the exact directory to clone into or the parent directory (it deduces the folder name using the repository name).",
+  "title": "Git-repository resource",
+  "description": "Clone a single Git repository. Specify either an exact destination directory or a parent directory to clone into.",
   "type": "object",
   "properties": {
     "repository": {
       "type": "string",
-      "description": "Remote repository to clone repo from."
-    },
-    "repositories": {
-      "type": "array",
-      "description": "Remote repositories to clone. This is a convenience property for cloning multiple repositories at once.",
-      "items": {
-        "type": "string"
-      }
-    },
-    "parentDirectory": {
-      "type": "string",
-      "description": "Parent directory to clone into. The folder name will use default git semantics which extracts the last part of the clone url. Only one of parentDirectory or directory can be specified"
+      "description": "Remote repository URL to clone from."
     },
     "directory": {
       "type": "string",
-      "description": "Directory to clone contents into. This value is directly passed into git clone. This differs from parent directory in that the last part of the path will be the folder name of the repo"
+      "description": "Exact directory to clone into. Passed directly to git clone as the destination path."
+    },
+    "parentDirectory": {
+      "type": "string",
+      "description": "Parent directory to clone into. The folder name is derived from the repository URL using default git semantics."
     },
     "autoVerifySSH": {
       "type": "boolean",
@@ -33,7 +26,6 @@
   "additionalProperties": false,
   "oneOf": [
     { "required": ["repository", "directory"] },
-    { "required": ["repository", "parentDirectory"] },
-    { "required": ["repositories", "parentDirectory"] }
+    { "required": ["repository", "parentDirectory"] }
   ]
 }

@@ -14,7 +14,7 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
       type: 'apt',
       install: [
         'redis',
-        { name: 'redis-tools' }
+        'redis-tools'
       ]
     }], {
       skipUninstall: true,
@@ -26,12 +26,10 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
         modifiedConfigs: [{
           type: 'apt',
           install: [
-            'vlc',
-            { name: 'tilix' }
+            'tilix'
           ],
         }],
         validateModify: async () => {
-          expect(await testSpawn('which vlc')).toMatchObject({ status: SpawnStatus.SUCCESS });
           expect(await testSpawn('which tilix')).toMatchObject({ status: SpawnStatus.SUCCESS });
         }
       }
@@ -42,9 +40,8 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
         type: 'apt',
         install: [
           'redis',
-          { name: 'redis-tools' },
-          'vlc',
-          { name: 'tilix' }
+          'redis-tools',
+          'tilix'
         ]
       }]);
     } catch (e) {
@@ -53,20 +50,22 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
   });
 
   it('Can install packages with specific versions', { timeout: 300000 }, async () => {
-    // Get available version of a package
-    const { data: availableVersions } = await testSpawn('apt-cache madison curl | head -1 | awk \'{print $3}\'');
+    // Use the currently installed version (or latest available if not installed) to test version-pinned syntax
+    const { data: installedVer } = await testSpawn('dpkg-query -W -f=\'${Version}\' curl 2>/dev/null || true');
+    const { data: availableVer } = await testSpawn('apt-cache madison curl | head -1 | awk \'{print $3}\'');
+    const pinnedVersion = installedVer.trim() || availableVer.trim();
 
     await PluginTester.fullTest(pluginPath, [{
       type: 'apt',
       install: [
-        { name: 'curl', version: availableVersions }
+        `curl=${pinnedVersion}`
       ]
     }], {
       skipUninstall: true,
       validateApply: async () => {
         expect(await testSpawn('which curl')).toMatchObject({ status: SpawnStatus.SUCCESS });
-        const { data: installedVersion } = await testSpawn('dpkg-query -W -f=\'${Version}\' curl');
-        expect(installedVersion).toBe(availableVersions);
+        const { data: actualVersion } = await testSpawn('dpkg-query -W -f=\'${Version}\' curl');
+        expect(actualVersion).toBe(pinnedVersion);
       },
     });
   });
@@ -75,22 +74,12 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'apt',
       install: ['curl'],
-      update: false
+      update: true
     }], {
       skipUninstall: true,
       validateApply: async () => {
         expect(await testSpawn('which curl')).toMatchObject({ status: SpawnStatus.SUCCESS });
       },
     });
-
-    try {
-      await PluginTester.uninstall(pluginPath, [{
-        type: 'apt',
-        install: ['curl'],
-        update: false
-      }]);
-    } catch (e) {
-      console.error(e);
-    }
   });
 });

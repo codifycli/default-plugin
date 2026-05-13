@@ -1,0 +1,377 @@
+name: Resource Request Generator
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  # ── Job 1: Research + generate resource code ──────────────────────────────
+  generate-resource:
+    if: github.event.label.name == 'New resource request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    outputs:
+      branch-name: ${{ steps.create-branch.outputs.branch-name }}
+      resource-name: ${{ steps.extract-info.outputs.resource-name }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Extract resource name from issue title
+        id: extract-info
+        run: |
+          TITLE="${{ github.event.issue.title }}"
+          # Strip "New resource request:" prefix (case-insensitive), then slugify
+          RESOURCE_NAME=$(echo "$TITLE" \
+            | sed 's/^[Nn]ew [Rr]esource [Rr]equest:* *//g' \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed 's/[^a-z0-9]/-/g' \
+            | sed 's/--*/-/g' \
+            | sed 's/^-//' \
+            | sed 's/-$//')
+          echo "resource-name=$RESOURCE_NAME" >> $GITHUB_OUTPUT
+          echo "Extracted resource name: $RESOURCE_NAME"
+
+      - name: Create and checkout branch
+        id: create-branch
+        run: |
+          BRANCH="resource-request/${{ steps.extract-info.outputs.resource-name }}"
+          git checkout -b "$BRANCH"
+          echo "branch-name=$BRANCH" >> $GITHUB_OUTPUT
+          echo "Branch: $BRANCH"
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Generate resource with Claude (research + implement)
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_tools: "Bash,Read,Edit,Write,WebSearch,WebFetch"
+          max_turns: "60"
+          prompt: |
+            You are implementing a new Codify resource requested by the community.
+
+            Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
+
+            Issue details:
+            ${{ github.event.issue.body }}
+
+            Resource slug: ${{ steps.extract-info.outputs.resource-name }}
+
+            ═══════════════════════════════════════
+            ## PHASE 1: RESEARCH
+            ═══════════════════════════════════════
+
+            Use WebSearch and WebFetch to thoroughly research this tool. If those tools
+            are unavailable, use bash curl to fetch pages.
+
+            Research must cover:
+            - Official installation method for macOS (homebrew preferred if available)
+            - Official installation method for Linux (apt/snap/manual/script)
+            - Any dependencies or prerequisites
+            - Key CLI commands and configuration options users would manage declaratively
+            - Common use cases — identify if sub-resources or stateful parameters make sense
+              (e.g. homebrew manages packages via formulae/casks stateful params;
+               asdf manages plugins and versions as sub-resources)
+            - Default values for any configuration settings
+
+            Write your complete research to /tmp/research-notes.md before proceeding.
+
+            ═══════════════════════════════════════
+            ## PHASE 2: IMPLEMENTATION
+            ═══════════════════════════════════════
+
+            Read /tmp/research-notes.md, then read CLAUDE.md in the repo root. Follow
+            every convention described in CLAUDE.md — it is the authoritative guide.
+
+            Implement the complete resource:
+
+            1. Create src/resources/<category>/<resource-slug>/ containing:
+               - Resource class (TypeScript) extending Resource<Config>
+               - Use Zod schema (not JSON Schema) — types are inferred automatically
+               - Implement getSettings(), refresh(), create(), modify(), destroy()
+               - Add defaultConfig and exampleConfigs following CLAUDE.md spec exactly
+               - Use Utils from @codifycli/plugin-core (not local utils) for OS detection
+                 and package installation
+               - Never hardcode brew/apt commands — use Utils.installViaPkgMgr()
+
+            2. Register the new resource in src/index.ts (import + add to Plugin.create array)
+
+            3. Write an integration test in test/<category>/<resource-slug>.test.ts
+               - Follow the PluginTester.fullTest() pattern from other test files
+               - Include validateApply, testModify (where applicable), and validateDestroy
+
+            4. Write documentation in docs/resources/<resource-slug>/
+               - Match the structure of existing resource docs
+
+            5. Verify TypeScript is clean:
+               Run: npx tsx --noEmit src/index.ts
+               Fix all TypeScript errors before finishing.
+
+            Do NOT run any git commands — the workflow handles committing.
+
+      - name: Commit and push generated code
+        run: |
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes were generated — failing the workflow."
+            exit 1
+          fi
+          git commit -m "feat: Add ${{ steps.extract-info.outputs.resource-name }} resource (auto-generated from issue #${{ github.event.issue.number }})"
+          git push origin HEAD:resource-request/${{ steps.extract-info.outputs.resource-name }}
+
+  # ── Job 2: Integration tests on Linux ────────────────────────────────────
+  test-linux:
+    needs: generate-resource
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.generate-resource.outputs.branch-name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - name: Enable linger (Linux)
+        run: loginctl enable-linger $(whoami)
+
+      - name: Cleanup
+        run: npx tsx scripts/cleanup-github-actions.ts || true
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Find generated test files
+        id: find-tests
+        run: |
+          TEST_FILES=$(git diff --name-only origin/main...HEAD -- 'test/**/*.test.ts' | tr '\n' ' ')
+          echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
+          echo "Test files: $TEST_FILES"
+
+      - name: Run Linux tests
+        id: run-tests
+        run: |
+          TEST_FILES="${{ steps.find-tests.outputs.test-files }}"
+          if [ -z "$TEST_FILES" ]; then
+            echo "No new test files found — skipping."
+            echo "passed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          if npm run test -- $TEST_FILES --no-file-parallelism --disable-console-intercept; then
+            echo "passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "passed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fix failing Linux tests with Claude
+        if: steps.run-tests.outputs.passed == 'false'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_tools: "Bash,Read,Edit,Write"
+          max_turns: "30"
+          prompt: |
+            The integration tests for the newly generated resource failed on Linux (ubuntu-latest).
+
+            Test files: ${{ steps.find-tests.outputs.test-files }}
+
+            Steps:
+            1. Run the failing tests to see exact errors:
+               npm run test -- ${{ steps.find-tests.outputs.test-files }} --no-file-parallelism --disable-console-intercept
+            2. Read the error output and identify the root cause
+            3. Fix the resource implementation and/or test code
+            4. Re-run the tests to confirm they pass now
+
+            Common Linux-specific issues:
+            - Wrong shell commands for Linux (should not use macOS-only tools)
+            - Missing loginctl / systemd setup for service-based tools
+            - Incorrect file paths (/home/runner vs /Users/runner)
+            - Package not available via apt — may need alternative install method
+            - Missing Utils.isLinux() guards where macOS-only code runs
+
+            Do NOT run git commands.
+
+      - name: Commit Linux fixes
+        if: steps.run-tests.outputs.passed == 'false'
+        run: |
+          git pull --rebase origin ${{ needs.generate-resource.outputs.branch-name }}
+          git add -A
+          git diff --cached --quiet || git commit -m "fix: Linux test fixes for ${{ needs.generate-resource.outputs.resource-name }} resource"
+          git push origin HEAD:${{ needs.generate-resource.outputs.branch-name }}
+
+  # ── Job 3: Integration tests on macOS (after Linux to avoid conflicts) ───
+  test-macos:
+    needs: [generate-resource, test-linux]
+    runs-on: macos-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.generate-resource.outputs.branch-name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npx tsx scripts/cleanup-github-actions.ts || true
+
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Find generated test files
+        id: find-tests
+        run: |
+          TEST_FILES=$(git diff --name-only origin/main...HEAD -- 'test/**/*.test.ts' | tr '\n' ' ')
+          echo "test-files=$TEST_FILES" >> $GITHUB_OUTPUT
+          echo "Test files: $TEST_FILES"
+
+      - name: Run macOS tests
+        id: run-tests
+        env:
+          CI: "true"
+          TEST_FILES: ${{ steps.find-tests.outputs.test-files }}
+        shell: zsh {0}
+        run: |
+          sudo chsh -s $(which zsh) $USER
+          touch ~/.zshrc
+          unset JAVA_HOME
+          export SHELL=/bin/zsh
+          export PATH=/Users/runner/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/opt/curl/bin:/usr/local/bin:/usr/local/sbin:/Users/runner/bin:/usr/bin:/bin:/usr/sbin:/sbin
+
+          if [ -z "$TEST_FILES" ]; then
+            echo "No new test files found — skipping."
+            echo "passed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # ${=TEST_FILES} enables zsh word-splitting on the space-separated list
+          if npm run test -- ${=TEST_FILES} --no-file-parallelism --disable-console-intercept; then
+            echo "passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "passed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Fix failing macOS tests with Claude
+        if: steps.run-tests.outputs.passed == 'false'
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          allowed_tools: "Bash,Read,Edit,Write"
+          max_turns: "30"
+          prompt: |
+            The integration tests for the newly generated resource failed on macOS (macos-latest).
+
+            Test files: ${{ steps.find-tests.outputs.test-files }}
+
+            Steps:
+            1. Run the failing tests to see exact errors:
+               npm run test -- ${{ steps.find-tests.outputs.test-files }} --no-file-parallelism --disable-console-intercept
+            2. Read the error output and identify the root cause
+            3. Fix the resource implementation and/or test code
+            4. Re-run the tests to confirm they pass now
+
+            Common macOS-specific issues:
+            - Homebrew path differences (/opt/homebrew on Apple Silicon vs /usr/local on Intel)
+            - Case-insensitive filesystem — use .toLowerCase() when comparing paths
+            - zsh vs bash differences in shell RC file locations (~/.zshrc vs ~/.bashrc)
+            - macOS-only tools (e.g. launchctl, defaults, plutil) used without isMacOS() guard
+            - Missing Utils.isMacOS() checks where Linux-only code would run
+
+            Do NOT run git commands.
+
+      - name: Commit macOS fixes
+        if: steps.run-tests.outputs.passed == 'false'
+        run: |
+          git pull --rebase origin ${{ needs.generate-resource.outputs.branch-name }}
+          git add -A
+          git diff --cached --quiet || git commit -m "fix: macOS test fixes for ${{ needs.generate-resource.outputs.resource-name }} resource"
+          git push origin HEAD:${{ needs.generate-resource.outputs.branch-name }}
+
+  # ── Job 4: Label issue and post summary comment ───────────────────────────
+  label-awaiting-review:
+    needs: [generate-resource, test-linux, test-macos]
+    if: always() && needs.generate-resource.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+
+    steps:
+      - name: Add "Awaiting Human Review" label
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ['Awaiting Human Review']
+            })
+
+      - name: Post summary comment
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branch = '${{ needs.generate-resource.outputs.branch-name }}';
+            const linuxResult = '${{ needs.test-linux.result }}';
+            const macosResult = '${{ needs.test-macos.result }}';
+
+            const statusEmoji = (r) => r === 'success' ? '✅' : r === 'failure' ? '❌' : '⚠️';
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                '## Resource Generation Complete',
+                '',
+                'The resource has been automatically generated and is awaiting human review.',
+                '',
+                `**Branch:** \`${branch}\``,
+                '',
+                '**Automated test results:**',
+                `- Linux: ${statusEmoji(linuxResult)} ${linuxResult}`,
+                `- macOS: ${statusEmoji(macosResult)} ${macosResult}`,
+                '',
+                'The Codify team will review the generated code, run additional QA, and merge when ready.',
+              ].join('\n')
+            })

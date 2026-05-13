@@ -8,19 +8,10 @@
   "properties": {
     "globalInstall": {
       "type": "array",
-      "description": "An array of",
+      "description": "An array of npm packages to install globally. Use the npm@version syntax to pin a specific version (e.g. \"nodemon@3.1.10\").",
       "items": {
-        "oneOf": [
-          { "type": "string", "description": "Npm packages to install globally" },
-          {
-            "type": "object",
-            "properties": {
-              "name": { "type": "string", "description": "The name of the package to install" },
-              "version": { "type": "string", "description": "The version of package to install" }
-            },
-            "required": ["name"]
-          }
-        ]
+        "type": "string",
+        "description": "Package name, optionally with a version specifier (e.g. \"typescript\" or \"typescript@5.4.0\")"
       }
     }
   },

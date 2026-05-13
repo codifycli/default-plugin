@@ -8,7 +8,9 @@ let startupRcFile: string;
 const pluginPath = path.resolve('./src/index.ts');
 
 beforeAll(async () => {
-  startupRcFile = fs.readFileSync(TestUtils.getPrimaryShellRc(), 'utf8');
+  if (fs.existsSync(TestUtils.getPrimaryShellRc())) {
+    startupRcFile = fs.readFileSync(TestUtils.getPrimaryShellRc(), 'utf8');
+  }
 
   if (TestUtils.isMacOS()) {
     await TestUtils.ensureXcodeInstalledOnMacOs(pluginPath)
@@ -17,5 +19,7 @@ beforeAll(async () => {
 }, 500_000)
 
 afterAll(() => {
-  fs.writeFileSync(TestUtils.getPrimaryShellRc(), startupRcFile);
+  if (startupRcFile && startupRcFile.length > 0) {
+    fs.writeFileSync(TestUtils.getPrimaryShellRc(), startupRcFile, 'utf-8');
+  }
 })

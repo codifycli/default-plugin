@@ -1,0 +1,84 @@
+---
+title: ssh-config
+description: A reference page for the ssh-config resource
+---
+
+The `ssh-config` resource sets up and manages the `~/.ssh/config` file. The SSH config
+file (`~/.ssh/config`) is a user-specific configuration file that defines
+settings for SSH connections, like host aliases, key locations, and
+connection preferences. Most config options are supported by Codify.
+See [this article](https://linuxize.com/post/using-the-ssh-config-file/)
+for a detailed description of the SSH config file and the available options
+
+## Parameters:
+
+- **hosts**: *(array, required)* The list of host blocks in the `~/.ssh/config` file.
+Each host block contains various configurations related to SSH connection behavior.
+
+  - **Host**: *(string)* The hostname or alias for the host, typically used as the
+  argument in SSH commands. Supports `*` and `!` wildcards. Either one `Host` or `Match`
+  must be declared for each block.
+
+  - **Match**: *(string)* Restricts the declarations up to the next `Host` or
+  `Match` keyword to apply only when specified conditions are met.
+
+  - **AddKeysToAgent**: *(boolean)* Determines whether keys should be automatically
+  added to a running `ssh-agent`.
+
+  - **User**: *(string)* Specifies the username for SSH login, useful when
+  different usernames are used on different hosts.
+
+  - **UseKeychain**: *(boolean)* macOS-specific option to indicate whether
+  the passphrase should be stored in the macOS keychain (available from macOS Sierra).
+
+  - **IgnoreUnknown**: *(string)* Defines a list of unknown options to ignore
+  during configuration parsing.
+
+  - **Port**: *(number)* The port number to connect to on the remote host.
+  Defaults to `22`.
+
+  - **IdentityFile**: *(string)* Specifies a file path for the user's authentication
+  identity, supporting ECDSA, Ed25519, RSA, or authenticator-hosted keys.
+
+  - **LogLevel**: *(string)* Sets the verbosity level for logging SSH messages.
+
+  - **Compression**: *(boolean)* Determines whether to use data compression.
+  Accepts `yes` or `no`, with `no` as the default.
+
+  - **PreferredAuthentications**: *(string)* Sets the priority order for
+  authentication methods.
+
+  - **PasswordAuthentication**: *(boolean)* Specifies whether password authentication
+  is allowed.
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "ssh-config",
+    "hosts": [
+      {
+        "Host": "*",
+        "AddKeysToAgent": true,
+        "IdentityFile": "~/.ssh/id_ed25519"
+      },
+      {
+        "Host": "github.com",
+        "AddKeysToAgent": true,
+        "UseKeychain": true,
+        "IdentityFile": "~/.ssh/GITHUB_KEY",
+        "IgnoreUnknown": "UseKeychain"
+      }
+    ]
+  }
+]
+```
+
+A sample setup of a user's `~/.ssh/config` file. Each block must contain one `Host` or `Match`
+property. The other properties are taken from the [ssh_config man pages](http://man.openbsd.org/OpenBSD-current/man5/ssh_config.5).
+The property names in Codify match the actual properties names exactly. The values also match except for
+`boolean` values which use `true` or `false` instead of `yes` and `no`.
+
+For a full example, visit [the recipes page](/docs/getting-started/recipes#github-ssh-setup) to see a full set up
+of [SSH for github access](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)

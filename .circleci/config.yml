@@ -1,0 +1,55 @@
+version: 2.1
+
+jobs:
+  test:
+    parameters:
+      executor:
+        type: executor
+    executor: << parameters.executor >>
+    steps:
+      - checkout
+      - node/install:
+          node-version: '24'
+      - run:
+          name: Enable linger for current user (Linux only)
+          command: |
+            if [[ "$OSTYPE" == "linux"* ]]; then
+              loginctl enable-linger $(whoami)
+              sudo chown -R circleci:circleci /usr/local /opt /var/tmp
+            fi
+      - run:
+          name: Install dependencies
+          command: npm ci
+      - run:
+          name: Clean up pre-installed tools
+          command: npx tsx scripts/cleanup-circleci.ts
+          no_output_timeout: 10m
+      - run:
+          name: Run tests
+          command: npm run test -- ./test --no-file-parallelism --disable-console-intercept
+          no_output_timeout: 30m
+
+orbs:
+  node: circleci/node@6
+
+executors:
+  linux-x86:
+    machine:
+      image: ubuntu-2404:current
+    resource_class: medium
+  linux-arm:
+    machine:
+      image: ubuntu-2404:current
+    resource_class: arm.medium
+  macos:
+    macos:
+      xcode: '26.4.0'
+    resource_class: m4pro.medium
+
+#workflows:
+#  test-all:
+#    jobs:
+#      - test:
+#          matrix:
+#            parameters:
+#              executor: [linux-arm]

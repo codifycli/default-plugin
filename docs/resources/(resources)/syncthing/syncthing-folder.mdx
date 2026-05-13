@@ -1,0 +1,99 @@
+---
+title: syncthing-folder
+description: A reference page for the syncthing-folder resource
+---
+
+The syncthing-folder resource adds and manages a shared folder in your Syncthing configuration. Each local directory you want to synchronise is represented by one `syncthing-folder` entry, identified by a unique folder ID.
+
+See the [syncthing](/docs/resources/syncthing/syncthing) page for an overview of the full Syncthing resource family.
+
+## Parameters:
+
+- **id**: *(string, required)* A unique identifier for the folder used internally by Syncthing (e.g. `my-docs`). This is the identifying parameter — each unique ID is a separate resource instance.
+
+- **path**: *(string, required)* The absolute path to the local directory to synchronise (e.g. `~/Documents`).
+
+- **label**: *(string)* A human-readable display name shown in the Syncthing GUI.
+
+- **folderType**: *(string)* The sync behaviour for this folder. Defaults to `sendreceive`.
+  - `sendreceive` — changes flow in both directions (default)
+  - `sendonly` — this device sends changes but does not accept remote changes
+  - `receiveonly` — this device accepts remote changes but does not send local ones
+  - `receiveencrypted` — stores encrypted data without decrypting it (for untrusted nodes)
+
+- **devices**: *(array[string])* Device IDs to share this folder with. The device must already be added via [`syncthing-device`](/docs/resources/syncthing/syncthing-device).
+
+- **fsWatcherEnabled**: *(boolean)* Use filesystem event watching for near-instant change detection instead of periodic rescans. Defaults to `true`.
+
+- **rescanIntervalS**: *(number)* Full rescan interval in seconds. `0` disables periodic rescans. Defaults to `3600` (one hour).
+
+- **maxConflicts**: *(number)* Maximum number of conflict copies to keep when the same file is changed on multiple devices simultaneously. `-1` means unlimited, `0` disables conflict handling. Defaults to `10`.
+
+- **paused**: *(boolean)* Pause syncing this folder without removing it from the configuration. Defaults to `false`.
+
+## Example usage:
+
+### Share a folder with one peer device
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "syncthing",
+    "launchAtStartup": true
+  },
+  {
+    "type": "syncthing-device",
+    "deviceId": "XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX",
+    "deviceName": "My Laptop"
+  },
+  {
+    "type": "syncthing-folder",
+    "id": "my-docs",
+    "path": "~/Documents",
+    "label": "My Documents",
+    "folderType": "sendreceive",
+    "devices": ["XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX"],
+    "fsWatcherEnabled": true,
+    "rescanIntervalS": 3600,
+    "maxConflicts": 10
+  }
+]
+```
+
+### Share multiple folders with different sync modes
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "syncthing",
+    "launchAtStartup": true
+  },
+  {
+    "type": "syncthing-folder",
+    "id": "projects",
+    "path": "~/Projects",
+    "label": "Projects",
+    "folderType": "sendreceive",
+    "devices": ["XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX"]
+  },
+  {
+    "type": "syncthing-folder",
+    "id": "backups",
+    "path": "~/Backups",
+    "label": "Backups (receive-only)",
+    "folderType": "receiveonly",
+    "devices": ["XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX-XXXXXXX"]
+  }
+]
+```
+
+## Dependencies:
+
+`syncthing-folder` requires the `syncthing` resource to be applied first. The Syncthing daemon must be running to add or modify folders.
+
+## Notes:
+
+- The folder `path` must exist on the local filesystem before Syncthing can watch it. Syncthing will not create the directory for you.
+- The folder `id` must be the same across all devices that share the folder. Syncthing matches folders by ID, not by label or path.
+- When you list device IDs in `devices`, those devices must already be added to Syncthing via the [`syncthing-device`](/docs/resources/syncthing/syncthing-device) resource (or manually through the GUI).
+- Removing a `syncthing-folder` resource removes the folder from Syncthing's configuration but does **not** delete the local files.

@@ -1,0 +1,34 @@
+---
+title: virtualenv
+description: A reference page for the virtualenv resource
+---
+
+This resource installs virtualenv (via homebrew). For initializing a virtual environment using virtualenv
+please refer to the [virtualenv-project resource](/docs/core-resources/python/virtualenv-project).
+
+## Example usage:
+```json title="codify.json"
+[
+  { "type": "homebrew" },
+  { "type": "virtualenv" }
+]
+```
+
+In this basic example, virtualenv is installed. Since this resource depends on `homebrew` being present, we also
+include `homebrew` as part of the configs.
+
+```json title="codify.json"
+[
+  { "type": "homebrew" },
+  { "type": "virtualenv" },
+  {
+    "type": "virtualenv-project",
+    "dest": ".venv",
+    "cwd": "~/Projects/example-project2",
+    "automaticallyInstallRequirementsTxt": true
+  }
+]
+```
+
+In this more advanced example, we additionally use the `virtualenv-project` resource to initialize a virtual environment
+inside the directory `~/Projects/example-project2` using the folder `.venv`.

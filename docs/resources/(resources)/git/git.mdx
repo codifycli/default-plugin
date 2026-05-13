@@ -1,0 +1,24 @@
+---
+title: git
+description: A reference page for the git resource
+---
+
+The git resource reference. This resource configures git. Currently only `user.name` and `user.email` is supported.
+
+## Parameters:
+
+- **username**: *(string)* The global username to set using the command `git config --global user.name`.
+
+- **email**: *(string)* The global email to set using the command `git config --global user.email`.
+
+## Example usage:
+
+```json title="codify.json"
+[
+  {
+    "type":  "git",
+    "email": "test@email.com",
+    "username": "testuser"
+  }
+]
+```

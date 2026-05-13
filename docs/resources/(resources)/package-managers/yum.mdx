@@ -1,0 +1,75 @@
+---
+title: yum
+description: A reference page for the yum resource
+---
+
+The yum resource reference. This resource manages packages on Red Hat-based Linux systems using YUM (Yellowdog Updater Modified) package manager. YUM is the traditional package manager for RHEL, CentOS 7 and earlier, and other older Red Hat-based distributions.
+
+## Parameters:
+
+- **install**: *(array[string | object])* A list of packages to install using yum. Each package can be specified as:
+  - A simple string with the package name (e.g., `"curl"`)
+  - An object with `name` and optional `version` fields for version-specific installations
+
+- **update**: *(boolean)* Whether to run `yum check-update` before installing packages to refresh the package metadata. Defaults to `true`. Set to `false` to skip the update step if you've recently updated your package lists.
+
+## Example usage:
+
+### Installing packages with simple names
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "yum",
+    "install": [
+      "curl",
+      "git",
+      "vim",
+      "gcc"
+    ]
+  }
+]
+```
+
+### Installing specific package versions
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "yum",
+    "install": [
+      "curl",
+      {
+        "name": "nginx",
+        "version": "1.12.2-3.el7"
+      },
+      {
+        "name": "postgresql",
+        "version": "9.2.24-1.el7_5"
+      }
+    ]
+  }
+]
+```
+
+### Skipping the update step
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "yum",
+    "install": [
+      "jq",
+      "htop"
+    ],
+    "update": false
+  }
+]
+```
+
+## Notes:
+
+- The yum resource requires sudo privileges to install packages. Codify will prompt for your password when needed.
+- YUM is primarily for older Red Hat-based Linux distributions. For modern RHEL 8+, Fedora, Rocky Linux, and AlmaLinux systems, use the [dnf](/docs/resources/package-managers/dnf) resource instead, as DNF is the successor to YUM. For Debian-based systems, use the [apt](/docs/resources/package-managers/apt) resource.
+- Package names must match those available in your configured YUM repositories. Use `yum search <package>` to find available packages.
+- When specifying versions, use the exact version string as shown by `yum list <package>`.

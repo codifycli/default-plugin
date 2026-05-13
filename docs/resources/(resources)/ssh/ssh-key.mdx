@@ -1,0 +1,51 @@
+---
+title: ssh-key
+description: A reference page for the ssh-key resource
+---
+
+The `ssh-key` resource manages an ssh public/private key pair under the directory `~/.ssh`.
+Under the hood, the resource uses the `ssh-keygen` command to create and manage the
+ssh keys.
+
+## Parameters:
+
+- **keyType**: *(string)* The type of key to create (the encryption algorithm used). This corresponds to the -t flag of ssh-keygen. This value defaults to ed25519.
+
+- **comment**: *(string)* The ssh key comment. This value will default to the file location of the ssh key if left blank.
+
+- **fileName**: *(string)* Specifies the filename of the key file. This corresponds to the -f flag of ssh-keygen
+
+- **bits**: *(number)* Specifies the number of bits in the key to create. This corresponds to the -b flag of ssh-keygen.
+
+- **passphrase**: *(string, required)* The passphrase to use. This parameter is required. To set an empty password set the value to the empty string: ""
+
+- **folder**: *(string)* The folder to generate the ssh key in. Defaults to `$HOME/.ssh`
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type":  "ssh-key",
+    "passphrase": ""
+  },
+  {
+    "type": "ssh-key",
+    "keyType": "rsa",
+    "fileName": "testKey",
+    "bits": 2048,
+    "passphrase": "123sdfkhsdkj4",
+    "folder": "./tmp"
+  }
+]
+```
+
+Two examples:
+- The top block is the minimum required parameters. It will generate a new `id_ed25519`
+and `id_ed25519.pub` file under `$HOME/.ssh`. The file name defaults to `id_{ENCRYPTION_TYPE}`
+if left unspecified. The encryption type defaults to `ed25519`.
+The newly generated ssh key has an empty passphrase since it was set to an empty string.
+- The bottom block demonstrates a fully configured ssh key.
+
+For a full example, visit [the recipes page](/docs/getting-started/recipes#github-ssh-setup) to see a full set up
+of [SSH for github access](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent)

@@ -15,28 +15,33 @@ export class PnpmGlobalEnvStatefulParameter extends StatefulParameter<PnpmConfig
   async refresh(): Promise<null | string> {
     const pty = getPty()
 
-    const { data: path } = await pty.spawnSafe('echo $PNPM_HOME/node')
-    if (!path || !(await FileUtils.fileExists(path))) {
+    const { data: nodejsDir } = await pty.spawnSafe('echo $PNPM_HOME/bin', { interactive: true })
+    if (!nodejsDir?.trim() || !(await FileUtils.dirExists(nodejsDir.trim()))) {
       return null;
     }
 
-    const { data: version } = await pty.spawn(`${path} -v`)
-    return version.trim().slice(1);
+    const nodeBin = `${nodejsDir.trim()}/node`
+    if (!(await FileUtils.fileExists(nodeBin))) {
+      return null;
+    }
+
+    const { data: version } = await pty.spawn(`${nodeBin} -v`)
+    return version.trim().replace(/^v/, '');
   }
 
   async add(valueToAdd: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`pnpm env use --global ${valueToAdd}`, { interactive: true });
+    await $.spawn(`pnpm runtime set node -g ${valueToAdd}`, { interactive: true });
   }
 
   async modify(newValue: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`pnpm env use --global ${newValue}`, { interactive: true })
+    await $.spawn(`pnpm runtime set node -g ${newValue}`, { interactive: true })
   }
 
   async remove(): Promise<void> {
     const $ = getPty();
-    const { data: path } = await $.spawn('echo $PNPM_HOME/nodejs', { interactive: true })
-    await fs.rm(path!, { recursive: true, force: true });
+    const { data: nodejsDir } = await $.spawn('echo $PNPM_HOME/nodejs', { interactive: true })
+    await fs.rm(nodejsDir.trim(), { recursive: true, force: true });
   }
 }
