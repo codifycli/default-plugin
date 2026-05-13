@@ -262,6 +262,12 @@ jobs:
 
             Do NOT run git commands.
 
+      - name: Restore git remote auth
+        if: steps.run-tests.outputs.passed == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+
       - name: Commit Linux fixes
         if: steps.run-tests.outputs.passed == 'false'
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -358,6 +364,12 @@ jobs:
             - Missing Utils.isMacOS() checks where Linux-only code would run
 
             Do NOT run git commands.
+
+      - name: Restore git remote auth
+        if: steps.run-tests.outputs.passed == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
 
       - name: Commit macOS fixes
         if: steps.run-tests.outputs.passed == 'false'
