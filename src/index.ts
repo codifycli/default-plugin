@@ -7,6 +7,7 @@ import { AsdfPluginResource } from './resources/asdf/asdf-plugin.js';
 import { AwsCliResource } from './resources/aws-cli/cli/aws-cli.js';
 import { AwsProfileResource } from './resources/aws-cli/profile/aws-profile.js';
 import { DnfResource } from './resources/dnf/dnf.js';
+import { GoenvResource } from './resources/go/goenv/goenv.js';
 import { DockerResource } from './resources/docker/docker.js';
 import { FileResource } from './resources/file/file.js';
 import { RemoteFileResource } from './resources/file/remote-file.js';
@@ -73,6 +74,7 @@ runPlugin(Plugin.create(
     new TerraformResource(),
     new NvmResource(),
     new JenvResource(),
+    new GoenvResource(),
     new PgcliResource(),
     new VscodeResource(),
     new GitRepositoryResource(),

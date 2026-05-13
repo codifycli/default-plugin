@@ -1,0 +1,56 @@
+---
+title: goenv
+description: A reference page for the goenv resource
+---
+
+The goenv resource installs [goenv](https://github.com/go-nv/goenv), a Go version manager modelled after pyenv and rbenv that lets you install and switch between multiple Go versions. On macOS it is installed via Homebrew; on Linux it is cloned from GitHub into `~/.goenv`.
+
+## Parameters:
+
+- **goVersions**: *(array[string])* Go versions to install via goenv (e.g. `["1.22.0", "1.21.5"]`). Versions must match those available from `goenv install --list`. Codify adds missing versions and removes versions that are no longer listed.
+
+- **global**: *(string)* The Go version to set as the global default (equivalent to running `goenv global <version>`). The version must be in `goVersions` or already installed on the system.
+
+## Example usage:
+
+### Install goenv with a single Go version
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "goenv",
+    "goVersions": ["1.22.0"],
+    "global": "1.22.0"
+  }
+]
+```
+
+### Install goenv with multiple Go versions
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "goenv",
+    "goVersions": ["1.21.0", "1.22.0", "1.23.0"],
+    "global": "1.23.0"
+  }
+]
+```
+
+### Install goenv without installing any Go versions
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "goenv"
+  }
+]
+```
+
+## Notes:
+
+- On macOS, Homebrew must be installed before applying the goenv resource. The [homebrew](/docs/resources/package-managers/homebrew) resource can install it. The `mercurial` and `bison` packages are installed automatically as part of the goenv install.
+- On Linux, several system dependencies are required (`curl`, `git`, `mercurial`, `make`, `binutils`, `bison`, `gcc`, `build-essential`). Codify installs these automatically via the system package manager before cloning goenv.
+- On Linux, goenv is cloned to `~/.goenv` and added to `PATH` in your shell RC file. On macOS, Homebrew manages the installation path.
+- After applying, open a new terminal session (or source your shell RC file) for the `goenv` shims and `GOROOT`/`GOPATH` environment variables to become active.
+- To find available Go versions, run `goenv install --list` after installing goenv.
