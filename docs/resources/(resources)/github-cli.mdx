@@ -1,0 +1,123 @@
+---
+title: github-cli
+description: Reference pages for the GitHub CLI (gh) resources
+---
+
+The GitHub CLI resources install and configure the [GitHub CLI (`gh`)](https://cli.github.com/manual/) tool. Four resources are provided to manage distinct concerns: installation and global configuration, authentication, command aliases, and GitHub account SSH keys.
+
+---
+
+## github-cli
+
+Installs `gh` and manages global configuration settings such as the default git protocol, editor, pager, and browser.
+
+### Parameters
+
+- **gitProtocol**: *(string: `https` | `ssh`)* Default protocol for git operations. Defaults to `https`.
+- **editor**: *(string)* Default text editor for gh commands (e.g. `vim`, `nano`, `code --wait`).
+- **prompt**: *(string: `enabled` | `disabled`)* Whether interactive prompts are shown. Defaults to `enabled`.
+- **pager**: *(string)* Pager program used to display long output (e.g. `less`).
+- **browser**: *(string)* Default browser to open URLs (e.g. `firefox`).
+
+### Example usage
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "github-cli",
+    "gitProtocol": "ssh",
+    "editor": "vim"
+  }
+]
+```
+
+---
+
+## github-cli-auth
+
+Authenticates the GitHub CLI using a Personal Access Token (PAT). Supports multiple accounts and GitHub Enterprise Server hostnames.
+
+> **Security note:** The `token` field is marked sensitive and is never logged or displayed by Codify. Store PATs in a secrets manager and reference them via environment variables where possible.
+
+### Parameters
+
+- **token** *(required)*: *(string)* GitHub personal access token (classic or fine-grained).
+- **hostname**: *(string)* GitHub hostname. Defaults to `github.com`. Set to your GHE hostname (e.g. `github.mycompany.com`) for enterprise instances.
+
+### Example usage
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "github-cli",
+    "gitProtocol": "https"
+  },
+  {
+    "type": "github-cli-auth",
+    "token": "<Replace me here!>"
+  }
+]
+```
+
+---
+
+## github-cli-alias
+
+Creates a short-hand alias for a `gh` command. Each alias is an independent resource, identified by its name.
+
+### Parameters
+
+- **alias** *(required)*: *(string)* The alias name used to invoke the command (e.g. `prc`).
+- **expansion** *(required)*: *(string)* The gh command or shell command this alias expands to (e.g. `pr create`).
+- **shell**: *(boolean)* When `true`, the expansion is executed as a shell command via `sh`, enabling pipes, redirects, and other shell features. Defaults to `false`.
+
+### Example usage
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "github-cli-alias",
+    "alias": "prc",
+    "expansion": "pr create"
+  },
+  {
+    "type": "github-cli-alias",
+    "alias": "prs",
+    "expansion": "pr status"
+  }
+]
+```
+
+---
+
+## github-cli-ssh-key
+
+Uploads a local SSH public key to your GitHub account. This is distinct from the `ssh-key` resource, which manages local key files — this resource registers an existing key with GitHub via the `gh ssh-key add` command.
+
+Requires authentication (`github-cli-auth`) to be configured.
+
+### Parameters
+
+- **title** *(required)*: *(string)* Display name for the key on GitHub (e.g. `My Laptop`).
+- **keyFile** *(required)*: *(string)* Path to the local SSH public key file (e.g. `~/.ssh/id_ed25519.pub`).
+- **keyType**: *(string: `authentication` | `signing`)* Key usage type. Use `authentication` (default) for git over SSH, or `signing` for commit signing.
+
+### Example usage
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "github-cli"
+  },
+  {
+    "type": "github-cli-auth",
+    "token": "<Replace me here!>"
+  },
+  {
+    "type": "github-cli-ssh-key",
+    "title": "My Laptop",
+    "keyFile": "~/.ssh/id_ed25519.pub",
+    "keyType": "authentication"
+  }
+]
+```
