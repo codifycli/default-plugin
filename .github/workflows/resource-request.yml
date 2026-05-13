@@ -46,13 +46,11 @@ jobs:
           echo "resource-name=$RESOURCE_NAME" >> $GITHUB_OUTPUT
           echo "Extracted resource name: $RESOURCE_NAME"
 
-      - name: Create and checkout branch
+      - name: Set branch name output
         id: create-branch
         run: |
           BRANCH="resource-request/${{ steps.extract-info.outputs.resource-name }}"
-          git checkout -b "$BRANCH"
           echo "branch-name=$BRANCH" >> $GITHUB_OUTPUT
-          echo "Branch: $BRANCH"
 
       - name: Configure git identity
         run: |
@@ -127,14 +125,18 @@ jobs:
             Do NOT run any git commands — the workflow handles committing.
 
       - name: Commit and push generated code
+        id: auto-commit
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "feat: Add ${{ steps.extract-info.outputs.resource-name }} resource (auto-generated from issue #${{ github.event.issue.number }})"
+          branch: resource-request/${{ steps.extract-info.outputs.resource-name }}
+          create_branch: true
+
+      - name: Fail if no changes were generated
+        if: steps.auto-commit.outputs.changes_detected == 'false'
         run: |
-          git add -A
-          if git diff --cached --quiet; then
-            echo "No changes were generated — failing the workflow."
-            exit 1
-          fi
-          git commit -m "feat: Add ${{ steps.extract-info.outputs.resource-name }} resource (auto-generated from issue #${{ github.event.issue.number }})"
-          git push origin HEAD:resource-request/${{ steps.extract-info.outputs.resource-name }}
+          echo "No changes were generated — failing the workflow."
+          exit 1
 
   # ── Job 2: Integration tests on Linux ────────────────────────────────────
   test-linux:
@@ -221,11 +223,10 @@ jobs:
 
       - name: Commit Linux fixes
         if: steps.run-tests.outputs.passed == 'false'
-        run: |
-          git pull --rebase origin ${{ needs.generate-resource.outputs.branch-name }}
-          git add -A
-          git diff --cached --quiet || git commit -m "fix: Linux test fixes for ${{ needs.generate-resource.outputs.resource-name }} resource"
-          git push origin HEAD:${{ needs.generate-resource.outputs.branch-name }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "fix: Linux test fixes for ${{ needs.generate-resource.outputs.resource-name }} resource"
+          branch: ${{ needs.generate-resource.outputs.branch-name }}
 
   # ── Job 3: Integration tests on macOS (after Linux to avoid conflicts) ───
   test-macos:
@@ -319,11 +320,10 @@ jobs:
 
       - name: Commit macOS fixes
         if: steps.run-tests.outputs.passed == 'false'
-        run: |
-          git pull --rebase origin ${{ needs.generate-resource.outputs.branch-name }}
-          git add -A
-          git diff --cached --quiet || git commit -m "fix: macOS test fixes for ${{ needs.generate-resource.outputs.resource-name }} resource"
-          git push origin HEAD:${{ needs.generate-resource.outputs.branch-name }}
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "fix: macOS test fixes for ${{ needs.generate-resource.outputs.resource-name }} resource"
+          branch: ${{ needs.generate-resource.outputs.branch-name }}
 
   # ── Job 4: Label issue and post summary comment ───────────────────────────
   label-awaiting-review:
