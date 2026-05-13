@@ -20,6 +20,7 @@ import { HomebrewResource } from './resources/homebrew/homebrew.js';
 import { JenvResource } from './resources/java/jenv/jenv.js';
 import { Npm } from './resources/javascript/npm/npm.js';
 import { NpmLoginResource } from './resources/javascript/npm/npm-login.js';
+import { FnmResource } from './resources/javascript/fast-node-manager/fast-node-manager.js';
 import { NvmResource } from './resources/javascript/nvm/nvm.js';
 import { Pnpm } from './resources/javascript/pnpm/pnpm.js';
 import { MacportsResource } from './resources/macports/macports.js';
@@ -73,6 +74,7 @@ runPlugin(Plugin.create(
     new AwsProfileResource(),
     new TerraformResource(),
     new NvmResource(),
+    new FnmResource(),
     new JenvResource(),
     new GoenvResource(),
     new PgcliResource(),
