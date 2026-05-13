@@ -78,72 +78,72 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-#      - name: Generate resource with Claude (research + implement)
-#        uses: anthropics/claude-code-action@v1
-#        with:
-#          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-#          claude_args: "--allowedTools Bash,Read,Edit,Write,WebSearch,WebFetch --max-turns 60"
-#          prompt: |
-#            You are implementing a new Codify resource requested by the community.
-#
-#            Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
-#
-#            Issue details:
-#            ${{ github.event.issue.body }}
-#
-#            Resource slug: ${{ steps.extract-info.outputs.resource-name }}
-#
-#            ═══════════════════════════════════════
-#            ## PHASE 1: RESEARCH
-#            ═══════════════════════════════════════
-#
-#            Use WebSearch and WebFetch to thoroughly research this tool. If those tools
-#            are unavailable, use bash curl to fetch pages.
-#
-#            Research must cover:
-#            - Official installation method for macOS (homebrew preferred if available)
-#            - Official installation method for Linux (apt/snap/manual/script)
-#            - Any dependencies or prerequisites
-#            - Key CLI commands and configuration options users would manage declaratively
-#            - Common use cases — identify if sub-resources or stateful parameters make sense
-#              (e.g. homebrew manages packages via formulae/casks stateful params;
-#               asdf manages plugins and versions as sub-resources)
-#            - Default values for any configuration settings
-#
-#            Write your complete research to /tmp/research-notes.md before proceeding.
-#
-#            ═══════════════════════════════════════
-#            ## PHASE 2: IMPLEMENTATION
-#            ═══════════════════════════════════════
-#
-#            Read /tmp/research-notes.md, then read CLAUDE.md in the repo root. Follow
-#            every convention described in CLAUDE.md — it is the authoritative guide.
-#
-#            Implement the complete resource:
-#
-#            1. Create src/resources/<category>/<resource-slug>/ containing:
-#               - Resource class (TypeScript) extending Resource<Config>
-#               - Use Zod schema (not JSON Schema) — types are inferred automatically
-#               - Implement getSettings(), refresh(), create(), modify(), destroy()
-#               - Add defaultConfig and exampleConfigs following CLAUDE.md spec exactly
-#               - Use Utils from @codifycli/plugin-core (not local utils) for OS detection
-#                 and package installation
-#               - Never hardcode brew/apt commands — use Utils.installViaPkgMgr()
-#
-#            2. Register the new resource in src/index.ts (import + add to Plugin.create array)
-#
-#            3. Write an integration test in test/<category>/<resource-slug>.test.ts
-#               - Follow the PluginTester.fullTest() pattern from other test files
-#               - Include validateApply, testModify (where applicable), and validateDestroy
-#
-#            4. Write documentation in docs/resources/<resource-slug>/
-#               - Match the structure of existing resource docs
-#
-#            5. Verify TypeScript is clean:
-#               Run: npx tsx --noEmit src/index.ts
-#               Fix all TypeScript errors before finishing.
-#
-#            Do NOT run any git commands — the workflow handles committing.
+      - name: Generate resource with Claude (research + implement)
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: "--allowedTools Bash,Read,Edit,Write,WebSearch,WebFetch --max-turns 60"
+          prompt: |
+            You are implementing a new Codify resource requested by the community.
+
+            Issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}
+
+            Issue details:
+            ${{ github.event.issue.body }}
+
+            Resource slug: ${{ steps.extract-info.outputs.resource-name }}
+
+            ═══════════════════════════════════════
+            ## PHASE 1: RESEARCH
+            ═══════════════════════════════════════
+
+            Use WebSearch and WebFetch to thoroughly research this tool. If those tools
+            are unavailable, use bash curl to fetch pages.
+
+            Research must cover:
+            - Official installation method for macOS (homebrew preferred if available)
+            - Official installation method for Linux (apt/snap/manual/script)
+            - Any dependencies or prerequisites
+            - Key CLI commands and configuration options users would manage declaratively
+            - Common use cases — identify if sub-resources or stateful parameters make sense
+              (e.g. homebrew manages packages via formulae/casks stateful params;
+               asdf manages plugins and versions as sub-resources)
+            - Default values for any configuration settings
+
+            Write your complete research to /tmp/research-notes.md before proceeding.
+
+            ═══════════════════════════════════════
+            ## PHASE 2: IMPLEMENTATION
+            ═══════════════════════════════════════
+
+            Read /tmp/research-notes.md, then read CLAUDE.md in the repo root. Follow
+            every convention described in CLAUDE.md — it is the authoritative guide.
+
+            Implement the complete resource:
+
+            1. Create src/resources/<category>/<resource-slug>/ containing:
+               - Resource class (TypeScript) extending Resource<Config>
+               - Use Zod schema (not JSON Schema) — types are inferred automatically
+               - Implement getSettings(), refresh(), create(), modify(), destroy()
+               - Add defaultConfig and exampleConfigs following CLAUDE.md spec exactly
+               - Use Utils from @codifycli/plugin-core (not local utils) for OS detection
+                 and package installation
+               - Never hardcode brew/apt commands — use Utils.installViaPkgMgr()
+
+            2. Register the new resource in src/index.ts (import + add to Plugin.create array)
+
+            3. Write an integration test in test/<category>/<resource-slug>.test.ts
+               - Follow the PluginTester.fullTest() pattern from other test files
+               - Include validateApply, testModify (where applicable), and validateDestroy
+
+            4. Write documentation in docs/resources/<resource-slug>/
+               - Match the structure of existing resource docs
+
+            5. Verify TypeScript is clean:
+               Run: npx tsx --noEmit src/index.ts
+               Fix all TypeScript errors before finishing.
+
+            Do NOT run any git commands — the workflow handles committing.
 
       - name: Restore git remote auth
         env:
