@@ -26,6 +26,10 @@ describe('Goenv resource integration tests', () => {
 
         const { data: globalVersion } = await testSpawn('goenv global');
         expect(globalVersion.trim()).toBe('1.22.0');
+
+        const { data: goVersion, status: goStatus } = await testSpawn('go version');
+        expect(goStatus).toBe(SpawnStatus.SUCCESS);
+        expect(goVersion).toContain('go1.22.0');
       },
       validateDestroy: () => {
         const shellRc = TestUtils.getPrimaryShellRc();

@@ -112,7 +112,7 @@ export class GoenvResource extends Resource<GoenvConfig> {
 
 async function installOnMacOS(): Promise<void> {
   const $ = getPty();
-  await $.spawn('brew install goenv mercurial bison', {
+  await $.spawn('brew install goenv', {
     interactive: true,
     env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
   });
@@ -120,12 +120,10 @@ async function installOnMacOS(): Promise<void> {
 }
 
 async function installOnLinux(): Promise<void> {
-  await Utils.installViaPkgMgr(
-    'curl git mercurial make binutils bison gcc build-essential'
-  );
+  await Utils.installViaPkgMgr('git');
 
   const $ = getPty();
-  await $.spawnSafe(`git clone https://github.com/go-nv/goenv.git ${GOENV_ROOT}`, {
+  await $.spawn(`git clone https://github.com/go-nv/goenv.git ${GOENV_ROOT}`, {
     interactive: true,
   });
 
