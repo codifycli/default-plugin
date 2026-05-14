@@ -9,7 +9,7 @@ describe('fast-node-manager tests', () => {
   it('Can install fnm and node', { timeout: 500000 }, async () => {
     await PluginTester.fullTest(pluginPath, [
       {
-        type: 'fast-node-manager',
+        type: 'fnm',
         defaultVersion: '20',
         nodeVersions: ['20', '18'],
       },
@@ -24,7 +24,7 @@ describe('fast-node-manager tests', () => {
       },
       testModify: {
         modifiedConfigs: [{
-          type: 'fast-node-manager',
+          type: 'fnm',
           defaultVersion: '22',
           nodeVersions: ['22'],
         }],

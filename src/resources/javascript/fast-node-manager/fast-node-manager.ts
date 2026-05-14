@@ -31,7 +31,7 @@ const exampleLts: ExampleConfig = {
   title: 'Install Node.js LTS via fnm',
   description: 'Install fnm and set the latest LTS release as the global Node.js version.',
   configs: [{
-    type: 'fast-node-manager',
+    type: 'fnm',
     nodeVersions: ['lts'],
     defaultVersion: 'lts',
   }],
@@ -41,7 +41,7 @@ const exampleMultiVersion: ExampleConfig = {
   title: 'Install multiple Node.js versions via fnm',
   description: 'Install fnm with multiple Node.js versions side by side, using Node.js 22 as the global default.',
   configs: [{
-    type: 'fast-node-manager',
+    type: 'fnm',
     nodeVersions: ['18', '20', '22'],
     defaultVersion: '22',
   }],
@@ -50,7 +50,7 @@ const exampleMultiVersion: ExampleConfig = {
 export class FnmResource extends Resource<FnmConfig> {
   getSettings(): ResourceSettings<FnmConfig> {
     return {
-      id: 'fast-node-manager',
+      id: 'fnm',
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,
