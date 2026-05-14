@@ -198,10 +198,11 @@ Zod is preferred because types are automatically inferred from the schema, preve
 - Uses `PluginTester.fullTest()` from `@codifycli/plugin-test`
 - Tests create → modify → destroy flow
 - Includes validation callbacks
+- **Always use `testSpawn` from `@codifycli/plugin-test` for shell commands in validation callbacks.** `testSpawn` sources the user's shell RC (`.zshrc`, `.bashrc`) before running the command, so PATH and shell aliases are available — just like a real terminal session. Never use `execSync` in integration tests.
 
 **Integration Test Pattern:**
 ```typescript
-import { PluginTester } from '@codifycli/plugin-test'
+import { PluginTester, testSpawn } from '@codifycli/plugin-test'
 
 await PluginTester.fullTest(pluginPath, [
   { type: 'alias', alias: 'my-alias', value: 'ls -l' }
@@ -245,6 +246,16 @@ const { data } = await $.spawn('command', {
   requiresRoot: true,
   env: { VAR: 'value' }
 })
+```
+
+**Shell RC sourcing differs by lifecycle method.** During `refresh`, the framework uses a `BackgroundPty` that automatically sources the user's shell RC, so PATH and shell functions are available without any extra options. During all other lifecycle methods (`create`, `modify`, `destroy`), the RC is **not** sourced automatically — pass `{ interactive: true }` when the command needs PATH entries or shell aliases that come from the RC file (e.g. a tool that was just installed by adding itself to `.zshrc`).
+
+```typescript
+// refresh — shell RC sourced automatically, no option needed
+const result = await $.spawnSafe('my-tool --version')
+
+// create/modify/destroy — must opt in to get sourced shell
+await $.spawn('my-tool configure', { interactive: true })
 ```
 
 **Never use `sudo` inside `$.spawn` or `$.spawnSafe`.** Use `{ requiresRoot: true }` in the options instead. The framework handles privilege escalation through the parent process.
@@ -409,6 +420,37 @@ parameterSettings: {
     definition: new FormulaeParameter(),
     order: 2
   }
+}
+```
+
+### Stateful Parameters for State-Bearing Parameters
+
+If a parameter has its own independent state on the system (e.g. a list of installed packages, a JSON settings file, a set of config keys), implement it as a `StatefulParameter` rather than handling it inline in `create`/`modify`/`destroy`. This keeps the main resource class clean and gives the framework full visibility into the parameter's lifecycle.
+
+**Rule of thumb:** if you find yourself reading current state, diffing, and writing back inside `modify()` on the resource, it should be a `StatefulParameter` instead.
+
+```typescript
+export class MyParameter extends StatefulParameter<MyConfig, ValueType> {
+  getSettings(): ParameterSetting { ... }
+  async refresh(desired, config): Promise<ValueType | null> { /* read current state */ }
+  async add(value, plan): Promise<void> { /* apply from scratch */ }
+  async modify(newValue, previousValue, plan): Promise<void> { /* diff and update */ }
+  async remove(value, plan): Promise<void> { /* clean up */ }
+}
+```
+
+```typescript
+// Wrong — inline state management clutters the resource
+async modify(pc, plan) {
+  if (pc.name === 'settings') {
+    const current = JSON.parse(await fs.readFile(settingsPath, 'utf8'));
+    await fs.writeFile(settingsPath, JSON.stringify({ ...current, ...pc.newValue }));
+  }
+}
+
+// Correct — delegate to a StatefulParameter
+parameterSettings: {
+  settings: { type: 'stateful', definition: new SettingsParameter(), order: 1 }
 }
 ```
 
