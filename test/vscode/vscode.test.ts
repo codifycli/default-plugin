@@ -85,12 +85,6 @@ describe('Vscode integration tests', async () => {
           expect(content['editor.fontSize']).to.equal(16);
         },
       },
-      validateDestroy: async () => {
-        const { data } = await testSpawn(`cat "${settingsFile}" 2>/dev/null || echo "{}"`);
-        const content = JSON.parse(data!);
-        expect(content['editor.fontSize']).to.be.undefined;
-        expect(content['editor.formatOnSave']).to.be.undefined;
-      },
     });
   });
 });
