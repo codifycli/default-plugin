@@ -11,6 +11,10 @@ import { GoenvResource } from './resources/go/goenv/goenv.js';
 import { DockerResource } from './resources/docker/docker.js';
 import { FileResource } from './resources/file/file.js';
 import { RemoteFileResource } from './resources/file/remote-file.js';
+import { GithubCliResource } from './resources/github-cli/github-cli.js';
+import { GithubCliAuthResource } from './resources/github-cli/github-cli-auth.js';
+import { GithubCliAliasResource } from './resources/github-cli/github-cli-alias.js';
+import { GithubCliSshKeyResource } from './resources/github-cli/github-cli-ssh-key.js';
 import { GitResource } from './resources/git/git/git-resource.js';
 import { GitLfsResource } from './resources/git/lfs/git-lfs.js';
 import { GitRepositoriesResource } from './resources/git/repositories/git-repositories.js';
@@ -111,6 +115,10 @@ runPlugin(Plugin.create(
     new SyncthingDeviceResource(),
     new SyncthingFolderResource(),
     new RbenvResource(),
+    new GithubCliResource(),
+    new GithubCliAuthResource(),
+    new GithubCliAliasResource(),
+    new GithubCliSshKeyResource(),
   ],
   { minSupportedCliVersion: MIN_SUPPORTED_CLI_VERSION }
 ))
