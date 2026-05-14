@@ -1,15 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { PluginTester } from '@codifycli/plugin-test';
+import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
 import fs from 'node:fs/promises';
-import os from 'node:os';
+import * as os from 'node:os';
 import { Utils } from '@codifycli/plugin-core';
-import { execSync } from 'node:child_process';
 
 describe('Vscode integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
-  const settingsPath = Utils.isMacOS()
+  // On macOS the code binary is inside the app bundle and not on PATH until a new shell is opened.
+  const codeBin = Utils.isMacOS()
+    ? '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+    : 'code';
+
+  const settingsFile = Utils.isMacOS()
     ? path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json')
     : path.join(os.homedir(), '.config', 'Code', 'User', 'settings.json');
 
@@ -38,8 +42,8 @@ describe('Vscode integration tests', async () => {
       extensions: ['ms-python.python'],
     }], {
       validateApply: async () => {
-        const result = execSync('code --list-extensions').toString();
-        expect(result.toLowerCase()).to.include('ms-python.python');
+        const { data } = await testSpawn(`"${codeBin}" --list-extensions`);
+        expect(data?.toLowerCase()).to.include('ms-python.python');
       },
       testModify: {
         modifiedConfigs: [{
@@ -47,14 +51,14 @@ describe('Vscode integration tests', async () => {
           extensions: ['ms-python.python', 'eamodio.gitlens'],
         }],
         validateModify: async () => {
-          const result = execSync('code --list-extensions').toString();
-          expect(result.toLowerCase()).to.include('ms-python.python');
-          expect(result.toLowerCase()).to.include('eamodio.gitlens');
+          const { data } = await testSpawn(`"${codeBin}" --list-extensions`);
+          expect(data?.toLowerCase()).to.include('ms-python.python');
+          expect(data?.toLowerCase()).to.include('eamodio.gitlens');
         },
       },
       validateDestroy: async () => {
-        const result = execSync('code --list-extensions').toString();
-        expect(result.toLowerCase()).not.to.include('eamodio.gitlens');
+        const { data } = await testSpawn(`"${codeBin}" --list-extensions`);
+        expect(data?.toLowerCase()).not.to.include('eamodio.gitlens');
       },
     });
   });
@@ -65,7 +69,8 @@ describe('Vscode integration tests', async () => {
       settings: { 'editor.fontSize': 14, 'editor.formatOnSave': true },
     }], {
       validateApply: async () => {
-        const content = JSON.parse(await fs.readFile(settingsPath, 'utf8'));
+        const { data } = await testSpawn(`cat "${settingsFile}"`);
+        const content = JSON.parse(data!);
         expect(content['editor.fontSize']).to.equal(14);
         expect(content['editor.formatOnSave']).to.be.true;
       },
@@ -75,18 +80,16 @@ describe('Vscode integration tests', async () => {
           settings: { 'editor.fontSize': 16, 'editor.formatOnSave': true },
         }],
         validateModify: async () => {
-          const content = JSON.parse(await fs.readFile(settingsPath, 'utf8'));
+          const { data } = await testSpawn(`cat "${settingsFile}"`);
+          const content = JSON.parse(data!);
           expect(content['editor.fontSize']).to.equal(16);
         },
       },
       validateDestroy: async () => {
-        try {
-          const content = JSON.parse(await fs.readFile(settingsPath, 'utf8'));
-          expect(content['editor.fontSize']).to.be.undefined;
-          expect(content['editor.formatOnSave']).to.be.undefined;
-        } catch {
-          // settings.json removed entirely — also valid
-        }
+        const { data } = await testSpawn(`cat "${settingsFile}" 2>/dev/null || echo "{}"`);
+        const content = JSON.parse(data!);
+        expect(content['editor.fontSize']).to.be.undefined;
+        expect(content['editor.formatOnSave']).to.be.undefined;
       },
     });
   });

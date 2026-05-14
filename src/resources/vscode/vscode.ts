@@ -3,8 +3,6 @@ import {
   DestroyPlan,
   ExampleConfig,
   FileUtils,
-  ModifyPlan,
-  ParameterChange,
   Resource,
   ResourceSettings,
   Utils,
@@ -18,9 +16,18 @@ import path from 'node:path';
 
 import { SpawnStatus } from '../../utils/codify-spawn.js';
 import { ExtensionsParameter } from './extensions-parameter.js';
+import { SettingsParameter } from './settings-parameter.js';
 
 const VSCODE_APPLICATION_NAME = 'Visual Studio Code.app';
 const DOWNLOAD_URL = (platform: string) => `https://update.code.visualstudio.com/latest/${platform}/stable`;
+
+function getVscodeBinDir(directory: string): string {
+  return path.join(directory, VSCODE_APPLICATION_NAME, 'Contents', 'Resources', 'app', 'bin');
+}
+
+function getVscodePathExport(binDir: string): string {
+  return `export PATH="${binDir}:$PATH"`;
+}
 
 const schema = z.object({
   directory: z
@@ -85,7 +92,7 @@ export class VscodeResource extends Resource<VscodeConfig> {
           default: Utils.isMacOS() ? '/Applications' : path.join(os.homedir(), '.local', 'bin'),
         },
         extensions: { type: 'stateful', definition: new ExtensionsParameter(), order: 1 },
-        settings: { canModify: true },
+        settings: { type: 'stateful', definition: new SettingsParameter(), order: 2 },
       },
     };
   }
@@ -107,27 +114,16 @@ export class VscodeResource extends Resource<VscodeConfig> {
     } else {
       throw new Error('Unsupported operating system');
     }
-
-    if (plan.desiredConfig.settings) {
-      await this.applySettings(plan.desiredConfig.settings as Record<string, unknown>);
-    }
-  }
-
-  override async modify(pc: ParameterChange<VscodeConfig>, _plan: ModifyPlan<VscodeConfig>): Promise<void> {
-    if (pc.name === 'settings' && pc.newValue) {
-      await this.applySettings(pc.newValue as Record<string, unknown>);
-    }
   }
 
   override async destroy(plan: DestroyPlan<VscodeConfig>): Promise<void> {
     const $ = getPty();
-    const { directory, settings } = plan.currentConfig;
-
-    if (settings) {
-      await this.removeSettings(Object.keys(settings as Record<string, unknown>));
-    }
+    const { directory } = plan.currentConfig;
 
     if (Utils.isMacOS()) {
+      const binDir = getVscodeBinDir(directory!);
+      await FileUtils.removeLineFromShellRc(getVscodePathExport(binDir));
+
       const location = path.join(directory!, `"${VSCODE_APPLICATION_NAME}"`);
       await $.spawn(`rm -rf ${location}`);
     } else if (Utils.isLinux()) {
@@ -178,6 +174,11 @@ export class VscodeResource extends Resource<VscodeConfig> {
     } finally {
       await $.spawn(`rm -rf ${temporaryDir}`);
     }
+
+    // Add the VS Code CLI bin dir to PATH in the shell RC so `code` is available in new terminals.
+    // See: https://code.visualstudio.com/docs/setup/mac#_launching-from-the-command-line
+    const binDir = getVscodeBinDir(plan.desiredConfig.directory!);
+    await FileUtils.addToShellRc(getVscodePathExport(binDir));
   }
 
   private async installLinux(_plan: CreatePlan<VscodeConfig>): Promise<void> {
@@ -210,33 +211,4 @@ export class VscodeResource extends Resource<VscodeConfig> {
     throw new Error('Unsupported Linux distribution. Only Debian-based (Ubuntu, Debian, Mint) and RedHat-based (RHEL, CentOS) systems are supported.');
   }
 
-  private getSettingsPath(): string {
-    return Utils.isMacOS()
-      ? path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json')
-      : path.join(os.homedir(), '.config', 'Code', 'User', 'settings.json');
-  }
-
-  private async applySettings(settings: Record<string, unknown>): Promise<void> {
-    const filePath = this.getSettingsPath();
-    let existing: Record<string, unknown> = {};
-    try {
-      const content = await fs.readFile(filePath, 'utf8');
-      existing = JSON.parse(content);
-    } catch { /* file may not exist yet */ }
-    const merged = { ...existing, ...settings };
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    await fs.writeFile(filePath, JSON.stringify(merged, null, 2));
-  }
-
-  private async removeSettings(keys: string[]): Promise<void> {
-    const filePath = this.getSettingsPath();
-    try {
-      const content = await fs.readFile(filePath, 'utf8');
-      const existing = JSON.parse(content) as Record<string, unknown>;
-      for (const key of keys) {
-        delete existing[key];
-      }
-      await fs.writeFile(filePath, JSON.stringify(existing, null, 2));
-    } catch { /* nothing to do if file doesn't exist */ }
-  }
 }
