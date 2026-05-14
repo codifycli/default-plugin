@@ -1,0 +1,50 @@
+---
+title: fast-node-manager
+description: A reference page for the fast-node-manager resource
+---
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+
+The fast-node-manager resource installs [fnm](https://github.com/Schniz/fnm) — a fast, cross-platform Node.js version manager built in Rust. fnm lets you install and switch between multiple Node.js versions and respects `.nvmrc` and `.node-version` files.
+
+## Parameters
+
+- **nodeVersions**: *(array[string])* Node.js versions to install. Supports partial semver (`"20"`), exact versions (`"20.18.0"`), and aliases (`"lts"`, `"latest"`).
+
+- **defaultVersion**: *(string)* The global default Node.js version set via `fnm default`.
+
+## Example usage
+
+```json title="codify.json"
+[
+  {
+    "type": "fnm",
+    "nodeVersions": ["20", "18"],
+    "defaultVersion": "20"
+  }
+]
+```
+
+### Setting up Node.js with fnm
+
+<Steps>
+  <Step>Create a `codify.json` file anywhere.</Step>
+  <Step>Open `codify.json` and paste in the following config.</Step>
+</Steps>
+
+```json title="codify.json"
+[
+  {
+    "type": "fnm",
+    "nodeVersions": ["lts"],
+    "defaultVersion": "lts"
+  }
+]
+```
+
+<Steps>
+  <Step>Run `codify apply` in the directory of the file. Open a new terminal and run `node -v` — the installed LTS version should be returned. Node.js is now managed by fnm.</Step>
+</Steps>
+
+```sh title="terminal"
+codify apply
+```
