@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
+import { Utils } from '@codifycli/plugin-core';
 
-describe('macos-settings resource integration tests', async () => {
+describe('macos-settings resource integration tests', { skip: !Utils.isMacOS() }, async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   it('Can configure mouse natural scrolling', { timeout: 300000 }, async () => {
