@@ -7,8 +7,7 @@ import { FnmDefaultVersionParameter } from './default-version-parameter.js';
 import { FnmNodeVersionsParameter } from './node-versions-parameter.js';
 
 const FNM_DIR = path.join(os.homedir(), '.fnm');
-const FNM_PATH_EXPORT = 'export PATH="$HOME/.fnm:$PATH"';
-const FNM_EVAL = 'eval "$(fnm env --use-on-cd)"';
+const FNM_MULTISHELL_EXPORT = 'export FNM_MULTISHELL_PATH="${TMPDIR:-/tmp}/fnm_multishells"';
 
 const schema = z.object({
   nodeVersions: z
@@ -73,41 +72,48 @@ export class FnmResource extends Resource<FnmConfig> {
   }
 
   override async create(): Promise<void> {
-    if (Utils.isMacOS()) {
-      await installOnMacOS();
-    } else {
-      await installOnLinux();
-    }
+    await install();
   }
 
   override async destroy(): Promise<void> {
-    if (Utils.isMacOS()) {
-      await uninstallOnMacOS();
-    } else {
-      await uninstallOnLinux();
-    }
+    await uninstall();
   }
 }
 
-async function installOnMacOS(): Promise<void> {
-  await Utils.installViaPkgMgr('fnm');
-  await FileUtils.addToShellRc(FNM_EVAL);
-}
+async function install(): Promise<void> {
+  if (Utils.isLinux()) {
+    await Utils.installViaPkgMgr('curl unzip');
+  }
 
-async function installOnLinux(): Promise<void> {
   const $ = getPty();
-  await $.spawn('curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell', { interactive: true });
-  await FileUtils.addAllToShellRc([FNM_PATH_EXPORT, FNM_EVAL]);
+  await $.spawn('curl -fsSL https://fnm.vercel.app/install | bash', { interactive: true });
+  await FileUtils.addToShellRc(FNM_MULTISHELL_EXPORT);
 }
 
-async function uninstallOnMacOS(): Promise<void> {
-  await Utils.uninstallViaPkgMgr('fnm');
-  await FileUtils.removeLineFromShellRc(FNM_EVAL);
-}
-
-async function uninstallOnLinux(): Promise<void> {
+async function uninstall(): Promise<void> {
   const $ = getPty();
-  await $.spawnSafe(`rm -rf ${FNM_DIR}`);
-  await FileUtils.removeLineFromShellRc(FNM_PATH_EXPORT);
-  await FileUtils.removeLineFromShellRc(FNM_EVAL);
+
+  const { status: brewStatus } = await $.spawnSafe('brew list fnm', {
+    env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
+  });
+
+  if (brewStatus === SpawnStatus.SUCCESS) {
+    await Utils.uninstallViaPkgMgr('fnm');
+  } else {
+    await $.spawnSafe(`rm -rf ${FNM_DIR}`);
+  }
+
+  // Remove the block the installer appends to the shell rc file
+  for (const line of [
+    '# fnm',
+    `FNM_PATH="${FNM_DIR}"`,
+    'if [ -d "$FNM_PATH" ]; then',
+    '  export PATH="$FNM_PATH:$PATH"',
+    '  eval "$(fnm env --shell zsh)"',
+    '  eval "$(fnm env --shell bash)"',
+    'fi',
+    FNM_MULTISHELL_EXPORT,
+  ]) {
+    await FileUtils.removeLineFromShellRc(line);
+  }
 }
