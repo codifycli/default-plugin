@@ -192,8 +192,9 @@ export class VscodeResource extends Resource<VscodeConfig> {
 
       try {
         await FileUtils.downloadFile(downloadLink, vscodeDebPath);
+        await $.spawn('apt-get update -y', { requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive' } });
         await $.spawn('debconf-set-selections <<< "code code/add-microsoft-repo boolean true"', { requiresRoot: true });
-        await $.spawn('apt-get install ./vscode.deb -y', { cwd: tmpDir, requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' } });
+        await $.spawn('apt-get install ./vscode.deb -y --fix-missing', { cwd: tmpDir, requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' } });
       } finally {
         await fs.rm(tmpDir, { recursive: true, force: true });
       }
