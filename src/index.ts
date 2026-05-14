@@ -22,6 +22,7 @@ import { Npm } from './resources/javascript/npm/npm.js';
 import { NpmLoginResource } from './resources/javascript/npm/npm-login.js';
 import { NvmResource } from './resources/javascript/nvm/nvm.js';
 import { Pnpm } from './resources/javascript/pnpm/pnpm.js';
+import { MacosSettingsResource } from './resources/macos/macos-settings/macos-settings-resource.js';
 import { MacportsResource } from './resources/macports/macports.js';
 import { OllamaResource } from './resources/ollama/ollama.js';
 import { PgcliResource } from './resources/pgcli/pgcli.js';
@@ -97,6 +98,7 @@ runPlugin(Plugin.create(
     new Pip(),
     new PipSync(),
     new MacportsResource(),
+    new MacosSettingsResource(),
     new Npm(),
     new NpmLoginResource(),
     new DockerResource(),
