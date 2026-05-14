@@ -123,31 +123,36 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
         example2: exampleNonAppleKeyboard,
       },
       parameterSettings: {
-        mouse: { canModify: true },
-        keyboard: { canModify: true },
-        trackpad: { canModify: true },
-        dock: { canModify: true },
+        mouse: { type: 'object', canModify: true },
+        keyboard: { type: 'object', canModify: true },
+        trackpad: { type: 'object', canModify: true },
+        dock: { type: 'object', canModify: true },
       },
     };
   }
 
   override async refresh(parameters: Partial<MacosSettingsConfig>): Promise<Partial<MacosSettingsConfig> | null> {
     const result: Partial<MacosSettingsConfig> = {};
+    let anyFound = false;
 
     if (parameters.mouse) {
-      result.mouse = await this.readMouseSettings(parameters.mouse);
+      const mouse = await this.readMouseSettings(parameters.mouse);
+      if (mouse !== null) { result.mouse = mouse; anyFound = true; }
     }
     if (parameters.keyboard) {
-      result.keyboard = await this.readKeyboardSettings(parameters.keyboard);
+      const keyboard = await this.readKeyboardSettings(parameters.keyboard);
+      if (keyboard !== null) { result.keyboard = keyboard; anyFound = true; }
     }
     if (parameters.trackpad) {
-      result.trackpad = await this.readTrackpadSettings(parameters.trackpad);
+      const trackpad = await this.readTrackpadSettings(parameters.trackpad);
+      if (trackpad !== null) { result.trackpad = trackpad; anyFound = true; }
     }
     if (parameters.dock) {
-      result.dock = await this.readDockSettings(parameters.dock);
+      const dock = await this.readDockSettings(parameters.dock);
+      if (dock !== null) { result.dock = dock; anyFound = true; }
     }
 
-    return result;
+    return anyFound ? result : null;
   }
 
   override async create(plan: CreatePlan<MacosSettingsConfig>): Promise<void> {
@@ -207,22 +212,25 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
 
   // ---- Mouse ----
 
-  private async readMouseSettings(desired: MouseConfig): Promise<MouseConfig> {
+  private async readMouseSettings(desired: MouseConfig): Promise<MouseConfig | null> {
     const result: MouseConfig = {};
+    let anyFound = false;
 
     if ('naturalScrolling' in desired) {
-      result.naturalScrolling = await this.readBool('NSGlobalDomain', 'com.apple.swipescrolldirection') ?? true;
+      const v = await this.readBool('NSGlobalDomain', 'com.apple.swipescrolldirection');
+      if (v !== null) { result.naturalScrolling = v; anyFound = true; }
     }
     if ('acceleration' in desired) {
-      const linear = await this.readBool('NSGlobalDomain', 'com.apple.mouse.linear') ?? false;
+      const linear = await this.readBool('NSGlobalDomain', 'com.apple.mouse.linear');
       // com.apple.mouse.linear=true means acceleration is DISABLED; invert for user-friendly name
-      result.acceleration = !linear;
+      if (linear !== null) { result.acceleration = !linear; anyFound = true; }
     }
     if ('speed' in desired) {
-      result.speed = await this.readFloat('NSGlobalDomain', 'com.apple.mouse.scaling') ?? 1.5;
+      const v = await this.readFloat('NSGlobalDomain', 'com.apple.mouse.scaling');
+      if (v !== null) { result.speed = v; anyFound = true; }
     }
 
-    return result;
+    return anyFound ? result : null;
   }
 
   private async applyMouseSettings(settings: MouseConfig): Promise<void> {
@@ -256,28 +264,33 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
 
   // ---- Keyboard ----
 
-  private async readKeyboardSettings(desired: KeyboardConfig): Promise<KeyboardConfig> {
+  private async readKeyboardSettings(desired: KeyboardConfig): Promise<KeyboardConfig | null> {
     const result: KeyboardConfig = {};
+    let anyFound = false;
 
     if ('keyRepeat' in desired) {
-      result.keyRepeat = await this.readInt('NSGlobalDomain', 'KeyRepeat') ?? 6;
+      const v = await this.readInt('NSGlobalDomain', 'KeyRepeat');
+      if (v !== null) { result.keyRepeat = v; anyFound = true; }
     }
     if ('initialKeyRepeat' in desired) {
-      result.initialKeyRepeat = await this.readInt('NSGlobalDomain', 'InitialKeyRepeat') ?? 68;
+      const v = await this.readInt('NSGlobalDomain', 'InitialKeyRepeat');
+      if (v !== null) { result.initialKeyRepeat = v; anyFound = true; }
     }
     if ('pressAndHold' in desired) {
-      result.pressAndHold = await this.readBool('NSGlobalDomain', 'ApplePressAndHoldEnabled') ?? true;
+      const v = await this.readBool('NSGlobalDomain', 'ApplePressAndHoldEnabled');
+      if (v !== null) { result.pressAndHold = v; anyFound = true; }
     }
     if ('fnKeysAsStandardKeys' in desired) {
-      result.fnKeysAsStandardKeys = await this.readBool('NSGlobalDomain', 'com.apple.keyboard.fnState') ?? false;
+      const v = await this.readBool('NSGlobalDomain', 'com.apple.keyboard.fnState');
+      if (v !== null) { result.fnKeysAsStandardKeys = v; anyFound = true; }
     }
     if ('keyboardNavigation' in desired) {
-      const val = await this.readInt('NSGlobalDomain', 'AppleKeyboardUIMode') ?? 0;
+      const v = await this.readInt('NSGlobalDomain', 'AppleKeyboardUIMode');
       // AppleKeyboardUIMode: 0=disabled, 2=enabled
-      result.keyboardNavigation = val === 2;
+      if (v !== null) { result.keyboardNavigation = v === 2; anyFound = true; }
     }
 
-    return result;
+    return anyFound ? result : null;
   }
 
   private async applyKeyboardSettings(settings: KeyboardConfig): Promise<void> {
@@ -323,14 +336,16 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
 
   // ---- Trackpad ----
 
-  private async readTrackpadSettings(desired: TrackpadConfig): Promise<TrackpadConfig> {
+  private async readTrackpadSettings(desired: TrackpadConfig): Promise<TrackpadConfig | null> {
     const result: TrackpadConfig = {};
+    let anyFound = false;
 
     if ('speed' in desired) {
-      result.speed = await this.readFloat('NSGlobalDomain', 'com.apple.trackpad.scaling') ?? 1.5;
+      const v = await this.readFloat('NSGlobalDomain', 'com.apple.trackpad.scaling');
+      if (v !== null) { result.speed = v; anyFound = true; }
     }
 
-    return result;
+    return anyFound ? result : null;
   }
 
   private async applyTrackpadSettings(settings: TrackpadConfig): Promise<void> {
@@ -351,29 +366,36 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
 
   // ---- Dock ----
 
-  private async readDockSettings(desired: DockConfig): Promise<DockConfig> {
+  private async readDockSettings(desired: DockConfig): Promise<DockConfig | null> {
     const result: DockConfig = {};
+    let anyFound = false;
 
     if ('position' in desired) {
-      result.position = (await this.readString('com.apple.dock', 'orientation') ?? 'bottom') as DockConfig['position'];
+      const v = await this.readString('com.apple.dock', 'orientation');
+      if (v !== null) { result.position = v as DockConfig['position']; anyFound = true; }
     }
     if ('iconSize' in desired) {
-      result.iconSize = await this.readInt('com.apple.dock', 'tilesize') ?? 48;
+      const v = await this.readInt('com.apple.dock', 'tilesize');
+      if (v !== null) { result.iconSize = v; anyFound = true; }
     }
     if ('autohide' in desired) {
-      result.autohide = await this.readBool('com.apple.dock', 'autohide') ?? false;
+      const v = await this.readBool('com.apple.dock', 'autohide');
+      if (v !== null) { result.autohide = v; anyFound = true; }
     }
     if ('autohideDelay' in desired) {
-      result.autohideDelay = await this.readFloat('com.apple.dock', 'autohide-delay') ?? 0.2;
+      const v = await this.readFloat('com.apple.dock', 'autohide-delay');
+      if (v !== null) { result.autohideDelay = v; anyFound = true; }
     }
     if ('showRecents' in desired) {
-      result.showRecents = await this.readBool('com.apple.dock', 'show-recents') ?? true;
+      const v = await this.readBool('com.apple.dock', 'show-recents');
+      if (v !== null) { result.showRecents = v; anyFound = true; }
     }
     if ('minimizeEffect' in desired) {
-      result.minimizeEffect = (await this.readString('com.apple.dock', 'mineffect') ?? 'genie') as DockConfig['minimizeEffect'];
+      const v = await this.readString('com.apple.dock', 'mineffect');
+      if (v !== null) { result.minimizeEffect = v as DockConfig['minimizeEffect']; anyFound = true; }
     }
 
-    return result;
+    return anyFound ? result : null;
   }
 
   private async applyDockSettings(settings: DockConfig): Promise<void> {
