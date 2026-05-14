@@ -82,9 +82,10 @@ describe('macos-settings resource integration tests', { skip: !Utils.isMacOS() }
       validateDestroy: async () => {
         // After destroy, keys should be deleted — reads will fail or return defaults
         const { data: tilesize } = await testSpawn('defaults read com.apple.dock tilesize');
-        const parsed = parseInt(tilesize.trim(), 10);
-        // Either deleted (NaN) or reset to system default (48)
-        expect(isNaN(parsed) || parsed === 48).toBe(true);
+        const val = tilesize.trim();
+        const parsed = parseInt(val, 10);
+        // Either deleted (error output or NaN) or reset to system default (48)
+        expect(val.includes('does not exist') || isNaN(parsed) || parsed === 48).toBe(true);
       },
     });
   });
@@ -129,8 +130,10 @@ describe('macos-settings resource integration tests', { skip: !Utils.isMacOS() }
       },
       validateDestroy: async () => {
         const { data: keyRepeat } = await testSpawn('defaults read NSGlobalDomain KeyRepeat');
-        const parsed = parseInt(keyRepeat.trim(), 10);
-        expect(isNaN(parsed) || parsed === 6).toBe(true);
+        const val = keyRepeat.trim();
+        const parsed = parseInt(val, 10);
+        // Either deleted (error output or NaN) or reset to system default (6)
+        expect(val.includes('does not exist') || isNaN(parsed) || parsed === 6).toBe(true);
       },
     });
   });
