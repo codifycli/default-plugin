@@ -3,21 +3,37 @@ title: vscode
 description: A reference page for the vscode resource
 ---
 
-The vscode resource reference. This resource installs `vscode` to your system. Vscode is a popular
-lightweight code editor developed by Microsoft. Vscode supports many coding languages via plugins.
+The vscode resource reference. This resource installs `vscode` to your system and manages extensions
+and editor settings. Vscode is a popular lightweight code editor developed by Microsoft.
 For more information on Vscode [see here](https://code.visualstudio.com)
 
 ## Parameters:
 
-- **directory**: *(string)* A custom directory to install the vscode application into. The default is
-`$HOME/Applications/`.
+- **directory**: *(string)* A custom directory to install the vscode application into. Defaults to
+`/Applications` on macOS and `$HOME/.local/bin` on Linux.
+
+- **extensions**: *(string[])* A list of VS Code extension IDs to install (e.g. `"ms-python.python"`).
+Extensions are managed statefully — Codify will install missing extensions and uninstall ones removed
+from the list.
+
+- **settings**: *(object)* Key-value pairs to merge into `settings.json`. On apply, the declared keys
+are written to the user settings file. On destroy, only the declared keys are removed.
 
 ## Example usage:
 
 ```json title="codify.jsonc"
 [
   {
-    "type":  "vscode"
+    "type": "vscode",
+    "extensions": [
+      "ms-python.python",
+      "ms-python.vscode-pylance",
+      "eamodio.gitlens"
+    ],
+    "settings": {
+      "editor.fontSize": 14,
+      "editor.formatOnSave": true
+    }
   }
 ]
 ```

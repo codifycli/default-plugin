@@ -1,48 +1,101 @@
 import {
   CreatePlan,
   DestroyPlan,
+  ExampleConfig,
   FileUtils,
-  getPty,
+  ModifyPlan,
+  ParameterChange,
   Resource,
   ResourceSettings,
-  Utils
+  Utils,
+  getPty,
+  z,
 } from '@codifycli/plugin-core';
-import { OS, ResourceConfig } from '@codifycli/schemas';
+import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { SpawnStatus } from '../../utils/codify-spawn.js';
-import Schema from './vscode-schema.json';
+import { ExtensionsParameter } from './extensions-parameter.js';
 
 const VSCODE_APPLICATION_NAME = 'Visual Studio Code.app';
-
 const DOWNLOAD_URL = (platform: string) => `https://update.code.visualstudio.com/latest/${platform}/stable`;
 
-export interface VscodeConfig extends ResourceConfig {
-  directory: string;
-}
+const schema = z.object({
+  directory: z
+    .string()
+    .describe('The directory to install VSCode into. Defaults to /Applications on macOS.')
+    .optional(),
+  extensions: z
+    .array(z.string())
+    .describe('VS Code extensions to install, e.g. ["ms-python.python", "eamodio.gitlens"].')
+    .optional(),
+  settings: z
+    .record(z.string(), z.unknown())
+    .describe('VS Code settings to merge into settings.json.')
+    .optional(),
+});
+
+export type VscodeConfig = z.infer<typeof schema>;
+
+const defaultConfig: Partial<VscodeConfig> = {
+  extensions: [],
+};
+
+const examplePython: ExampleConfig = {
+  title: 'Python development setup',
+  description: 'Install VS Code with Python, Pylance, and GitLens extensions and common editor settings.',
+  configs: [{
+    type: 'vscode',
+    extensions: ['ms-python.python', 'ms-python.vscode-pylance', 'eamodio.gitlens'],
+    settings: { 'editor.fontSize': 14, 'editor.formatOnSave': true },
+  }],
+};
+
+const exampleCustomEditor: ExampleConfig = {
+  title: 'VS Code with custom editor settings',
+  description: 'Install VS Code with Vim keybindings, GitHub Copilot, and a custom editor font.',
+  configs: [{
+    type: 'vscode',
+    extensions: ['vscodevim.vim', 'github.copilot'],
+    settings: {
+      'editor.fontFamily': 'JetBrains Mono',
+      'editor.fontSize': 15,
+      'editor.tabSize': 2,
+      'editor.formatOnSave': true,
+    },
+  }],
+};
 
 export class VscodeResource extends Resource<VscodeConfig> {
   getSettings(): ResourceSettings<VscodeConfig> {
     return {
       id: 'vscode',
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
+      defaultConfig,
+      exampleConfigs: {
+        example1: examplePython,
+        example2: exampleCustomEditor,
+      },
       parameterSettings: {
-        directory: { type: 'directory', default: Utils.isMacOS() ? '/Applications' : path.join(os.homedir(), '.local', 'bin') }
+        directory: {
+          type: 'directory',
+          default: Utils.isMacOS() ? '/Applications' : path.join(os.homedir(), '.local', 'bin'),
+        },
+        extensions: { type: 'stateful', definition: new ExtensionsParameter(), order: 1 },
+        settings: { canModify: true },
       },
     };
   }
 
   override async refresh(parameters: Partial<VscodeConfig>): Promise<Partial<VscodeConfig> | null> {
     const directory = parameters.directory!;
-
     const isInstalled = await this.isVscodeInstalled(directory);
     if (!isInstalled) {
       return null;
     }
-
     return parameters;
   }
 
@@ -54,17 +107,30 @@ export class VscodeResource extends Resource<VscodeConfig> {
     } else {
       throw new Error('Unsupported operating system');
     }
+
+    if (plan.desiredConfig.settings) {
+      await this.applySettings(plan.desiredConfig.settings as Record<string, unknown>);
+    }
+  }
+
+  override async modify(pc: ParameterChange<VscodeConfig>, _plan: ModifyPlan<VscodeConfig>): Promise<void> {
+    if (pc.name === 'settings' && pc.newValue) {
+      await this.applySettings(pc.newValue as Record<string, unknown>);
+    }
   }
 
   override async destroy(plan: DestroyPlan<VscodeConfig>): Promise<void> {
     const $ = getPty();
-    const { directory } = plan.currentConfig;
+    const { directory, settings } = plan.currentConfig;
+
+    if (settings) {
+      await this.removeSettings(Object.keys(settings as Record<string, unknown>));
+    }
 
     if (Utils.isMacOS()) {
-      const location = path.join(directory, `"${VSCODE_APPLICATION_NAME}"`);
+      const location = path.join(directory!, `"${VSCODE_APPLICATION_NAME}"`);
       await $.spawn(`rm -rf ${location}`);
     } else if (Utils.isLinux()) {
-
       if (Utils.isDebianBased()) {
         await $.spawnSafe('apt-get remove code -y', { requiresRoot: true });
       } else if (Utils.isRedhatBased()) {
@@ -73,7 +139,6 @@ export class VscodeResource extends Resource<VscodeConfig> {
         throw new Error('Unsupported Linux distribution. Only Debian-based (Ubuntu, Debian, Mint) and RedHat-based (RHEL, CentOS) systems are supported.');
       }
 
-      // Remove user data and config
       await $.spawnSafe(`rm -rf ${path.join(os.homedir(), '.config/Code')}`);
       await $.spawnSafe(`rm -rf ${path.join(os.homedir(), '.vscode')}`);
     } else {
@@ -92,7 +157,6 @@ export class VscodeResource extends Resource<VscodeConfig> {
     }
 
     if (Utils.isLinux()) {
-      // Check if code command exists in PATH
       const $ = getPty();
       const result = await $.spawnSafe('which code');
       return result.status === SpawnStatus.SUCCESS;
@@ -103,15 +167,12 @@ export class VscodeResource extends Resource<VscodeConfig> {
 
   private async installMacOS(plan: CreatePlan<VscodeConfig>): Promise<void> {
     const $ = getPty();
-    // Create a temporary tmp dir
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'vscode-'));
 
     try {
-      // Download vscode
       await $.spawn(`curl -H "user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.182 Safari/537.36" -SL "${DOWNLOAD_URL('darwin-universal')}" -o vscode.zip`, { cwd: temporaryDir });
       await $.spawn('unzip -q vscode.zip', { cwd: temporaryDir });
 
-      // Move VSCode to the applications folder
       const { directory } = plan.desiredConfig;
       await $.spawn(`mv "${VSCODE_APPLICATION_NAME}" ${directory}`, { cwd: temporaryDir });
     } finally {
@@ -120,11 +181,7 @@ export class VscodeResource extends Resource<VscodeConfig> {
   }
 
   private async installLinux(_plan: CreatePlan<VscodeConfig>): Promise<void> {
-    console.log('Installing VSCode on Linux...');
-
     const $ = getPty();
-
-    // Detect distribution and architecture
     const isArm = await Utils.isArmArch();
 
     if (Utils.isDebianBased()) {
@@ -134,7 +191,6 @@ export class VscodeResource extends Resource<VscodeConfig> {
 
       try {
         await FileUtils.downloadFile(downloadLink, vscodeDebPath);
-
         await $.spawn('debconf-set-selections <<< "code code/add-microsoft-repo boolean true"', { requiresRoot: true });
         await $.spawn('apt-get install ./vscode.deb -y', { cwd: tmpDir, requiresRoot: true, env: { DEBIAN_FRONTEND: 'noninteractive', NEEDRESTART_MODE: 'a' } });
       } finally {
@@ -152,5 +208,35 @@ export class VscodeResource extends Resource<VscodeConfig> {
     }
 
     throw new Error('Unsupported Linux distribution. Only Debian-based (Ubuntu, Debian, Mint) and RedHat-based (RHEL, CentOS) systems are supported.');
+  }
+
+  private getSettingsPath(): string {
+    return Utils.isMacOS()
+      ? path.join(os.homedir(), 'Library', 'Application Support', 'Code', 'User', 'settings.json')
+      : path.join(os.homedir(), '.config', 'Code', 'User', 'settings.json');
+  }
+
+  private async applySettings(settings: Record<string, unknown>): Promise<void> {
+    const filePath = this.getSettingsPath();
+    let existing: Record<string, unknown> = {};
+    try {
+      const content = await fs.readFile(filePath, 'utf8');
+      existing = JSON.parse(content);
+    } catch { /* file may not exist yet */ }
+    const merged = { ...existing, ...settings };
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify(merged, null, 2));
+  }
+
+  private async removeSettings(keys: string[]): Promise<void> {
+    const filePath = this.getSettingsPath();
+    try {
+      const content = await fs.readFile(filePath, 'utf8');
+      const existing = JSON.parse(content) as Record<string, unknown>;
+      for (const key of keys) {
+        delete existing[key];
+      }
+      await fs.writeFile(filePath, JSON.stringify(existing, null, 2));
+    } catch { /* nothing to do if file doesn't exist */ }
   }
 }
