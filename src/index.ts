@@ -50,6 +50,7 @@ import { SshKeyResource } from './resources/ssh/ssh-key.js';
 import { TartResource } from './resources/tart/tart.js';
 import { TartVmResource } from './resources/tart/tart-vm.js';
 import { TerraformResource } from './resources/terraform/terraform.js';
+import { CursorResource } from './resources/cursor/cursor.js';
 import { VscodeResource } from './resources/vscode/vscode.js';
 import { XcodeToolsResource } from './resources/xcode-tools/xcode-tools.js';
 import { YumResource } from './resources/yum/yum.js';
@@ -78,6 +79,7 @@ runPlugin(Plugin.create(
     new JenvResource(),
     new GoenvResource(),
     new PgcliResource(),
+    new CursorResource(),
     new VscodeResource(),
     new GitRepositoryResource(),
     new GitRepositoriesResource(),
