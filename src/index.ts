@@ -51,6 +51,7 @@ import { TartResource } from './resources/tart/tart.js';
 import { TartVmResource } from './resources/tart/tart-vm.js';
 import { TerraformResource } from './resources/terraform/terraform.js';
 import { VscodeResource } from './resources/vscode/vscode.js';
+import { WebStormResource } from './resources/webstorm/webstorm.js';
 import { XcodeToolsResource } from './resources/xcode-tools/xcode-tools.js';
 import { YumResource } from './resources/yum/yum.js';
 
@@ -79,6 +80,7 @@ runPlugin(Plugin.create(
     new GoenvResource(),
     new PgcliResource(),
     new VscodeResource(),
+    new WebStormResource(),
     new GitRepositoryResource(),
     new GitRepositoriesResource(),
     new AndroidStudioResource(),
