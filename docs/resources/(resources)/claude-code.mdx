@@ -1,0 +1,99 @@
+---
+title: claude-code
+description: A reference page for the claude-code resource
+---
+
+The claude-code resource installs [Claude Code](https://code.claude.com) — Anthropic's agentic coding assistant — and manages its configuration. It handles installation via the official installer script and gives you declarative control over settings, MCP servers, and global instructions.
+
+## Parameters
+
+- **globalClaudeMd**: *(string, optional)* Content to write to `~/.claude/CLAUDE.md`. Claude Code reads this file at the start of every session, making it ideal for global coding standards, preferred libraries, and review checklists that apply to all projects.
+
+- **settings**: *(object, optional)* Key-value pairs to merge into `~/.claude/settings.json`. On apply, the declared keys are written; on destroy, only the declared keys are removed. Common settings include:
+  - `model` — override the default Claude model
+  - `effortLevel` — `"low"` | `"medium"` | `"high"` | `"xhigh"`
+  - `editorMode` — `"normal"` | `"vim"`
+  - `permissions` — `{ allow: [...], deny: [...] }`
+  - `env` — environment variables injected into every session
+  - `hooks` — lifecycle hooks (PreToolUse, PostToolUse, SessionStart, etc.)
+  - `autoMemoryEnabled` — enable/disable auto memory (default: `true`)
+
+- **mcpServers**: *(array, optional)* MCP servers to register globally in `~/.claude.json`. Each entry requires a `name` and `type`, plus transport-specific fields:
+  - **stdio**: `{ name, type: "stdio", command, args?, env? }` — local process server
+  - **http**: `{ name, type: "http", url, headers? }` — remote HTTP (streamable-http) server
+  - **sse**: `{ name, type: "sse", url, headers? }` — remote SSE server (deprecated; prefer http)
+
+## Example usage
+
+### Install Claude Code with custom settings
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "claude-code",
+    "settings": {
+      "model": "claude-opus-4-7",
+      "effortLevel": "high",
+      "editorMode": "vim",
+      "permissions": {
+        "allow": ["Bash(npm run *)", "Bash(git *)"],
+        "deny": ["Bash(rm -rf *)"]
+      }
+    }
+  }
+]
+```
+
+### Claude Code with global instructions and an MCP server
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "claude-code",
+    "globalClaudeMd": "# Global Instructions\n\nAlways follow security best practices.\nPrefer TypeScript over JavaScript.",
+    "mcpServers": [
+      {
+        "name": "filesystem",
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+      }
+    ]
+  }
+]
+```
+
+### Claude Code with hooks
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "claude-code",
+    "settings": {
+      "hooks": {
+        "PostToolUse": [
+          {
+            "matcher": "Edit|Write",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "npx",
+                "args": ["eslint", "--fix", "${tool_input.file_path}"]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+]
+```
+
+## Notes
+
+- Claude Code is installed via the official installer (`curl -fsSL https://claude.ai/install.sh | bash`) on both macOS and Linux. The binary is placed at `~/.local/bin/claude`.
+- The installer adds `~/.local/bin` to your PATH via your shell RC file (`.bashrc` or `.zshrc`). This entry remains after destroy — remove it manually if you no longer want it.
+- The `settings` parameter merges only the declared keys. Existing settings not in your Codify config are left untouched.
+- The `globalClaudeMd` parameter manages the entire file. On destroy, the file is removed.
+- MCP servers are stored in `~/.claude.json` under the `mcpServers` key. Each server's `name` becomes its key in that object. Removing an MCP server from your config removes it from the file; other servers are untouched.
+- To see all available settings, run `claude config list` or visit the [settings reference](https://code.claude.com/docs/en/settings).
