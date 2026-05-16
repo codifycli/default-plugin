@@ -14,9 +14,10 @@ import mod9 from '../../../src/resources/javascript/nvm/completions/nvm.nodeVers
 import mod10 from '../../../src/resources/javascript/npm/completions/npm.install.js';
 import mod11 from '../../../src/resources/homebrew/completions/homebrew.formulae.js';
 import mod12 from '../../../src/resources/homebrew/completions/homebrew.casks.js';
-import mod13 from '../../../src/resources/asdf/completions/asdf.plugins.js';
-import mod14 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
-import mod15 from '../../../src/resources/apt/completions/apt.install.js';
+import mod13 from '../../../src/resources/cursor/completions/cursor.extensions.js';
+import mod14 from '../../../src/resources/asdf/completions/asdf.plugins.js';
+import mod15 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
+import mod16 from '../../../src/resources/apt/completions/apt.install.js';
 
 export interface CompletionModule {
   resourceType: string
@@ -38,7 +39,8 @@ export const completionModules: CompletionModule[] = [
   { resourceType: 'npm', parameterPath: '/install', fetch: mod10 },
   { resourceType: 'homebrew', parameterPath: '/formulae', fetch: mod11 },
   { resourceType: 'homebrew', parameterPath: '/casks', fetch: mod12 },
-  { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod13 },
-  { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod14 },
-  { resourceType: 'apt', parameterPath: '/install', fetch: mod15 },
+  { resourceType: 'cursor', parameterPath: '/extensions', fetch: mod13 },
+  { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod14 },
+  { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod15 },
+  { resourceType: 'apt', parameterPath: '/install', fetch: mod16 },
 ]
