@@ -50,6 +50,8 @@ const defaultPlugin = await client.from('registry_plugins').upsert({
 
 const { id: pluginId, name: pluginName } = defaultPlugin.data![0];
 
+const CodifySchema = require('../dist/schemas.json');
+
 console.log('Upserting plugin version');
 const versionRow = await client.from('registry_plugin_versions').upsert({
   plugin_id: pluginId,
@@ -57,42 +59,46 @@ const versionRow = await client.from('registry_plugin_versions').upsert({
   bundle_url: `https://plugins.codifycli.com/${name}/${version}/index.js`,
   min_cli_version: PluginManifest.minSupportedCliVersion,
   published_at: new Date().toISOString(),
+  json_schema: CodifySchema,
 }, { onConflict: 'plugin_id,version' })
   .select()
   .throwOnError();
 
-if (!isBeta) {
-  await uploadResources();
+await uploadResources(isBeta);
 
+if (!isBeta) {
   // Build and deploy completions as well.
   console.log('Deploying completions...')
   cp.spawnSync('source ~/.zshrc; npm run deploy:completions' , { shell: 'zsh', stdio: 'inherit' })
 }
 
-async function uploadResources() {
-  const CodifySchema = require('../dist/schemas.json');
+async function uploadResources(prerelease: boolean) {
   const Metadata: Array<Record<string, any>> = require('../dist/metadata.json');
 
   const metadataByType = new Map(Metadata.map((m) => [m.type, m]));
 
   const { id: versionId } = versionRow.data![0];
 
-  console.log('Updating latest version pointer');
-  await client.from('registry_plugins')
-    .update({ latest_version: version, latest_version_id: versionId })
-    .eq('id', pluginId)
-    .throwOnError();
+  if (!prerelease) {
+    console.log('Updating latest version pointer');
+    await client.from('registry_plugins')
+      .update({ latest_version: version, latest_version_id: versionId })
+      .eq('id', pluginId)
+      .throwOnError();
+  }
+
   const resources = CodifySchema.items.oneOf;
 
   for (const resource of resources) {
     const type = resource.properties.type.const;
     const metadata = metadataByType.get(type);
 
-    console.log(`Adding resource ${type}`)
+    console.log(`Adding resource ${type} (prerelease=${prerelease})`)
     const resourceRow = await client.from('registry_resources').upsert({
       type,
       plugin_id: pluginId,
       plugin_name: pluginName,
+      prerelease,
       schema: JSON.stringify(resource),
       documentation_url: resource.$comment,
       allow_multiple: metadata?.allowMultiple ?? false,
@@ -100,7 +106,7 @@ async function uploadResources() {
       default_config: metadata?.defaultConfig ? JSON.stringify(metadata.defaultConfig) : null,
       example_config_1: metadata?.exampleConfigs?.example1 ? JSON.stringify(metadata.exampleConfigs.example1) : null,
       example_config_2: metadata?.exampleConfigs?.example2 ? JSON.stringify(metadata.exampleConfigs.example2) : null,
-    }, { onConflict: ['type', 'plugin_id'] })
+    }, { onConflict: 'type,plugin_id,prerelease' })
       .select()
       .throwOnError();
 
@@ -115,12 +121,13 @@ async function uploadResources() {
         type: (property as any).type,
         name: key,
         resource_id: resourceId,
+        prerelease,
         schema: property,
         is_sensitive: allSensitive || sensitiveParams.includes(key),
       }))
 
     await client.from('registry_resource_parameters')
-      .upsert(parameters, { onConflict: ['name', 'resource_id'] })
+      .upsert(parameters, { onConflict: 'name,resource_id,prerelease' })
       .throwOnError();
   }
 }
