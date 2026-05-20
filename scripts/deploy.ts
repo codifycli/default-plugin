@@ -60,13 +60,9 @@ const client = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!,
 );
 
-console.log('Adding default plugin');
+console.log('Upserting plugin');
 const defaultPlugin = await client.from('registry_plugins').upsert({
   name: 'default',
-  display_name: 'Default Plugin',
-  homepage: 'https://codifycli.com',
-  repository_url: 'https://github.com/codifycli/default-plugin',
-  license: 'ISC',
 }, { onConflict: 'name' })
   .select()
   .throwOnError();
@@ -100,12 +96,10 @@ async function uploadResources(prerelease: boolean) {
 
   const metadataByType = new Map(Metadata.map((m) => [m.type, m]));
 
-  const { id: versionId } = versionRow.data![0];
-
   if (!prerelease) {
     console.log('Updating latest version pointer');
     await client.from('registry_plugins')
-      .update({ latest_version: version, latest_version_id: versionId })
+      .update({ latest_version: version })
       .eq('id', pluginId)
       .throwOnError();
   }
