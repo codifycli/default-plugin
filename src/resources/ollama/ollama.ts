@@ -23,7 +23,7 @@ const schema = z
       )
       .optional(),
   })
-  .meta({ $comment: 'https://codifycli.com/docs/resources/ollama/ollama' })
+  
   .describe('Ollama resource for installing and managing the Ollama LLM runtime and its models');
 
 export type OllamaConfig = z.infer<typeof schema>;

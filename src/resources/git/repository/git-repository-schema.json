@@ -1,7 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/git-repository.json",
-  "$comment": "https://codifycli.com/docs/resources/git/git-repository/",
   "title": "Git-repository resource",
   "description": "Clone a single Git repository. Specify either an exact destination directory or a parent directory to clone into.",
   "type": "object",

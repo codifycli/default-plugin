@@ -58,7 +58,7 @@ const schema = z
       .optional()
       .describe('Pause syncing this folder without removing it (default: false)'),
   })
-  .meta({ $comment: 'https://codifycli.com/docs/resources/syncthing/syncthing-folder' })
+  
   .describe('A Syncthing shared folder');
 
 export type SyncthingFolderConfig = z.infer<typeof schema>;

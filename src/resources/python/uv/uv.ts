@@ -34,7 +34,7 @@ const schema = z.object({
     .describe('Global CLI tools to install via uv tool install (e.g. ["ruff", "black"])')
     .optional(),
 })
-  .meta({ $comment: 'https://codifycli.com/docs/resources/uv' })
+  
   .describe('uv resource — fast Python package and project manager from Astral');
 
 export type UvConfig = z.infer<typeof schema>;

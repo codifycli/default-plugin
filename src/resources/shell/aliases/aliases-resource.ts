@@ -35,7 +35,7 @@ export const schema = z.object({
     .describe('Aliases to create')
     .optional(),
   declarationsOnly: z.boolean().optional().describe('Only plan and manage explicitly declared aliases found in shell startup scripts.'),
-}).meta({ $comment: 'https://codifycli.com/docs/resources/shell/aliases' })
+})
   .describe('Aliases resource. Can be used to manage multiple aliases');
 
 export type AliasesConfig = z.infer<typeof schema>;

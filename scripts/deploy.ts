@@ -1,9 +1,32 @@
 import * as cp from 'node:child_process';
+import { readdirSync } from 'node:fs';
 import path from 'node:path';
 import * as url from 'node:url';
 import { createRequire } from 'node:module';
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js';
+
+const DOCS_BASE_URL = 'https://codifycli.com';
+const DOCS_DIR = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', 'docs', 'resources', '(resources)');
+
+function buildDocUrlMap(dir: string, urlPrefix: string, knownTypes?: Set<string>): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const entry of readdirSync(dir, { withFileTypes: true })) {
+    if (entry.isDirectory()) {
+      buildDocUrlMap(path.join(dir, entry.name), `${urlPrefix}/${entry.name}`, knownTypes)
+        .forEach((v, k) => map.set(k, v));
+    } else if (entry.name.endsWith('.mdx')) {
+      const type = entry.name.replace(/\.mdx$/, '');
+      if (knownTypes && !knownTypes.has(type)) {
+        throw new Error(`Doc file "${entry.name}" does not match any known resource type. Check the filename.`);
+      }
+      map.set(type, `${DOCS_BASE_URL}${urlPrefix}/${type}`);
+    }
+  }
+  return map;
+}
+
+const docUrlMap = buildDocUrlMap(DOCS_DIR, '/docs/resources');
 
 const require = createRequire(import.meta.url);
 
@@ -89,6 +112,9 @@ async function uploadResources(prerelease: boolean) {
 
   const resources = CodifySchema.items.oneOf;
 
+  const knownTypes = new Set<string>(resources.map((r: any) => r.properties.type.const));
+  buildDocUrlMap(DOCS_DIR, '/docs/resources', knownTypes);
+
   for (const resource of resources) {
     const type = resource.properties.type.const;
     const metadata = metadataByType.get(type);
@@ -100,7 +126,7 @@ async function uploadResources(prerelease: boolean) {
       plugin_name: pluginName,
       prerelease,
       schema: JSON.stringify(resource),
-      documentation_url: resource.$comment,
+      documentation_url: docUrlMap.get(type) ?? null,
       allow_multiple: metadata?.allowMultiple ?? false,
       os: metadata?.operatingSystems ?? [],
       default_config: metadata?.defaultConfig ? JSON.stringify(metadata.defaultConfig) : null,

@@ -29,7 +29,7 @@ export const schema = z.object({
     .boolean()
     .optional()
     .describe('Only manage environment variables explicitly declared in shell startup scripts. Defaults to true.'),
-}).meta({ $comment: 'https://codifycli.com/docs/resources/shell/env-vars' })
+})
   .describe('Manages multiple shell environment variables by writing export declarations to the shell startup script.');
 
 export type EnvVarsConfig = z.infer<typeof schema>;

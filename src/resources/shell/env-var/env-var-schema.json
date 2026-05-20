@@ -1,7 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema",
   "$id": "https://www.codifycli.com/env-var.json",
-  "$comment": "https://codifycli.com/docs/resources/shell/env-var/",
   "title": "Env-var resource",
   "description": "Manages a single shell environment variable by writing an export declaration to the shell startup script.",
   "type": "object",

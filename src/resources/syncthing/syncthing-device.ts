@@ -53,7 +53,7 @@ const schema = z
       .optional()
       .describe('Per-device incoming rate limit in KiB/s; 0 = unlimited'),
   })
-  .meta({ $comment: 'https://codifycli.com/docs/resources/syncthing/syncthing-device' })
+  
   .describe('A remote Syncthing peer device');
 
 export type SyncthingDeviceConfig = z.infer<typeof schema>;

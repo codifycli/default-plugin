@@ -71,7 +71,7 @@ const schema = z
       .optional()
       .describe('Usage-reporting consent level; set -1 to opt out'),
   })
-  .meta({ $comment: 'https://codifycli.com/docs/resources/syncthing/syncthing' })
+  
   .describe('Syncthing continuous file-synchronisation daemon');
 
 export type SyncthingConfig = z.infer<typeof schema>;
