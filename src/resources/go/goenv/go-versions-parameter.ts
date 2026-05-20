@@ -11,7 +11,7 @@ export class GoVersionsParameter extends ArrayStatefulParameter<GoenvConfig, str
 
   override async addItem(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`goenv install ${version}`, { interactive: true });
+    await $.spawn(`goenv install --skip-existing ${version}`, { interactive: true });
   }
 
   override async removeItem(version: string): Promise<void> {
