@@ -1,0 +1,135 @@
+---
+title: macos-settings
+description: A reference page for the macos-settings resource
+---
+
+The macos-settings resource manages common macOS system preferences using the built-in `defaults` command. It covers mouse, keyboard, trackpad, and Dock settings — everything you need to reproduce your preferred system configuration on a new Mac.
+
+## Parameters
+
+All sections and their sub-keys are optional. You only need to declare the settings you want to manage.
+
+### `mouse`
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `naturalScrolling` | boolean | `true` | Scroll content in the natural direction (content follows finger). When `false`, uses the traditional scroll direction. |
+| `acceleration` | boolean | `true` | Enable mouse acceleration. When `false`, the cursor moves at a fixed speed regardless of how fast the mouse is moved. |
+| `speed` | number (0–3) | `1.5` | Mouse tracking speed. Higher values make the cursor move farther per physical movement. |
+
+### `keyboard`
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `keyRepeat` | integer | `6` | Rate of key repeat while a key is held. Lower = faster (1 is fastest; 120 effectively disables repeat). |
+| `initialKeyRepeat` | integer | `68` | Delay before key repeat begins (in ticks). Lower = shorter delay (10 minimum). |
+| `pressAndHold` | boolean | `true` | When `true`, holding a key shows the accent character picker. When `false`, the key repeats instead. |
+| `fnKeysAsStandardKeys` | boolean | `false` | When `true`, the F1–F12 keys act as standard function keys; press Fn to trigger special actions (brightness, volume, etc.). |
+| `keyboardNavigation` | boolean | `false` | When `true`, enables Tab-based focus navigation in system dialogs (equivalent to "Keyboard navigation" in System Settings). |
+
+### `trackpad`
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `speed` | number (0–3) | `1.5` | Trackpad tracking speed. Higher values make the cursor move farther per swipe distance. |
+
+### `dock`
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `position` | `"left"` \| `"bottom"` \| `"right"` | `"bottom"` | Position of the Dock on screen. |
+| `iconSize` | integer (16–128) | `48` | Dock icon size in pixels. |
+| `autohide` | boolean | `false` | Automatically hide and show the Dock when the cursor moves near the screen edge. |
+| `autohideDelay` | number | `0.2` | Seconds to wait before showing the Dock when it is hidden. Set to `0` for instant reveal. |
+| `showRecents` | boolean | `true` | Show recently opened apps in a dedicated section of the Dock. |
+| `minimizeEffect` | `"genie"` \| `"scale"` \| `"suck"` | `"genie"` | Window minimize animation style. |
+
+## macOS defaults mapping
+
+The table below shows the underlying `defaults` key used for each friendly parameter name.
+
+| Section | Parameter | Domain | Key |
+|---------|-----------|--------|-----|
+| mouse | `naturalScrolling` | `NSGlobalDomain` | `com.apple.swipescrolldirection` |
+| mouse | `acceleration` | `NSGlobalDomain` | `com.apple.mouse.linear` (inverted) |
+| mouse | `speed` | `NSGlobalDomain` | `com.apple.mouse.scaling` |
+| keyboard | `keyRepeat` | `NSGlobalDomain` | `KeyRepeat` |
+| keyboard | `initialKeyRepeat` | `NSGlobalDomain` | `InitialKeyRepeat` |
+| keyboard | `pressAndHold` | `NSGlobalDomain` | `ApplePressAndHoldEnabled` |
+| keyboard | `fnKeysAsStandardKeys` | `NSGlobalDomain` | `com.apple.keyboard.fnState` |
+| keyboard | `keyboardNavigation` | `NSGlobalDomain` | `AppleKeyboardUIMode` (0/2) |
+| trackpad | `speed` | `NSGlobalDomain` | `com.apple.trackpad.scaling` |
+| dock | `position` | `com.apple.dock` | `orientation` |
+| dock | `iconSize` | `com.apple.dock` | `tilesize` |
+| dock | `autohide` | `com.apple.dock` | `autohide` |
+| dock | `autohideDelay` | `com.apple.dock` | `autohide-delay` |
+| dock | `showRecents` | `com.apple.dock` | `show-recents` |
+| dock | `minimizeEffect` | `com.apple.dock` | `mineffect` |
+
+## Example usage
+
+### Common macOS preferences
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "macos-settings",
+    "os": ["macOS"],
+    "mouse": {
+      "naturalScrolling": true
+    },
+    "keyboard": {
+      "keyRepeat": 2,
+      "initialKeyRepeat": 15,
+      "pressAndHold": false
+    },
+    "dock": {
+      "position": "left",
+      "iconSize": 36,
+      "autohide": true,
+      "showRecents": false
+    }
+  }
+]
+```
+
+### Non-Apple keyboard setup
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "macos-settings",
+    "os": ["macOS"],
+    "mouse": {
+      "naturalScrolling": false,
+      "acceleration": false
+    },
+    "keyboard": {
+      "fnKeysAsStandardKeys": true
+    }
+  }
+]
+```
+
+### Trackpad speed only
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "macos-settings",
+    "os": ["macOS"],
+    "trackpad": {
+      "speed": 2.5
+    }
+  }
+]
+```
+
+## Notes
+
+- This resource is **macOS only** and has no effect on Linux.
+- No software installation is required — `defaults` is a built-in macOS command.
+- Dock settings take effect immediately (the Dock is automatically restarted). Other settings typically take effect the next time you open an application or after logging out.
+- When the resource is removed from your configuration, all managed settings are reset to their macOS system defaults using `defaults delete`.
+- Changes to `fnKeysAsStandardKeys` may require a full system restart to take effect.
+- The `keyRepeat` and `initialKeyRepeat` values use macOS internal tick units, not milliseconds. Smaller values produce faster key repeat.
