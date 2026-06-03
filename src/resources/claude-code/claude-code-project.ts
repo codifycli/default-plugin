@@ -1,4 +1,5 @@
 import {
+  CodifyCliSender,
   CreatePlan,
   DestroyPlan,
   ExampleConfig,
@@ -15,7 +16,7 @@ import path from 'node:path';
 import { untildify } from '../../utils/untildify.js';
 import { McpServersParameter } from './mcp-servers-parameter.js';
 import { SettingsParameter } from './settings-parameter.js';
-import { mcpServerSchema, McpServer } from './claude-code.js';
+import { mcpServerSchema } from './claude-code.js';
 
 const schema = z
   .object({
@@ -28,7 +29,10 @@ const schema = z
     claudeMd: z
       .string()
       .optional()
-      .describe('Content to write to <directory>/.claude/CLAUDE.md.'),
+      .describe(
+        'Content for <directory>/.claude/CLAUDE.md. Accepts inline text, an https:// URL, ' +
+        'or a codify:// cloud URL (e.g. codify://documentId:fileId).',
+      ),
     settings: z
       .record(z.string(), z.unknown())
       .optional()
@@ -133,15 +137,21 @@ export class ClaudeCodeProjectResource extends Resource<ClaudeCodeProjectConfig>
       return null;
     }
 
-    // Start from parameters so setting:true fields (directory) are present in the result,
+    // Start from parameters so identifying fields (directory) are present in the result,
     // preventing the framework from re-planning a CREATE on every validation pass.
     const result: Partial<ClaudeCodeProjectConfig> = { ...parameters };
 
     if (parameters.claudeMd !== undefined) {
-      try {
-        result.claudeMd = await fs.readFile(resolveClaudeMdPath(parameters.directory), 'utf8');
-      } catch {
-        result.claudeMd = undefined;
+      if (isRemoteUrl(parameters.claudeMd)) {
+        // For remote URLs, keep the URL as-is so the framework compares URL vs URL.
+        // Change detection for remote content is done via hash on apply.
+        result.claudeMd = parameters.claudeMd;
+      } else {
+        try {
+          result.claudeMd = await fs.readFile(resolveClaudeMdPath(parameters.directory), 'utf8');
+        } catch {
+          result.claudeMd = undefined;
+        }
       }
     }
 
@@ -183,6 +193,39 @@ export class ClaudeCodeProjectResource extends Resource<ClaudeCodeProjectConfig>
   private async writeClaudeMd(content: string, directory: string): Promise<void> {
     const claudeDir = resolveClaudeDir(directory);
     await fs.mkdir(claudeDir, { recursive: true });
-    await fs.writeFile(resolveClaudeMdPath(directory), content, 'utf8');
+    const resolved = await resolveClaudeMdContent(content);
+    await fs.writeFile(resolveClaudeMdPath(directory), resolved, 'utf8');
   }
+}
+
+function isRemoteUrl(value: string): boolean {
+  return value.startsWith('https://') || value.startsWith('http://') || value.startsWith('codify://');
+}
+
+async function resolveClaudeMdContent(content: string): Promise<string> {
+  if (content.startsWith('codify://')) {
+    const regex = /codify:\/\/(.*):(.*)/;
+    const [, documentId, fileId] = regex.exec(content) ?? [];
+    if (!documentId || !fileId) {
+      throw new Error(`Invalid codify URL for claudeMd: ${content}`);
+    }
+    const credentials = await CodifyCliSender.getCodifyCliCredentials();
+    const response = await fetch(`https://api.codifycli.com/v1/documents/${documentId}/file/${fileId}`, {
+      headers: { Authorization: `Bearer ${credentials}` },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch claudeMd from ${content}: ${response.statusText}`);
+    }
+    return response.text();
+  }
+
+  if (content.startsWith('https://') || content.startsWith('http://')) {
+    const response = await fetch(content);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch claudeMd from ${content}: ${response.statusText}`);
+    }
+    return response.text();
+  }
+
+  return content;
 }

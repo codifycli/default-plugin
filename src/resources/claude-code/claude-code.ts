@@ -1,4 +1,5 @@
 import {
+  CodifyCliSender,
   CreatePlan,
   DestroyPlan,
   ExampleConfig,
@@ -56,8 +57,9 @@ const schema = z
       .string()
       .optional()
       .describe(
-        'Content to write to ~/.claude/CLAUDE.md. Claude Code reads this at the start of ' +
-        'every session, making it the ideal place for global coding standards and preferences.',
+        'Content for ~/.claude/CLAUDE.md. Accepts inline text, an https:// URL, or a ' +
+        'codify:// cloud URL (e.g. codify://documentId:fileId). Claude Code reads this at ' +
+        'the start of every session.',
       ),
     settings: z
       .record(z.string(), z.unknown())
@@ -149,10 +151,14 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
     const result: Partial<ClaudeCodeConfig> = {};
 
     if (parameters.globalClaudeMd !== undefined) {
-      try {
-        result.globalClaudeMd = await fs.readFile(CLAUDE_MD_PATH, 'utf8');
-      } catch {
-        result.globalClaudeMd = undefined;
+      if (isRemoteUrl(parameters.globalClaudeMd)) {
+        result.globalClaudeMd = parameters.globalClaudeMd;
+      } else {
+        try {
+          result.globalClaudeMd = await fs.readFile(CLAUDE_MD_PATH, 'utf8');
+        } catch {
+          result.globalClaudeMd = undefined;
+        }
       }
     }
 
@@ -202,6 +208,39 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
 
   private async writeClaudeMd(content: string): Promise<void> {
     await fs.mkdir(CLAUDE_DIR, { recursive: true });
-    await fs.writeFile(CLAUDE_MD_PATH, content, 'utf8');
+    const resolved = await resolveClaudeMdContent(content);
+    await fs.writeFile(CLAUDE_MD_PATH, resolved, 'utf8');
   }
+}
+
+function isRemoteUrl(value: string): boolean {
+  return value.startsWith('https://') || value.startsWith('http://') || value.startsWith('codify://');
+}
+
+async function resolveClaudeMdContent(content: string): Promise<string> {
+  if (content.startsWith('codify://')) {
+    const regex = /codify:\/\/(.*):(.*)/;
+    const [, documentId, fileId] = regex.exec(content) ?? [];
+    if (!documentId || !fileId) {
+      throw new Error(`Invalid codify URL for claudeMd: ${content}`);
+    }
+    const credentials = await CodifyCliSender.getCodifyCliCredentials();
+    const response = await fetch(`https://api.codifycli.com/v1/documents/${documentId}/file/${fileId}`, {
+      headers: { Authorization: `Bearer ${credentials}` },
+    });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch claudeMd from ${content}: ${response.statusText}`);
+    }
+    return response.text();
+  }
+
+  if (content.startsWith('https://') || content.startsWith('http://')) {
+    const response = await fetch(content);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch claudeMd from ${content}: ${response.statusText}`);
+    }
+    return response.text();
+  }
+
+  return content;
 }
