@@ -1,0 +1,119 @@
+---
+title: claude-code-project
+description: A reference page for the claude-code-project resource
+---
+
+The claude-code-project resource manages **per-project** Claude Code configuration. It writes project-scoped instructions, settings, and MCP servers under a specific directory — leaving global configuration untouched. Use it alongside the [`claude-code`](/docs/resources/claude-code/claude-code) resource, which handles installation.
+
+## Parameters
+
+- **directory**: *(string, required)* Path to the project directory. All configuration files are written relative to this path:
+  - `<directory>/.claude/CLAUDE.md`
+  - `<directory>/.claude/settings.json`
+  - `<directory>/.claude.json`
+
+- **claudeMd**: *(string, optional)* Content for `<directory>/.claude/CLAUDE.md`. Accepts inline text, an `https://` URL, or a `codify://documentId:fileId` cloud URL. Claude Code reads this at the start of every session within the project, making it ideal for project-specific conventions, preferred libraries, and review checklists.
+
+- **settings**: *(object, optional)* Key-value pairs to merge into `<directory>/.claude/settings.json`. On apply, the declared keys are written; on destroy, only the declared keys are removed. Supports the same keys as the global settings:
+  - `model` — override the default Claude model for this project
+  - `effortLevel` — `"low"` | `"medium"` | `"high"` | `"xhigh"`
+  - `editorMode` — `"normal"` | `"vim"`
+  - `permissions` — `{ allow: [...], deny: [...] }`
+  - `env` — environment variables injected into every session
+  - `hooks` — lifecycle hooks (PreToolUse, PostToolUse, SessionStart, etc.)
+
+- **mcpServers**: *(array, optional)* MCP servers to register for this project in `<directory>/.claude.json`. Each entry requires a `name` and `type`, plus transport-specific fields:
+  - **stdio**: `{ name, type: "stdio", command, args?, env? }` — local process server
+  - **http**: `{ name, type: "http", url, headers? }` — remote HTTP (streamable-http) server
+  - **sse**: `{ name, type: "sse", url, headers? }` — remote SSE server (deprecated; prefer http)
+
+## Example usage
+
+### Per-project instructions and permissions
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "claude-code-project",
+    "directory": "~/projects/my-api",
+    "claudeMd": "# Project Instructions\n\nThis is a Node.js API. Always use async/await.\nRun `npm test` before committing.",
+    "settings": {
+      "permissions": {
+        "allow": ["Bash(npm run *)", "Bash(git *)"],
+        "deny": ["Bash(rm -rf *)"]
+      }
+    }
+  }
+]
+```
+
+### Per-project instructions with an MCP server
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "claude-code-project",
+    "directory": "~/projects/my-api",
+    "claudeMd": "# Project Instructions\n\nAlways check types with `npm run typecheck` before submitting.",
+    "mcpServers": [
+      {
+        "name": "project-db",
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost/mydb"]
+      }
+    ]
+  }
+]
+```
+
+### Per-project CLAUDE.md from a remote URL
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "claude-code-project",
+    "directory": "~/projects/my-api",
+    "claudeMd": "codify://my-document-id:my-file-id"
+  }
+]
+```
+
+Or from a public HTTPS URL:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "claude-code-project",
+    "directory": "~/projects/my-api",
+    "claudeMd": "https://raw.githubusercontent.com/my-org/dotfiles/main/CLAUDE.md"
+  }
+]
+```
+
+### Global install + per-project config together
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "claude-code",
+    "settings": {
+      "model": "claude-opus-4-7"
+    }
+  },
+  {
+    "type": "claude-code-project",
+    "directory": "~/projects/my-api",
+    "claudeMd": "# My API\n\nNode.js + TypeScript. Run `npm test` before any commit."
+  }
+]
+```
+
+## Notes
+
+- The `claude-code` resource must be applied before `claude-code-project` (it declares a dependency automatically). If Claude Code is not installed, this resource will report as not present.
+- Multiple `claude-code-project` entries can coexist — each unique `directory` is a separate resource instance.
+- Destroying a `claude-code-project` resource removes only the per-project files (`CLAUDE.md`, the declared `settings` keys, and the declared `mcpServers`). The Claude Code binary and global configuration are left untouched.
+- The `settings` parameter merges only the declared keys. Existing project settings not in your Codify config are left untouched.
+- The `claudeMd` parameter manages the entire file. On destroy, the file is removed.
+- MCP servers are stored in `<directory>/.claude.json` under the `mcpServers` key. Removing an MCP server from your config removes it from the file; other servers are untouched.

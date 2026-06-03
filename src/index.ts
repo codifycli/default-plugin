@@ -24,6 +24,8 @@ import { FnmResource } from './resources/javascript/fast-node-manager/fast-node-
 import { NvmResource } from './resources/javascript/nvm/nvm.js';
 import { Pnpm } from './resources/javascript/pnpm/pnpm.js';
 import { MacportsResource } from './resources/macports/macports.js';
+import { ClaudeCodeResource } from './resources/claude-code/claude-code.js';
+import { ClaudeCodeProjectResource } from './resources/claude-code/claude-code-project.js';
 import { OllamaResource } from './resources/ollama/ollama.js';
 import { PgcliResource } from './resources/pgcli/pgcli.js';
 import { Pip } from './resources/python/pip/pip.js';
@@ -108,6 +110,8 @@ runPlugin(Plugin.create(
     new SnapResource(),
     new TartResource(),
     new TartVmResource(),
+    new ClaudeCodeResource(),
+    new ClaudeCodeProjectResource(),
     new OllamaResource(),
     new SyncthingResource(),
     new SyncthingDeviceResource(),
