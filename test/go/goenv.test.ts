@@ -24,7 +24,7 @@ describe('Goenv resource integration tests', () => {
         const { data: versions } = await testSpawn('goenv versions');
         expect(versions).toContain('1.22.0');
 
-        const { data: globalVersion } = await testSpawn('goenv global');
+        const { data: globalVersion } = await testSpawn('goenv version-name');
         expect(globalVersion.trim()).toBe('1.22.0');
 
         const { data: goVersion, status: goStatus } = await testSpawn('go version');

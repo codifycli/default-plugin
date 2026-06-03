@@ -171,6 +171,7 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
 
         if (status === SpawnStatus.ERROR) {
           console.log(`apt detected. Attempting to install java version ${packageName} automatically`)
+          await $.spawn('apt-get update', { interactive: true, requiresRoot: true })
           await $.spawn(`apt-get install -y ${packageName}`, { interactive: true, requiresRoot: true })
         }
 
