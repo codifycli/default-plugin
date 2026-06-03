@@ -1,4 +1,3 @@
-import { SpawnStatus } from '@codifycli/plugin-core';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -13,15 +12,18 @@ describe('claude-code resource integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   it('Can install claude-code', { timeout: 300_000 }, async () => {
+    const claudeBin = path.join(os.homedir(), '.local', 'bin', 'claude');
     await PluginTester.fullTest(
       pluginPath,
       [{ type: 'claude-code' }],
       {
         validateApply: async () => {
-          expect(await testSpawn('which claude')).toMatchObject({ status: SpawnStatus.SUCCESS });
+          const exists = await fs.access(claudeBin).then(() => true).catch(() => false);
+          expect(exists).toBe(true);
         },
         validateDestroy: async () => {
-          expect(await testSpawn('which claude')).toMatchObject({ status: SpawnStatus.ERROR });
+          const exists = await fs.access(claudeBin).then(() => true).catch(() => false);
+          expect(exists).toBe(false);
         },
       },
     );

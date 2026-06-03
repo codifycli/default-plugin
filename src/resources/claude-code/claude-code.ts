@@ -6,8 +6,6 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings,
-  SpawnStatus,
-  Utils,
   getPty,
   z,
 } from '@codifycli/plugin-core';
@@ -141,9 +139,10 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
   }
 
   async refresh(parameters: Partial<ClaudeCodeConfig>): Promise<Partial<ClaudeCodeConfig> | null> {
-    const $ = getPty();
-    const { status } = await $.spawnSafe('which claude');
-    if (status !== SpawnStatus.SUCCESS) {
+    const claudeBin = path.join(os.homedir(), '.local', 'bin', 'claude');
+    try {
+      await fs.access(claudeBin);
+    } catch {
       return null;
     }
 
@@ -192,27 +191,13 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
   }
 
   async destroy(plan: DestroyPlan<ClaudeCodeConfig>): Promise<void> {
-    const $ = getPty();
-
     if (plan.currentConfig.globalClaudeMd) {
       await fs.rm(CLAUDE_MD_PATH, { force: true });
     }
 
-    // Attempt graceful uninstall via the CLI, fall back to binary removal
-    const { status } = await $.spawnSafe('claude --uninstall --force');
-    if (status !== SpawnStatus.SUCCESS) {
-      const { data, status: whichStatus } = await $.spawnSafe('which claude');
-      if (whichStatus === SpawnStatus.SUCCESS) {
-        const binaryPath = data.trim();
-        await fs.rm(binaryPath, { force: true });
-
-        if (Utils.isLinux()) {
-          // The install script may have created a systemd service
-          await $.spawnSafe('systemctl stop claude-code', { requiresRoot: true });
-          await $.spawnSafe('systemctl disable claude-code', { requiresRoot: true });
-        }
-      }
-    }
+    // Native uninstall: remove the binary and version files
+    await fs.rm(path.join(os.homedir(), '.local', 'bin', 'claude'), { force: true });
+    await fs.rm(path.join(os.homedir(), '.local', 'share', 'claude'), { recursive: true, force: true });
   }
 
   private async writeClaudeMd(content: string): Promise<void> {

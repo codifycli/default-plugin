@@ -1,34 +1,39 @@
-import { ParameterSetting, StatefulParameter } from '@codifycli/plugin-core';
+import { ParameterSetting, Plan, StatefulParameter } from '@codifycli/plugin-core';
+import { StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { ClaudeCodeConfig } from './claude-code.js';
-
-const SETTINGS_PATH = path.join(os.homedir(), '.claude', 'settings.json');
+import { untildify } from '../../utils/untildify.js';
 
 type Settings = Record<string, unknown>;
 
-export class SettingsParameter extends StatefulParameter<ClaudeCodeConfig, Settings> {
+export function resolveSettingsPath(directory?: string): string {
+  if (directory) return path.join(untildify(directory), '.claude', 'settings.json');
+  return path.join(os.homedir(), '.claude', 'settings.json');
+}
+
+export class SettingsParameter extends StatefulParameter<StringIndexedObject, Settings> {
   getSettings(): ParameterSetting {
     return { type: 'object' };
   }
 
-  override async refresh(): Promise<Settings | null> {
+  override async refresh(_desired: Settings | null, config: Partial<StringIndexedObject>): Promise<Settings | null> {
+    const filePath = resolveSettingsPath(config['directory'] as string | undefined);
     try {
-      const content = await fs.readFile(SETTINGS_PATH, 'utf8');
+      const content = await fs.readFile(filePath, 'utf8');
       return JSON.parse(content) as Settings;
     } catch {
       return null;
     }
   }
 
-  async add(valueToAdd: Settings): Promise<void> {
-    await this.mergeIntoFile(valueToAdd);
+  async add(valueToAdd: Settings, plan: Plan<StringIndexedObject>): Promise<void> {
+    await this.mergeIntoFile(valueToAdd, plan.desiredConfig?.['directory'] as string | undefined);
   }
 
-  async modify(newValue: Settings, previousValue: Settings): Promise<void> {
-    const filePath = SETTINGS_PATH;
+  async modify(newValue: Settings, previousValue: Settings, plan: Plan<StringIndexedObject>): Promise<void> {
+    const filePath = resolveSettingsPath(plan.desiredConfig?.['directory'] as string | undefined);
     let existing: Settings = {};
     try {
       existing = JSON.parse(await fs.readFile(filePath, 'utf8'));
@@ -46,23 +51,26 @@ export class SettingsParameter extends StatefulParameter<ClaudeCodeConfig, Setti
     await fs.writeFile(filePath, JSON.stringify(existing, null, 2));
   }
 
-  async remove(valueToRemove: Settings): Promise<void> {
+  async remove(valueToRemove: Settings, plan: Plan<StringIndexedObject>): Promise<void> {
+    const directory = (plan.currentConfig?.['directory'] ?? plan.desiredConfig?.['directory']) as string | undefined;
+    const filePath = resolveSettingsPath(directory);
     try {
-      const existing = JSON.parse(await fs.readFile(SETTINGS_PATH, 'utf8')) as Settings;
+      const existing = JSON.parse(await fs.readFile(filePath, 'utf8')) as Settings;
       for (const key of Object.keys(valueToRemove)) {
         delete existing[key];
       }
-      await fs.writeFile(SETTINGS_PATH, JSON.stringify(existing, null, 2));
+      await fs.writeFile(filePath, JSON.stringify(existing, null, 2));
     } catch { /* nothing to do if file doesn't exist */ }
   }
 
-  private async mergeIntoFile(settings: Settings): Promise<void> {
+  private async mergeIntoFile(settings: Settings, directory?: string): Promise<void> {
+    const filePath = resolveSettingsPath(directory);
     let existing: Settings = {};
     try {
-      existing = JSON.parse(await fs.readFile(SETTINGS_PATH, 'utf8'));
+      existing = JSON.parse(await fs.readFile(filePath, 'utf8'));
     } catch { /* file may not exist yet */ }
 
-    await fs.mkdir(path.dirname(SETTINGS_PATH), { recursive: true });
-    await fs.writeFile(SETTINGS_PATH, JSON.stringify({ ...existing, ...settings }, null, 2));
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, JSON.stringify({ ...existing, ...settings }, null, 2));
   }
 }
