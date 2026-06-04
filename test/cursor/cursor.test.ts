@@ -22,10 +22,7 @@ describe('Cursor integration tests', async () => {
   const mcpFile = path.join(os.homedir(), '.cursor', 'mcp.json');
 
   beforeAll(async () => {
-    const lstat = fs.lstat(path.join(os.homedir(), '.cursor'))
-    if ((await lstat).isDirectory()) {
-      await fs.rmdir(path.join(os.homedir(), '.cursor'), { recursive: true, force: true });
-    }
+    await fs.rm(path.join(os.homedir(), '.cursor'), { recursive: true, force: true });
   })
 
   it('Can install cursor', { timeout: 300000 }, async () => {
