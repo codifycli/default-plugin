@@ -1,0 +1,67 @@
+---
+title: cursor
+description: A reference page for the cursor resource
+---
+
+The cursor resource installs [Cursor](https://cursor.com) — an AI-first code editor built on VS Code — and manages its extensions, editor settings, and MCP (Model Context Protocol) server configuration.
+
+On **macOS**, Cursor is installed via Homebrew cask (`brew install --cask cursor`).
+On **Linux**, Cursor is downloaded as an AppImage to `~/.local/bin/cursor`.
+
+## Parameters
+
+- **directory**: *(string)* Installation directory. Defaults to `/Applications` on macOS and `~/.local/bin` on Linux.
+
+- **extensions**: *(string[])* Cursor extensions to install by ID (e.g. `"ms-python.python"`). Cursor is compatible with most VS Code extensions available on the [Open VSX Registry](https://open-vsx.org).
+
+- **settings**: *(object)* Editor settings to merge into Cursor's `settings.json`. Uses the same key/value format as VS Code settings.
+  - macOS path: `~/Library/Application Support/Cursor/User/settings.json`
+  - Linux path: `~/.config/Cursor/User/settings.json`
+
+- **mcpServers**: *(object)* MCP servers to configure in `~/.cursor/mcp.json`. Each key is the server name and each value is a server configuration object with:
+  - `command` *(string, optional)*: The executable to run (e.g. `"npx"`)
+  - `args` *(string[], optional)*: Arguments to pass to the command
+  - `env` *(object, optional)*: Environment variables for the server process
+  - `url` *(string, optional)*: URL for SSE-based remote MCP servers
+
+## Example usage
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "cursor",
+    "extensions": ["ms-python.python", "eamodio.gitlens"],
+    "settings": {
+      "editor.fontSize": 14,
+      "editor.formatOnSave": true
+    }
+  }
+]
+```
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "cursor",
+    "extensions": ["ms-python.python", "eamodio.gitlens"],
+    "settings": {
+      "editor.fontSize": 14,
+      "editor.tabSize": 2,
+      "editor.formatOnSave": true
+    },
+    "mcpServers": {
+      "filesystem": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/user/projects"]
+      },
+      "github": {
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-github"],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "<your-token>"
+        }
+      }
+    }
+  }
+]
+```
