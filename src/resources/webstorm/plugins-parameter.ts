@@ -98,20 +98,30 @@ async function readPluginIdFromDir(pluginDir: string): Promise<string | null> {
   const unzipCheck = await $.spawnSafe('which unzip');
   if (unzipCheck.status !== SpawnStatus.SUCCESS) return null;
 
-  for (const subdir of ['lib', '.']) {
+  const tryReadIdFromJars = async (subdir: string): Promise<string> => {
     const libDir = subdir === '.' ? pluginDir : path.join(pluginDir, subdir);
-    try {
-      const entries = await fs.readdir(libDir);
-      for (const entry of entries) {
-        if (!entry.endsWith('.jar')) continue;
-        const jarPath = path.join(libDir, entry);
-        const result = await $.spawnSafe(`unzip -p "${jarPath}" META-INF/plugin.xml`);
-        if (result.status === SpawnStatus.SUCCESS && result.data) {
-          const match = result.data.match(/<id>([^<]+)<\/id>/);
-          if (match) return match[1].trim();
-        }
-      }
-    } catch { /* subdir doesn't exist */ }
+    const entries = await fs.readdir(libDir);
+    const pluginName = path.basename(pluginDir).toLowerCase();
+    // Try the JAR named after the plugin dir first — it's almost always the main one
+    const jars = entries
+      .filter((e) => e.endsWith('.jar'))
+      .sort((a, b) => {
+        const aMatch = a.toLowerCase().startsWith(pluginName) ? -1 : 0;
+        const bMatch = b.toLowerCase().startsWith(pluginName) ? -1 : 0;
+        return aMatch - bMatch;
+      });
+    for (const entry of jars) {
+      const result = await $.spawnSafe(`unzip -p "${path.join(libDir, entry)}" META-INF/plugin.xml`);
+      if (result.status !== SpawnStatus.SUCCESS || !result.data) continue;
+      const match = result.data.match(/<id>([^<]+)<\/id>/);
+      if (match) return match[1].trim();
+    }
+    throw new Error('no id');
+  };
+
+  const results = await Promise.allSettled(['lib', '.'].map(tryReadIdFromJars));
+  for (const r of results) {
+    if (r.status === 'fulfilled') return r.value;
   }
 
   return null;
@@ -126,37 +136,48 @@ export class PluginsParameter extends ArrayStatefulParameter<WebStormConfig, str
     };
   }
 
-  override async refresh(_desired: string[] | null): Promise<string[] | null> {
-    const ids: string[] = [];
+  override async refresh(desired: string[] | null): Promise<string[] | null> {
+    const readIdsFromDir = async (dir: string): Promise<string[]> => {
+      const entries = await fs.readdir(dir, { withFileTypes: true });
+      const results = await Promise.all(
+        entries
+          .filter((e) => e.isDirectory())
+          .map((e) => readPluginIdFromDir(path.join(dir, e.name)))
+      );
+      return results.filter((id): id is string => id != null);
+    };
 
-    const configDir = await findConfigDir();
-    if (configDir) {
-      const pluginsDir = getPluginsDir(configDir);
-      try {
-        const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
-        for (const entry of entries) {
-          if (!entry.isDirectory()) continue;
-          const id = await readPluginIdFromDir(path.join(pluginsDir, entry.name));
-          if (id) ids.push(id);
-        }
-      } catch { /* plugins dir may not exist yet */ }
-    }
-
-    const bundledDir = getBundledPluginsDir();
-    if (bundledDir) {
-      try {
-        const entries = await fs.readdir(bundledDir, { withFileTypes: true });
-        for (const entry of entries) {
-          // Bundled plugins are directories (each containing lib/*.jar); skip plain files
-          if (!entry.isDirectory()) continue;
-          const id = await readPluginIdFromDir(path.join(bundledDir, entry.name));
-          if (id && !ids.includes(id)) ids.push(id);
-        }
-      } catch { /* bundled plugins dir inaccessible */ }
-    }
+    const [configDir, bundledDir] = await Promise.all([
+      findConfigDir(),
+      Promise.resolve(getBundledPluginsDir()),
+    ]);
 
     if (!configDir && !bundledDir) return null;
-    return ids;
+
+    const userIds = configDir
+      ? await readIdsFromDir(getPluginsDir(configDir)).catch(() => [] as string[])
+      : [];
+
+    // Only check the bundled dir for desired plugins not found in the user dir,
+    // to avoid flooding refresh with all default-installed bundled plugins.
+    if (bundledDir && desired) {
+      const missing = desired.filter((d) => !userIds.some((u) => u.toLowerCase() === d.toLowerCase()));
+      if (missing.length > 0) {
+        const bundledEntries = await fs.readdir(bundledDir, { withFileTypes: true }).catch(() => []);
+        const bundledIds = await Promise.all(
+          bundledEntries
+            .filter((e) => e.isDirectory())
+            .map((e) => readPluginIdFromDir(path.join(bundledDir, e.name)))
+        );
+        for (const id of bundledIds) {
+          if (id && missing.some((m) => m.toLowerCase() === id.toLowerCase())) {
+            userIds.push(id);
+          }
+        }
+      }
+    }
+
+    return userIds;
   }
 
   async addItem(item: string, _plan: Plan<WebStormConfig>): Promise<void> {
