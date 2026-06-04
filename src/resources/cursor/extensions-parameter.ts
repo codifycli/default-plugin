@@ -14,8 +14,21 @@ function getCursorBinary(directory?: string | null): string {
       'Contents', 'Resources', 'app', 'bin', 'cursor',
     );
   }
-  // On Linux, use the full path to the AppImage/binary so it works before PATH is sourced.
+  // On Linux, prefer the directory-scoped path (AppImage install), but fall back to
+  // the system PATH location (apt/dnf install puts it at /usr/bin/cursor).
   return path.join(directory ?? CURSOR_LOCAL_BIN, 'cursor');
+}
+
+async function resolveCursorBinary(directory?: string | null): Promise<string> {
+  if (Utils.isMacOS()) return getCursorBinary(directory);
+  const candidate = getCursorBinary(directory);
+  const $ = getPty();
+  const check = await $.spawnSafe(`test -x "${candidate}"`);
+  if (check.status === SpawnStatus.SUCCESS) return candidate;
+  // Fall back to whatever is on PATH (e.g. /usr/bin/cursor from apt install)
+  const which = await $.spawnSafe('which cursor');
+  if (which.status === SpawnStatus.SUCCESS) return which.data.trim();
+  return candidate;
 }
 
 export class ExtensionsParameter extends StatefulParameter<CursorConfig, string[]> {
@@ -30,7 +43,7 @@ export class ExtensionsParameter extends StatefulParameter<CursorConfig, string[
 
   override async refresh(desired: string[] | null, config: Partial<CursorConfig>): Promise<string[] | null> {
     const $ = getPty();
-    const cursor = getCursorBinary(config.directory);
+    const cursor = await resolveCursorBinary(config.directory);
     const result = await $.spawnSafe(`"${cursor}" --list-extensions`);
     if (result.status !== SpawnStatus.SUCCESS || result.data == null) {
       return null;
@@ -40,9 +53,9 @@ export class ExtensionsParameter extends StatefulParameter<CursorConfig, string[
 
   async add(valueToAdd: string[], plan: Plan<CursorConfig>): Promise<void> {
     const $ = getPty();
-    const cursor = getCursorBinary(plan.desiredConfig?.directory);
+    const cursor = await resolveCursorBinary(plan.desiredConfig?.directory);
     for (const ext of valueToAdd) {
-      await $.spawn(`"${cursor}" --install-extension ${ext} --force`, { interactive: true });
+      await $.spawn(`"${cursor}" --install-extension ${ext}`, { interactive: true });
     }
   }
 
@@ -55,7 +68,7 @@ export class ExtensionsParameter extends StatefulParameter<CursorConfig, string[
 
   async remove(valueToRemove: string[], plan: Plan<CursorConfig>): Promise<void> {
     const $ = getPty();
-    const cursor = getCursorBinary(plan.desiredConfig?.directory ?? plan.currentConfig?.directory);
+    const cursor = await resolveCursorBinary(plan.desiredConfig?.directory ?? plan.currentConfig?.directory);
     for (const ext of valueToRemove) {
       await $.spawnSafe(`"${cursor}" --uninstall-extension ${ext}`);
     }

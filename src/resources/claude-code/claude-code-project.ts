@@ -141,7 +141,7 @@ export class ClaudeCodeProjectResource extends Resource<ClaudeCodeProjectConfig>
     // preventing the framework from re-planning a CREATE on every validation pass.
     const result: Partial<ClaudeCodeProjectConfig> = { ...parameters };
 
-    if (parameters.claudeMd !== undefined) {
+    if (parameters.claudeMd != null) {
       if (isRemoteUrl(parameters.claudeMd)) {
         // For remote URLs, keep the URL as-is so the framework compares URL vs URL.
         // Change detection for remote content is done via hash on apply.

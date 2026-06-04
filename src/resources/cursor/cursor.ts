@@ -136,9 +136,16 @@ export class CursorResource extends Resource<CursorConfig> {
       const directory = plan.currentConfig.directory ?? '/Applications';
       await $.spawn(`rm -rf "${path.join(directory, CURSOR_APPLICATION_NAME)}"`);
     } else if (Utils.isLinux()) {
-      const directory = plan.currentConfig.directory ?? CURSOR_LOCAL_BIN;
-      await $.spawnSafe(`rm -f "${path.join(directory, 'cursor')}"`);
-      await FileUtils.removeLineFromShellRc(CURSOR_LOCAL_BIN_EXPORT);
+      const aptCheck = await $.spawnSafe('which apt-get');
+      const dnfCheck = await $.spawnSafe('which dnf');
+      const yumCheck = await $.spawnSafe('which yum');
+      if (aptCheck.status === SpawnStatus.SUCCESS || dnfCheck.status === SpawnStatus.SUCCESS || yumCheck.status === SpawnStatus.SUCCESS) {
+        await Utils.uninstallViaPkgMgr('cursor');
+      } else {
+        const directory = plan.currentConfig.directory ?? CURSOR_LOCAL_BIN;
+        await $.spawnSafe(`rm -f "${path.join(directory, 'cursor')}"`);
+        await FileUtils.removeLineFromShellRc(CURSOR_LOCAL_BIN_EXPORT);
+      }
     }
   }
 
@@ -168,8 +175,36 @@ export class CursorResource extends Resource<CursorConfig> {
 
   private async installLinux(plan: CreatePlan<CursorConfig>): Promise<void> {
     const $ = getPty();
+
+    const aptCheck = await $.spawnSafe('which apt-get');
+    if (aptCheck.status === SpawnStatus.SUCCESS) {
+      await $.spawn(
+        'bash -c "curl -fsSL https://downloads.cursor.com/keys/anysphere.asc | gpg --dearmor | tee /etc/apt/keyrings/cursor.gpg > /dev/null"',
+        { requiresRoot: true },
+      );
+      await $.spawn(
+        'bash -c "echo \\"deb [arch=amd64,arm64 signed-by=/etc/apt/keyrings/cursor.gpg] https://downloads.cursor.com/aptrepo stable main\\" | tee /etc/apt/sources.list.d/cursor.list > /dev/null"',
+        { requiresRoot: true },
+      );
+      await Utils.installViaPkgMgr('cursor');
+      return;
+    }
+
+    const dnfCheck = await $.spawnSafe('which dnf');
+    const yumCheck = await $.spawnSafe('which yum');
+    if (dnfCheck.status === SpawnStatus.SUCCESS || yumCheck.status === SpawnStatus.SUCCESS) {
+      const pkgMgr = dnfCheck.status === SpawnStatus.SUCCESS ? 'dnf' : 'yum';
+      await $.spawn(
+        `${pkgMgr} config-manager --add-repo https://downloads.cursor.com/yumrepo/cursor.repo`,
+        { requiresRoot: true },
+      );
+      await Utils.installViaPkgMgr('cursor');
+      return;
+    }
+
+    // Fallback: AppImage
     const isArm = await Utils.isArmArch();
-    const downloadUrl = `https://downloader.cursor.sh/linux/appImage/${isArm ? 'arm64' : 'x64'}`;
+    const downloadUrl = `https://api2.cursor.sh/updates/download/golden/linux-${isArm ? 'arm64' : 'x64'}/cursor/latest`;
     const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'cursor-'));
     const tmpAppImage = path.join(tmpDir, 'cursor.AppImage');
 

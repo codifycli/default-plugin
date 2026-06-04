@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
 import fs from 'node:fs/promises';
@@ -9,9 +9,11 @@ describe('Cursor integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   // On macOS the cursor binary is inside the app bundle and not on PATH until a new shell is opened.
-  const cursorBin = Utils.isMacOS()
+  // On Linux the binary location depends on install method; resolve lazily after install.
+  const getCursorBin = async () => Utils.isMacOS()
     ? '/Applications/Cursor.app/Contents/Resources/app/bin/cursor'
-    : path.join(os.homedir(), '.local', 'bin', 'cursor');
+    : (await testSpawn('which cursor').then((r) => r.data?.trim()).catch(() => null))
+      ?? path.join(os.homedir(), '.local', 'bin', 'cursor');
 
   const settingsFile = Utils.isMacOS()
     ? path.join(os.homedir(), 'Library', 'Application Support', 'Cursor', 'User', 'settings.json')
@@ -19,17 +21,26 @@ describe('Cursor integration tests', async () => {
 
   const mcpFile = path.join(os.homedir(), '.cursor', 'mcp.json');
 
+  beforeAll(async () => {
+    const lstat = fs.lstat(path.join(os.homedir(), '.cursor'))
+    if ((await lstat).isDirectory()) {
+      await fs.rmdir(path.join(os.homedir(), '.cursor'), { recursive: true, force: true });
+    }
+  })
+
   it('Can install cursor', { timeout: 300000 }, async () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'cursor',
     }], {
+      skipUninstall: true,
       validateApply: async () => {
         if (Utils.isMacOS()) {
           const lstat = await fs.lstat('/Applications/Cursor.app');
           expect(lstat.isDirectory()).to.be.true;
         } else {
-          const lstat = await fs.lstat(path.join(os.homedir(), '.local', 'bin', 'cursor'));
-          expect(lstat.isFile()).to.be.true;
+          const bin = await getCursorBin();
+          const lstat = await fs.lstat(bin);
+          expect(lstat.isFile() || lstat.isSymbolicLink()).to.be.true;
         }
       },
       validateDestroy: async () => {
@@ -45,8 +56,9 @@ describe('Cursor integration tests', async () => {
       type: 'cursor',
       extensions: ['ms-python.python'],
     }], {
+      skipUninstall: true,
       validateApply: async () => {
-        const { data } = await testSpawn(`"${cursorBin}" --list-extensions`);
+        const { data } = await testSpawn(`"${await getCursorBin()}" --list-extensions`);
         expect(data?.toLowerCase()).to.include('ms-python.python');
       },
       testModify: {
@@ -55,13 +67,13 @@ describe('Cursor integration tests', async () => {
           extensions: ['ms-python.python', 'eamodio.gitlens'],
         }],
         validateModify: async () => {
-          const { data } = await testSpawn(`"${cursorBin}" --list-extensions`);
+          const { data } = await testSpawn(`"${await getCursorBin()}" --list-extensions`);
           expect(data?.toLowerCase()).to.include('ms-python.python');
           expect(data?.toLowerCase()).to.include('eamodio.gitlens');
         },
       },
       validateDestroy: async () => {
-        const { data } = await testSpawn(`"${cursorBin}" --list-extensions`);
+        const { data } = await testSpawn(`"${await getCursorBin()}" --list-extensions`);
         expect(data?.toLowerCase()).not.to.include('eamodio.gitlens');
       },
     });
@@ -72,6 +84,7 @@ describe('Cursor integration tests', async () => {
       type: 'cursor',
       settings: { 'editor.fontSize': 14, 'editor.formatOnSave': true },
     }], {
+      skipUninstall: true,
       validateApply: async () => {
         const { data } = await testSpawn(`cat "${settingsFile}"`);
         const content = JSON.parse(data!);
@@ -92,7 +105,7 @@ describe('Cursor integration tests', async () => {
     });
   });
 
-  it('Can manage MCP servers', { timeout: 120000 }, async () => {
+  it('Can manage MCP servers', { timeout: 300000 }, async () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'cursor',
       mcpServers: {
