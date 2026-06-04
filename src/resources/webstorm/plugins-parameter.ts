@@ -77,15 +77,44 @@ function getPluginsDir(configDir: string): string {
   return path.join(os.homedir(), '.local', 'share', 'JetBrains', version);
 }
 
+function getBundledPluginsDir(): string | null {
+  if (Utils.isMacOS()) return path.join(MACOS_APP_PATH, 'Contents', 'plugins');
+  if (Utils.isLinux()) return '/snap/webstorm/current/plugins';
+  return null;
+}
+
 async function readPluginIdFromDir(pluginDir: string): Promise<string | null> {
+  // Try plain META-INF/plugin.xml first (user-installed plugins unzipped as directories)
   const xmlPath = path.join(pluginDir, 'META-INF', 'plugin.xml');
   try {
     const content = await fs.readFile(xmlPath, 'utf8');
     const match = content.match(/<id>([^<]+)<\/id>/);
-    return match ? match[1].trim() : null;
-  } catch {
-    return null;
+    if (match) return match[1].trim();
+  } catch { /* fall through to JAR search */ }
+
+  // Bundled plugins ship as directories containing JAR files in lib/.
+  // Requires unzip; skip silently if not available.
+  const $ = getPty();
+  const unzipCheck = await $.spawnSafe('which unzip');
+  if (unzipCheck.status !== SpawnStatus.SUCCESS) return null;
+
+  for (const subdir of ['lib', '.']) {
+    const libDir = subdir === '.' ? pluginDir : path.join(pluginDir, subdir);
+    try {
+      const entries = await fs.readdir(libDir);
+      for (const entry of entries) {
+        if (!entry.endsWith('.jar')) continue;
+        const jarPath = path.join(libDir, entry);
+        const result = await $.spawnSafe(`unzip -p "${jarPath}" META-INF/plugin.xml`);
+        if (result.status === SpawnStatus.SUCCESS && result.data) {
+          const match = result.data.match(/<id>([^<]+)<\/id>/);
+          if (match) return match[1].trim();
+        }
+      }
+    } catch { /* subdir doesn't exist */ }
   }
+
+  return null;
 }
 
 export class PluginsParameter extends ArrayStatefulParameter<WebStormConfig, string> {
@@ -98,27 +127,54 @@ export class PluginsParameter extends ArrayStatefulParameter<WebStormConfig, str
   }
 
   override async refresh(_desired: string[] | null): Promise<string[] | null> {
+    const ids: string[] = [];
+
     const configDir = await findConfigDir();
-    if (!configDir) return null;
-
-    const pluginsDir = getPluginsDir(configDir);
-    try {
-      const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
-      const ids: string[] = [];
-
-      for (const entry of entries) {
-        if (!entry.isDirectory()) continue;
-        const id = await readPluginIdFromDir(path.join(pluginsDir, entry.name));
-        if (id) ids.push(id);
-      }
-
-      return ids;
-    } catch {
-      return [];
+    if (configDir) {
+      const pluginsDir = getPluginsDir(configDir);
+      try {
+        const entries = await fs.readdir(pluginsDir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (!entry.isDirectory()) continue;
+          const id = await readPluginIdFromDir(path.join(pluginsDir, entry.name));
+          if (id) ids.push(id);
+        }
+      } catch { /* plugins dir may not exist yet */ }
     }
+
+    const bundledDir = getBundledPluginsDir();
+    if (bundledDir) {
+      try {
+        const entries = await fs.readdir(bundledDir, { withFileTypes: true });
+        for (const entry of entries) {
+          // Bundled plugins are directories (each containing lib/*.jar); skip plain files
+          if (!entry.isDirectory()) continue;
+          const id = await readPluginIdFromDir(path.join(bundledDir, entry.name));
+          if (id && !ids.includes(id)) ids.push(id);
+        }
+      } catch { /* bundled plugins dir inaccessible */ }
+    }
+
+    if (!configDir && !bundledDir) return null;
+    return ids;
   }
 
   async addItem(item: string, _plan: Plan<WebStormConfig>): Promise<void> {
+    // If the plugin is already present in the bundled plugins dir, skip installation.
+    // On Linux the snap binary fails headlessly with XDG_RUNTIME_DIR errors, so
+    // we must not call it for plugins that are already bundled.
+    const bundledDir = getBundledPluginsDir();
+    if (bundledDir) {
+      try {
+        const entries = await fs.readdir(bundledDir, { withFileTypes: true });
+        for (const entry of entries) {
+          if (!entry.isDirectory()) continue;
+          const id = await readPluginIdFromDir(path.join(bundledDir, entry.name));
+          if (id?.toLowerCase() === item.toLowerCase()) return;
+        }
+      } catch { /* bundled dir inaccessible, fall through to install */ }
+    }
+
     const $ = getPty();
     const binary = getWebStormBinary();
     await $.spawn(`"${binary}" installPlugins ${item}`, { interactive: true });

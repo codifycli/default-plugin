@@ -97,10 +97,10 @@ export class WebStormResource extends Resource<WebStormConfig> {
       },
       parameterSettings: {
         settingsZip: { type: 'string', setting: true },
-        importSettings: { type: 'boolean', default: true, setting: true },
+        importSettings: { type: 'boolean', setting: true },
         plugins: { type: 'stateful', definition: new PluginsParameter(), order: 1 },
-        jvmMaxHeapSize: { type: 'string' },
-        jvmMinHeapSize: { type: 'string' },
+        jvmMaxHeapSize: { type: 'string', canModify: true },
+        jvmMinHeapSize: { type: 'string', canModify: true },
       },
     };
   }
@@ -207,6 +207,8 @@ export class WebStormResource extends Resource<WebStormConfig> {
       interactive: true,
       requiresRoot: true,
     });
+    // unzip is needed to read plugin IDs from bundled JAR files
+    await Utils.installViaPkgMgr('unzip');
   }
 
   private async uninstallLinux(): Promise<void> {

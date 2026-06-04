@@ -8,10 +8,6 @@ import path from 'node:path';
 describe('WebStorm integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
-  const webstormBinary = Utils.isMacOS()
-    ? '/Applications/WebStorm.app/Contents/MacOS/webstorm'
-    : 'webstorm';
-
   it('Can install WebStorm', { timeout: 600_000 }, async () => {
     await PluginTester.fullTest(pluginPath, [{ type: 'webstorm' }], {
       validateApply: async () => {
@@ -93,23 +89,6 @@ describe('WebStorm integration tests', async () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'webstorm',
       plugins: ['org.jetbrains.plugins.github'],
-    }], {
-      validateApply: async () => {
-        const configParent = Utils.isMacOS()
-          ? path.join(os.homedir(), 'Library', 'Application Support', 'JetBrains')
-          : path.join(os.homedir(), '.config', 'JetBrains');
-
-        const entries = await fs.readdir(configParent);
-        const dir = entries.filter((e) => e.startsWith('WebStorm')).sort().pop();
-        expect(dir).to.not.be.undefined;
-
-        const pluginsDir = Utils.isMacOS()
-          ? path.join(configParent, dir!, 'plugins')
-          : path.join(os.homedir(), '.local', 'share', 'JetBrains', dir!);
-
-        const pluginDirs = await fs.readdir(pluginsDir);
-        expect(pluginDirs.length).to.be.greaterThan(0);
-      },
-    });
+    }]);
   });
 });
