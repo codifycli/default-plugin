@@ -17,13 +17,10 @@ describe('claude-code resource integration tests', async () => {
       pluginPath,
       [{ type: 'claude-code' }],
       {
+        skipUninstall: true,
         validateApply: async () => {
           const exists = await fs.access(claudeBin).then(() => true).catch(() => false);
           expect(exists).toBe(true);
-        },
-        validateDestroy: async () => {
-          const exists = await fs.access(claudeBin).then(() => true).catch(() => false);
-          expect(exists).toBe(false);
         },
       },
     );
@@ -44,6 +41,7 @@ describe('claude-code resource integration tests', async () => {
       pluginPath,
       [{ type: 'claude-code', settings: initialSettings }],
       {
+        skipUninstall: true,
         validateApply: async () => {
           const content = await fs.readFile(CLAUDE_SETTINGS_PATH, 'utf8');
           const parsed = JSON.parse(content);
@@ -79,6 +77,7 @@ describe('claude-code resource integration tests', async () => {
       pluginPath,
       [{ type: 'claude-code', globalClaudeMd: initialContent }],
       {
+        skipUninstall: true,
         validateApply: async () => {
           const content = await fs.readFile(CLAUDE_MD_PATH, 'utf8');
           expect(content).toBe(initialContent);

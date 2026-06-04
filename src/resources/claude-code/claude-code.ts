@@ -150,7 +150,7 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
 
     const result: Partial<ClaudeCodeConfig> = {};
 
-    if (parameters.globalClaudeMd !== undefined) {
+    if (parameters.globalClaudeMd != null) {
       if (isRemoteUrl(parameters.globalClaudeMd)) {
         result.globalClaudeMd = parameters.globalClaudeMd;
       } else {
