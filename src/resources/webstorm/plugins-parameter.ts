@@ -198,7 +198,16 @@ export class PluginsParameter extends ArrayStatefulParameter<WebStormConfig, str
 
     const $ = getPty();
     const binary = getWebStormBinary();
-    await $.spawn(`"${binary}" installPlugins ${item}`, { interactive: true });
+    try {
+      await $.spawn(`"${binary}" installPlugins ${item}`, { interactive: true });
+    } catch (e: unknown) {
+      const msg = (e instanceof Error ? e.message : String(e)).toLowerCase();
+      if (msg.includes('already installed')) return;
+      if (msg.includes('one instance') || msg.includes('already running') || msg.includes('already open')) {
+        throw new Error('WebStorm is currently open. Webstorm only allows one instance open at a time. Please close it and re-run.');
+      }
+      throw e;
+    }
   }
 
   async removeItem(item: string, _plan: Plan<WebStormConfig>): Promise<void> {
