@@ -304,6 +304,8 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
       // Map boolean to the int value macOS expects (0=disabled, 2=enabled)
       await $.spawn(`defaults write NSGlobalDomain AppleKeyboardUIMode -int ${settings.keyboardNavigation ? 2 : 0}`);
     }
+
+    await CodifyCliSender.sendApplyNote(ApplyNotes.RESTART_REQUIRED, 'macos-settings')
   }
 
   private async deleteKeyboardSettings(settings: KeyboardConfig): Promise<void> {
@@ -324,6 +326,8 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
     if ('keyboardNavigation' in settings) {
       await $.spawnSafe('defaults delete NSGlobalDomain AppleKeyboardUIMode');
     }
+
+    await CodifyCliSender.sendApplyNote(ApplyNotes.RESTART_REQUIRED, 'macos-settings')
   }
 
   // ---- Trackpad ----
@@ -346,6 +350,8 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
     if (settings.speed !== undefined) {
       await $.spawn(`defaults write NSGlobalDomain com.apple.trackpad.scaling -float ${settings.speed}`);
     }
+
+    await CodifyCliSender.sendApplyNote(ApplyNotes.RESTART_REQUIRED, 'macos-settings')
   }
 
   private async deleteTrackpadSettings(settings: TrackpadConfig): Promise<void> {
@@ -354,6 +360,8 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
     if ('speed' in settings) {
       await $.spawnSafe('defaults delete NSGlobalDomain com.apple.trackpad.scaling');
     }
+
+    await CodifyCliSender.sendApplyNote(ApplyNotes.RESTART_REQUIRED, 'macos-settings')
   }
 
   // ---- Dock ----
