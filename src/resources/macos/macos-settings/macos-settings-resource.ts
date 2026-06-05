@@ -9,6 +9,8 @@ import {
   SpawnStatus,
   getPty,
   z,
+  CodifyCliSender,
+  ApplyNotes,
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 
@@ -53,23 +55,9 @@ type TrackpadConfig = NonNullable<MacosSettingsConfig['trackpad']>;
 type DockConfig = NonNullable<MacosSettingsConfig['dock']>;
 
 const defaultConfig: Partial<MacosSettingsConfig> = {
-  mouse: {
-    naturalScrolling: true,
-    speed: 1.5,
-  },
-  keyboard: {
-    keyRepeat: 6,
-    initialKeyRepeat: 68,
-    pressAndHold: true,
-    fnKeysAsStandardKeys: false,
-  },
-  dock: {
-    position: 'bottom',
-    iconSize: 48,
-    autohide: false,
-    showRecents: true,
-    minimizeEffect: 'genie',
-  },
+  mouse: {},
+  keyboard: {},
+  dock: {},
 };
 
 const exampleCommonPrefs: ExampleConfig = {
@@ -246,6 +234,8 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
     if (settings.speed !== undefined) {
       await $.spawn(`defaults write NSGlobalDomain com.apple.mouse.scaling -float ${settings.speed}`);
     }
+
+    await CodifyCliSender.sendApplyNote(ApplyNotes.RESTART_REQUIRED, 'macos-settings')
   }
 
   private async deleteMouseSettings(settings: MouseConfig): Promise<void> {
@@ -260,6 +250,8 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
     if ('speed' in settings) {
       await $.spawnSafe('defaults delete NSGlobalDomain com.apple.mouse.scaling');
     }
+
+    await CodifyCliSender.sendApplyNote(ApplyNotes.RESTART_REQUIRED, 'macos-settings')
   }
 
   // ---- Keyboard ----
