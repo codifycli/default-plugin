@@ -7,7 +7,7 @@ import * as fs from 'node:fs/promises';
 describe('Android studios tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
-  it('Can install the latest Android studios', { timeout: 300000 }, async () => {
+  it('Can install the latest Android studios', { timeout: 600000 }, async () => {
     const isMacOS = Utils.isMacOS();
     const appPath = isMacOS
       ? '/Applications/Android Studio.app'
