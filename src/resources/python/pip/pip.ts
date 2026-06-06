@@ -118,7 +118,7 @@ export class Pip extends Resource<PipResourceConfig> {
     // The diffing algo is not smart enough to differentiate between same two items but different (modify) and same two items but same (keep).
     const parsedInstalledPackages = JSON.parse(installedPackages)
       .map(({ name, version }: { name: string; version: string}) => {
-        const match = parameters.install!.find((p) => {
+        const match = parameters.install?.find((p) => {
           if (typeof p === 'string') {
             return p === name;
           }
