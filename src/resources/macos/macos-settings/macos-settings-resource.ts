@@ -15,39 +15,59 @@ import {
 import { OS } from '@codifycli/schemas';
 
 const mouseSchema = z.object({
-  naturalScrolling: z.boolean().optional(),
-  acceleration: z.boolean().optional(),
-  speed: z.number().min(0).max(3).optional(),
-}).optional();
+  naturalScrolling: z.boolean().optional()
+    .describe('Scroll content in the natural direction (content follows finger). When false, uses the traditional scroll direction.'),
+  acceleration: z.boolean().optional()
+    .describe('Enable mouse acceleration. When false, the cursor moves at a fixed speed regardless of how fast the mouse is moved.'),
+  speed: z.number().min(0).max(3).optional()
+    .describe('Mouse tracking speed (0–3). Higher values make the cursor move farther per physical movement.'),
+}).optional()
+  .describe('Mouse settings.');
 
 const keyboardSchema = z.object({
-  keyRepeat: z.number().int().min(1).optional(),
-  initialKeyRepeat: z.number().int().min(10).optional(),
-  pressAndHold: z.boolean().optional(),
-  fnKeysAsStandardKeys: z.boolean().optional(),
-  keyboardNavigation: z.boolean().optional(),
-}).optional();
+  keyRepeat: z.number().int().min(1).optional()
+    .describe('Rate of key repeat while a key is held. Lower = faster (1 is fastest; 120 effectively disables repeat).'),
+  initialKeyRepeat: z.number().int().min(10).optional()
+    .describe('Delay before key repeat begins, in ticks. Lower = shorter delay (10 minimum).'),
+  pressAndHold: z.boolean().optional()
+    .describe('When true, holding a key shows the accent character picker. When false, the key repeats instead.'),
+  fnKeysAsStandardKeys: z.boolean().optional()
+    .describe('When true, the F1–F12 keys act as standard function keys; press Fn to trigger special actions (brightness, volume, etc.).'),
+  keyboardNavigation: z.boolean().optional()
+    .describe('When true, enables Tab-based focus navigation in system dialogs (equivalent to "Keyboard navigation" in System Settings).'),
+}).optional()
+  .describe('Keyboard settings.');
 
 const trackpadSchema = z.object({
-  speed: z.number().min(0).max(3).optional(),
-}).optional();
+  speed: z.number().min(0).max(3).optional()
+    .describe('Trackpad tracking speed (0–3). Higher values make the cursor move farther per swipe distance.'),
+}).optional()
+  .describe('Trackpad settings.');
 
 const dockSchema = z.object({
-  position: z.enum(['left', 'bottom', 'right']).optional(),
-  iconSize: z.number().int().min(16).max(128).optional(),
-  autohide: z.boolean().optional(),
-  hoverDelay: z.number().min(0).optional(),
-  animationSpeed: z.number().min(0).optional(),
-  showRecents: z.boolean().optional(),
-  minimizeEffect: z.enum(['genie', 'scale', 'suck']).optional(),
-}).optional();
+  position: z.enum(['left', 'bottom', 'right']).optional()
+    .describe('Position of the Dock on screen.'),
+  iconSize: z.number().int().min(16).max(128).optional()
+    .describe('Dock icon size in pixels (16–128).'),
+  autohide: z.boolean().optional()
+    .describe('Automatically hide and show the Dock when the cursor moves near the screen edge.'),
+  hoverDelay: z.number().min(0).optional()
+    .describe('Seconds to wait before the Dock appears when hovering near the screen edge. Set to 0 for instant reveal. Default is 0.2.'),
+  animationSpeed: z.number().min(0).optional()
+    .describe('Duration in seconds of the Dock slide-in/out animation. Set to 0 to disable the animation entirely. Default is 0.5.'),
+  showRecents: z.boolean().optional()
+    .describe('Show recently opened apps in a dedicated section of the Dock.'),
+  minimizeEffect: z.enum(['genie', 'scale', 'suck']).optional()
+    .describe('Window minimize animation style.'),
+}).optional()
+  .describe('Dock settings.');
 
 export const schema = z.object({
   mouse: mouseSchema,
   keyboard: keyboardSchema,
   trackpad: trackpadSchema,
   dock: dockSchema,
-});
+}).describe('Manages common macOS system preferences using the built-in defaults command. Covers mouse, keyboard, trackpad, and Dock settings.');
 
 export type MacosSettingsConfig = z.infer<typeof schema>;
 type MouseConfig = NonNullable<MacosSettingsConfig['mouse']>;
