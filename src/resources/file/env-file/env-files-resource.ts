@@ -132,9 +132,7 @@ export class EnvFilesResource extends Resource<EnvFilesConfig> {
             current.filter((c) => desired.some((d) => d.name === c.name)),
         },
       },
-      importAndDestroy: {
-        preventImport: true,
-      },
+      isSensitive: true,
       allowMultiple: {
         identifyingParameters: ['dir'],
       },

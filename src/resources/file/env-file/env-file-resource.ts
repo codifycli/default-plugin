@@ -108,12 +108,10 @@ export class EnvFileResource extends Resource<EnvFileConfig> {
         remoteFile: { type: 'string', canModify: true },
         hash: { type: 'string', canModify: true },
       },
-      importAndDestroy: {
-        preventImport: true,
-      },
       allowMultiple: {
         identifyingParameters: ['dir', 'filename'],
       },
+      isSensitive: true,
       transformation: {
         to: async (input: Partial<EnvFileConfig>) => {
           if (input.remoteFile && isRemoteCodifyFile(input.remoteFile)) {
