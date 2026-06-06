@@ -161,7 +161,7 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
       if (dock !== null) { result.dock = dock; anyFound = true; }
     }
 
-    return anyFound ? result : null;
+    return anyFound ? result : {};
   }
 
   override async create(plan: CreatePlan<MacosSettingsConfig>): Promise<void> {
