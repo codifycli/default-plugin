@@ -9,6 +9,8 @@ import { AwsProfileResource } from './resources/aws-cli/profile/aws-profile.js';
 import { DnfResource } from './resources/dnf/dnf.js';
 import { GoenvResource } from './resources/go/goenv/goenv.js';
 import { DockerResource } from './resources/docker/docker.js';
+import { EnvFileResource } from './resources/file/env-file/env-file-resource.js';
+import { EnvFilesResource } from './resources/file/env-file/env-files-resource.js';
 import { FileResource } from './resources/file/file.js';
 import { RemoteFileResource } from './resources/file/remote-file.js';
 import { GitResource } from './resources/git/git/git-resource.js';
@@ -98,6 +100,8 @@ runPlugin(Plugin.create(
     new ActionResource(),
     new FileResource(),
     new RemoteFileResource(),
+    new EnvFileResource(),
+    new EnvFilesResource(),
     new Virtualenv(),
     new VirtualenvProject(),
     new Pnpm(),

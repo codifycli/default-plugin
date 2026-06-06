@@ -1,0 +1,72 @@
+---
+title: env-files
+description: A reference page for the env-files resource
+---
+
+The env-files resource manages multiple `.env` files inside a single directory. It is useful for projects that rely on several env files at once (e.g. `.env`, `.env.local`, `.dev.vars`). The resource is marked sensitive and will not be automatically imported.
+
+## Parameters
+
+- **dir** *(string, required)*: The directory containing the env files.
+- **envFiles** *(array[object], required)*: The env files to manage. Each entry has:
+  - **name** *(string, required)*: The filename (e.g. `.env`, `.env.local`, `.dev.vars`).
+  - **contents** *(array[object], optional)*: Key-value pairs written into the file. Each entry has `key` and `value` strings. Mutually exclusive with `remoteFile`.
+  - **remoteFile** *(string, optional)*: A Codify cloud file reference (`codify://<documentId>:<fileName>`). Mutually exclusive with `contents`.
+
+## Example usage
+
+### Manage multiple Cloudflare Worker env files
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "env-files",
+    "dir": "~/projects/my-worker",
+    "envFiles": [
+      {
+        "name": ".dev.vars",
+        "contents": [
+          { "key": "API_TOKEN", "value": "<Replace me here!>" },
+          { "key": "ENVIRONMENT", "value": "development" }
+        ]
+      },
+      {
+        "name": ".env.production",
+        "contents": [
+          { "key": "API_TOKEN", "value": "<Replace me here!>" },
+          { "key": "ENVIRONMENT", "value": "production" }
+        ]
+      }
+    ]
+  }
+]
+```
+
+### Sync multiple env files from Codify cloud
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "env-files",
+    "dir": "~/projects/my-app",
+    "envFiles": [
+      {
+        "name": ".env",
+        "remoteFile": "codify://<documentId>:<fileName>"
+      },
+      {
+        "name": ".env.local",
+        "remoteFile": "codify://<documentId>:<fileName>"
+      }
+    ]
+  }
+]
+```
+
+## Notes
+
+- The resource is marked as **sensitive**: values in `contents` are not shown in plan output.
+- Import is disabled (`preventImport: true`) — existing env files on the system are never automatically imported.
+- Only one `env-files` resource per directory is allowed. Use multiple `env-file` resources if you prefer managing files individually.
+- Within each `envFiles` entry, `contents` and `remoteFile` cannot both be specified.
+- When an entry is removed from `envFiles` during modify, the corresponding file is deleted from disk.
