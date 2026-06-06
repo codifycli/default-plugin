@@ -1,0 +1,66 @@
+---
+title: env-file
+description: A reference page for the env-file resource
+---
+
+The env-file resource manages a single `.env` file at a specified directory. It supports writing key-value pairs directly or syncing the file from Codify cloud. The resource is marked sensitive and will not be automatically imported.
+
+## Parameters
+
+- **dir** *(string, required)*: The directory where the env file is located.
+- **name** *(string, optional)*: The filename. Defaults to `.env`. Use this to manage files like `.env.local`, `.dev.vars`, or `.env.production`.
+- **contents** *(array[object], optional)*: Key-value pairs to write into the file. Each entry has `key` (string) and `value` (string). Mutually exclusive with `remoteFile`.
+- **remoteFile** *(string, optional)*: A Codify cloud file reference (`codify://<documentId>:<fileName>`). The file is downloaded and written on each apply. Mutually exclusive with `contents`.
+
+## Example usage
+
+### Declare env file contents
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "env-file",
+    "dir": "~/projects/my-app",
+    "contents": [
+      { "key": "DATABASE_URL", "value": "postgres://localhost:5432/mydb" },
+      { "key": "API_KEY", "value": "<Replace me here!>" },
+      { "key": "DEBUG", "value": "false" }
+    ]
+  }
+]
+```
+
+### Use a named env file
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "env-file",
+    "dir": "~/projects/my-worker",
+    "name": ".dev.vars",
+    "contents": [
+      { "key": "API_TOKEN", "value": "<Replace me here!>" }
+    ]
+  }
+]
+```
+
+### Sync from Codify cloud
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "env-file",
+    "dir": "~/projects/my-app",
+    "name": ".env.local",
+    "remoteFile": "codify://<documentId>:<fileName>"
+  }
+]
+```
+
+## Notes
+
+- The resource is marked as **sensitive**: values in `contents` are not shown in plan output.
+- Import is disabled (`preventImport: true`) — existing `.env` files on the system are never automatically imported.
+- Both `contents` and `remoteFile` cannot be specified at the same time.
+- Multiple `env-file` resources can coexist in the same directory as long as they use different `name` values.
