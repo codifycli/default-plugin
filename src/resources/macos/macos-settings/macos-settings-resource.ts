@@ -1,3 +1,5 @@
+import isEqual from 'lodash.isequal';
+
 import {
   ApplyNotes,
   CodifyCliSender,
@@ -109,6 +111,8 @@ async function readString(domain: string, key: string): Promise<string | null> {
 // ---- Mouse ----
 
 class MouseSettingsParameter extends StatefulParameter<MacosSettingsConfig, MouseConfig> {
+  override getSettings() { return { isEqual }; }
+
   async refresh(desired: MouseConfig | null, _config: Partial<MacosSettingsConfig>): Promise<MouseConfig | null> {
     if (!desired) return null;
     const result: MouseConfig = {};
@@ -170,6 +174,8 @@ class MouseSettingsParameter extends StatefulParameter<MacosSettingsConfig, Mous
 // ---- Keyboard ----
 
 class KeyboardSettingsParameter extends StatefulParameter<MacosSettingsConfig, KeyboardConfig> {
+  override getSettings() { return { isEqual }; }
+
   async refresh(desired: KeyboardConfig | null, _config: Partial<MacosSettingsConfig>): Promise<KeyboardConfig | null> {
     if (!desired) return null;
     const result: KeyboardConfig = {};
@@ -241,6 +247,8 @@ class KeyboardSettingsParameter extends StatefulParameter<MacosSettingsConfig, K
 // ---- Trackpad ----
 
 class TrackpadSettingsParameter extends StatefulParameter<MacosSettingsConfig, TrackpadConfig> {
+  override getSettings() { return { isEqual }; }
+
   async refresh(desired: TrackpadConfig | null, _config: Partial<MacosSettingsConfig>): Promise<TrackpadConfig | null> {
     if (!desired) return null;
     const result: TrackpadConfig = {};
@@ -280,6 +288,8 @@ class TrackpadSettingsParameter extends StatefulParameter<MacosSettingsConfig, T
 // ---- Dock ----
 
 class DockSettingsParameter extends StatefulParameter<MacosSettingsConfig, DockConfig> {
+  override getSettings() { return { isEqual }; }
+
   async refresh(desired: DockConfig | null, _config: Partial<MacosSettingsConfig>): Promise<DockConfig | null> {
     if (!desired) return null;
     const result: DockConfig = {};
