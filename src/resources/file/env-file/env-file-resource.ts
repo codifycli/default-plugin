@@ -27,7 +27,7 @@ import {
 const schema = z
   .object({
     dir: z.string().describe('The directory where the env file is located.'),
-    name: z.string().optional().describe('The name of the env file. Defaults to .env.'),
+    filename: z.string().optional().describe('The name of the env file. Defaults to .env.'),
     contents: z
       .array(
         z.object({
@@ -51,7 +51,7 @@ export type EnvFileConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<EnvFileConfig> = {
   dir: '<Replace me here!>',
-  name: '.env',
+  filename: '.env',
   contents: [],
 };
 
@@ -78,7 +78,7 @@ const exampleRemote: ExampleConfig = {
     {
       type: 'env-file',
       dir: '~/projects/my-app',
-      name: '.env.local',
+      filename: '.env.local',
       remoteFile: 'codify://<Replace me here!>:<Replace me here!>',
     },
   ],
@@ -97,7 +97,7 @@ export class EnvFileResource extends Resource<EnvFileConfig> {
       schema,
       parameterSettings: {
         dir: { type: 'directory' },
-        name: { default: '.env' },
+        filename: { default: '.env' },
         contents: {
           type: 'array',
           itemType: 'object',
@@ -112,7 +112,7 @@ export class EnvFileResource extends Resource<EnvFileConfig> {
         preventImport: true,
       },
       allowMultiple: {
-        identifyingParameters: ['dir', 'name'],
+        identifyingParameters: ['dir', 'filename'],
       },
       transformation: {
         to: async (input: Partial<EnvFileConfig>) => {
@@ -129,7 +129,7 @@ export class EnvFileResource extends Resource<EnvFileConfig> {
   }
 
   async refresh(parameters: Partial<EnvFileConfig>): Promise<Partial<EnvFileConfig> | null> {
-    const filePath = this.resolveFilePath(parameters.dir!, parameters.name);
+    const filePath = this.resolveFilePath(parameters.dir!, parameters.filename);
 
     if (!(await FileUtils.fileExists(filePath))) {
       return null;
@@ -139,17 +139,17 @@ export class EnvFileResource extends Resource<EnvFileConfig> {
 
     if (parameters.remoteFile) {
       const hash = createHash('md5').update(content).digest('hex');
-      return { dir: parameters.dir, name: parameters.name, remoteFile: parameters.remoteFile, hash };
+      return { dir: parameters.dir, filename: parameters.filename, remoteFile: parameters.remoteFile, hash };
     }
 
     const contents = parseEnvFile(content);
-    return { dir: parameters.dir, name: parameters.name, contents };
+    return { dir: parameters.dir, filename: parameters.filename, contents };
   }
 
   async create(plan: CreatePlan<EnvFileConfig>): Promise<void> {
-    const { dir, name, contents, remoteFile } = plan.desiredConfig;
+    const { dir, filename, contents, remoteFile } = plan.desiredConfig;
     const resolvedDir = path.resolve(dir);
-    const filePath = path.join(resolvedDir, name ?? '.env');
+    const filePath = path.join(resolvedDir, filename ?? '.env');
 
     if (!(await FileUtils.dirExists(resolvedDir))) {
       await fs.mkdir(resolvedDir, { recursive: true });
@@ -168,11 +168,11 @@ export class EnvFileResource extends Resource<EnvFileConfig> {
   }
 
   async destroy(plan: DestroyPlan<EnvFileConfig>): Promise<void> {
-    const filePath = this.resolveFilePath(plan.currentConfig.dir, plan.currentConfig.name);
+    const filePath = this.resolveFilePath(plan.currentConfig.dir, plan.currentConfig.filename);
     await fs.rm(filePath);
   }
 
-  private resolveFilePath(dir: string, name?: string): string {
-    return path.join(path.resolve(dir), name ?? '.env');
+  private resolveFilePath(dir: string, filename?: string): string {
+    return path.join(path.resolve(dir), filename ?? '.env');
   }
 }

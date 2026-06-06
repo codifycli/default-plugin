@@ -14,7 +14,7 @@ describe('env-file resource integration tests', async () => {
       {
         type: 'env-file',
         dir: testDir,
-        name: '.env',
+        filename: '.env',
         contents: [
           { key: 'FOO', value: 'bar' },
           { key: 'BAZ', value: 'qux' },
@@ -34,7 +34,7 @@ describe('env-file resource integration tests', async () => {
           {
             type: 'env-file',
             dir: testDir,
-            name: '.env',
+            filename: '.env',
             contents: [
               { key: 'FOO', value: 'updated' },
               { key: 'NEW_KEY', value: 'hello' },
