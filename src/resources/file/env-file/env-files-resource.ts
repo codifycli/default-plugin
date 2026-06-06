@@ -141,9 +141,14 @@ export class EnvFilesResource extends Resource<EnvFilesConfig> {
 
   async refresh(parameters: Partial<EnvFilesConfig>): Promise<Partial<EnvFilesConfig> | null> {
     const { dir, envFiles } = parameters;
-    if (!dir || !envFiles?.length) return null;
+    if (!dir) return null;
 
     const resolvedDir = path.resolve(dir);
+
+    if (!envFiles?.length) {
+      return this.refreshFromDir(dir, resolvedDir);
+    }
+
     const result: EnvFileEntry[] = [];
 
     for (const entry of envFiles) {
@@ -157,6 +162,24 @@ export class EnvFilesResource extends Resource<EnvFilesConfig> {
       } else {
         result.push({ name: entry.name, contents: parseEnvFile(content) });
       }
+    }
+
+    if (result.length === 0) return null;
+    return { dir, envFiles: result };
+  }
+
+  private async refreshFromDir(dir: string, resolvedDir: string): Promise<Partial<EnvFilesConfig> | null> {
+    if (!(await FileUtils.dirExists(resolvedDir))) return null;
+
+    const allFiles = await fs.readdir(resolvedDir);
+    const envFileNames = allFiles.filter((f) => /^\.env(\..+)?$/.test(f) || f === '.dev.vars');
+
+    const result: EnvFileEntry[] = [];
+
+    for (const name of envFileNames) {
+      const filePath = path.join(resolvedDir, name);
+      const content = await fs.readFile(filePath, 'utf8');
+      result.push({ name, contents: parseEnvFile(content) });
     }
 
     if (result.length === 0) return null;
