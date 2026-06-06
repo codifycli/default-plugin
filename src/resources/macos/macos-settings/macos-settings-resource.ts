@@ -36,7 +36,8 @@ const dockSchema = z.object({
   position: z.enum(['left', 'bottom', 'right']).optional(),
   iconSize: z.number().int().min(16).max(128).optional(),
   autohide: z.boolean().optional(),
-  autohideDelay: z.number().min(0).optional(),
+  hoverDelay: z.number().min(0).optional(),
+  animationSpeed: z.number().min(0).optional(),
   showRecents: z.boolean().optional(),
   minimizeEffect: z.enum(['genie', 'scale', 'suck']).optional(),
 }).optional();
@@ -382,9 +383,13 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
       const v = await this.readBool('com.apple.dock', 'autohide');
       if (v !== null) { result.autohide = v; anyFound = true; }
     }
-    if ('autohideDelay' in desired) {
+    if ('hoverDelay' in desired) {
       const v = await this.readFloat('com.apple.dock', 'autohide-delay');
-      if (v !== null) { result.autohideDelay = v; anyFound = true; }
+      if (v !== null) { result.hoverDelay = v; anyFound = true; }
+    }
+    if ('animationSpeed' in desired) {
+      const v = await this.readFloat('com.apple.dock', 'autohide-time-modifier');
+      if (v !== null) { result.animationSpeed = v; anyFound = true; }
     }
     if ('showRecents' in desired) {
       const v = await this.readBool('com.apple.dock', 'show-recents');
@@ -410,8 +415,11 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
     if (settings.autohide !== undefined) {
       await $.spawn(`defaults write com.apple.dock autohide -bool ${settings.autohide}`);
     }
-    if (settings.autohideDelay !== undefined) {
-      await $.spawn(`defaults write com.apple.dock "autohide-delay" -float ${settings.autohideDelay}`);
+    if (settings.hoverDelay !== undefined) {
+      await $.spawn(`defaults write com.apple.dock "autohide-delay" -float ${settings.hoverDelay}`);
+    }
+    if (settings.animationSpeed !== undefined) {
+      await $.spawn(`defaults write com.apple.dock "autohide-time-modifier" -float ${settings.animationSpeed}`);
     }
     if (settings.showRecents !== undefined) {
       await $.spawn(`defaults write com.apple.dock "show-recents" -bool ${settings.showRecents}`);
@@ -429,7 +437,8 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
       position: 'orientation',
       iconSize: 'tilesize',
       autohide: 'autohide',
-      autohideDelay: 'autohide-delay',
+      hoverDelay: 'autohide-delay',
+      animationSpeed: 'autohide-time-modifier',
       showRecents: 'show-recents',
       minimizeEffect: 'mineffect',
     };

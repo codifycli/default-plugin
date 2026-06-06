@@ -40,7 +40,8 @@ All sections and their sub-keys are optional. You only need to declare the setti
 | `position` | `"left"` \| `"bottom"` \| `"right"` | `"bottom"` | Position of the Dock on screen. |
 | `iconSize` | integer (16–128) | `48` | Dock icon size in pixels. |
 | `autohide` | boolean | `false` | Automatically hide and show the Dock when the cursor moves near the screen edge. |
-| `autohideDelay` | number | `0.2` | Seconds to wait before showing the Dock when it is hidden. Set to `0` for instant reveal. |
+| `hoverDelay` | number | `0.2` | Seconds to wait before the Dock appears when hovering near the screen edge. Set to `0` for instant reveal. |
+| `animationSpeed` | number | `0.5` | Duration in seconds of the Dock slide-in/out animation. Set to `0` to disable the animation entirely. |
 | `showRecents` | boolean | `true` | Show recently opened apps in a dedicated section of the Dock. |
 | `minimizeEffect` | `"genie"` \| `"scale"` \| `"suck"` | `"genie"` | Window minimize animation style. |
 
@@ -62,7 +63,8 @@ The table below shows the underlying `defaults` key used for each friendly param
 | dock | `position` | `com.apple.dock` | `orientation` |
 | dock | `iconSize` | `com.apple.dock` | `tilesize` |
 | dock | `autohide` | `com.apple.dock` | `autohide` |
-| dock | `autohideDelay` | `com.apple.dock` | `autohide-delay` |
+| dock | `hoverDelay` | `com.apple.dock` | `autohide-delay` |
+| dock | `animationSpeed` | `com.apple.dock` | `autohide-time-modifier` |
 | dock | `showRecents` | `com.apple.dock` | `show-recents` |
 | dock | `minimizeEffect` | `com.apple.dock` | `mineffect` |
 
