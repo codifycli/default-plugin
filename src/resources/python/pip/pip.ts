@@ -158,8 +158,8 @@ export class Pip extends Resource<PipResourceConfig> {
     const { install: desiredInstall, virtualEnv } = plan.desiredConfig;
     const { install: currentInstall } = plan.currentConfig;
 
-    const toInstall = desiredInstall.filter((d) => !this.findMatchingForModify(d, currentInstall));
-    const toUninstall = currentInstall.filter((c) => !this.findMatchingForModify(c, desiredInstall));
+    const toInstall = (desiredInstall ?? []).filter((d) => !this.findMatchingForModify(d, currentInstall));
+    const toUninstall = (currentInstall ?? []).filter((c) => !this.findMatchingForModify(c, desiredInstall));
 
     if (toUninstall.length > 0) {
       await this.pipUninstall(toUninstall, virtualEnv);
@@ -209,8 +209,8 @@ export class Pip extends Resource<PipResourceConfig> {
     )
   }
 
-  findMatchingForModify(a: PipListResult | string, bList: Array<PipListResult | string>): PipListResult | string | undefined {
-    return bList.find((b) => this.isEqual(a, b))
+  findMatchingForModify(a: PipListResult | string, bList: Array<PipListResult | string> | null | undefined): PipListResult | string | undefined {
+    return (bList ?? []).find((b) => this.isEqual(a, b))
   }
 
   isEqual(a: PipListResult | string, b: PipListResult | string): boolean {
