@@ -1,0 +1,67 @@
+---
+title: openclaw
+description: A reference page for the openclaw resource
+---
+
+The openclaw resource installs [OpenClaw](https://docs.openclaw.ai/) — a self-hosted gateway that connects chat channels (Discord, Slack, Telegram, WhatsApp, Signal, iMessage, Matrix, Teams, and more) to AI agents — and manages its configuration. It handles installation via the official installer script and gives you declarative control over the gateway, agents, models, channels, tools, and every other section of the OpenClaw config.
+
+## Parameters
+
+- **settings**: *(object, optional)* Top-level keys to merge into `~/.openclaw/openclaw.json`. On apply, the declared keys are written; on destroy, only the declared keys are removed. Common sections include:
+  - `gateway` — `mode` (`"local"` | `"remote"`), `port` (default `18789`), `bind` (`"loopback"` | `"lan"` | `"tailnet"` | `"auto"` | `"custom"`), `auth`, `tls`, `controlUi`
+  - `agents` — `defaults.{workspace,model,thinking,heartbeat,memory,media,skills}`, `list[]` for per-agent overrides
+  - `models` — `pricing.enabled`, `mode` (`"merge"` | `"replace"`), `providers` (custom/local model providers such as Ollama or LM Studio)
+  - `channels` — per-provider sections under `channels.<provider>` (e.g. `discord`, `slack`, `telegram`, `whatsapp`, `signal`, `imessage`, `matrix`, `teams`). A channel starts automatically once its config section exists (unless `enabled: false`). Common fields: `dmPolicy`, `groupPolicy`, `allowFrom`, `mediaMaxMb`, `historyLimit`, plus provider-specific credentials (`token`, `botToken`, `appToken`, etc.)
+  - `tools` — `policy.{allow,deny}` lists controlling which tools (`exec`, `read`, `write`, `browser`, `web_search`, `cron`, etc.) agents can call
+  - `skills` — `allowBundled`, `load.extraDirs`, `install.nodeManager`
+  - `plugins` — `enabled`, `allow`/`deny`, `entries.*`
+  - `mcp` — `servers`, `sessionIdleTtlMs`
+  - `browser`, `logging`, `cron`, `hooks`, `ui`, `env`, `secrets`, `auth`, `discovery`, `acp` — see the [configuration reference](https://docs.openclaw.ai/gateway/configuration-reference) for the full list of fields
+
+## Example usage
+
+### Install OpenClaw with gateway and agent defaults
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "openclaw",
+    "settings": {
+      "gateway": { "port": 18789, "bind": "loopback" },
+      "agents": { "defaults": { "model": "anthropic/claude-sonnet-4-6" } }
+    }
+  }
+]
+```
+
+### OpenClaw with a Telegram channel and restricted tools
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "openclaw",
+    "settings": {
+      "channels": {
+        "telegram": {
+          "botToken": "<Replace me here!>",
+          "dmPolicy": "allowlist",
+          "allowFrom": ["123456789"]
+        }
+      },
+      "tools": {
+        "policy": { "allow": ["exec", "read", "write", "web_search"] }
+      }
+    }
+  }
+]
+```
+
+## Notes
+
+- OpenClaw is installed via the official installer (`curl -fsSL https://openclaw.ai/install.sh | bash`) on both macOS and Linux.
+- The configuration file lives at `~/.openclaw/openclaw.json` and uses JSON5 (Codify reads/writes it as plain JSON, so any comments in a hand-edited file will not be preserved).
+- The `settings` parameter merges only the declared top-level keys. Existing sections not in your Codify config are left untouched.
+- After applying settings changes, Codify runs `openclaw gateway restart` so the running gateway picks up the new configuration.
+- On destroy, the declared `settings` keys are removed and the OpenClaw binary, config, and state directory (`~/.openclaw`) are removed.
+- Model provider authentication (API keys) and full guided onboarding are not managed by this resource — configure credentials under `settings.models` / `settings.auth`, or run `openclaw onboard` manually for an interactive setup.
+- See the [OpenClaw configuration reference](https://docs.openclaw.ai/gateway/configuration-reference) for the complete list of configuration sections and fields.

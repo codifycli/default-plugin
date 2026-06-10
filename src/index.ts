@@ -28,6 +28,7 @@ import { Pnpm } from './resources/javascript/pnpm/pnpm.js';
 import { MacosSettingsResource } from './resources/macos/macos-settings/macos-settings-resource.js';
 import { MacportsResource } from './resources/macports/macports.js';
 import { ClaudeCodeResource } from './resources/claude-code/claude-code.js';
+import { OpenClawResource } from './resources/openclaw/openclaw.js';
 import { ClaudeCodeProjectResource } from './resources/claude-code/claude-code-project.js';
 import { OllamaResource } from './resources/ollama/ollama.js';
 import { PgcliResource } from './resources/pgcli/pgcli.js';
@@ -127,6 +128,7 @@ runPlugin(Plugin.create(
     new SyncthingDeviceResource(),
     new SyncthingFolderResource(),
     new RbenvResource(),
+    new OpenClawResource(),
   ],
   { minSupportedCliVersion: MIN_SUPPORTED_CLI_VERSION }
 ))
