@@ -7,6 +7,7 @@ import { AsdfPluginResource } from './resources/asdf/asdf-plugin.js';
 import { AwsCliResource } from './resources/aws-cli/cli/aws-cli.js';
 import { AwsProfileResource } from './resources/aws-cli/profile/aws-profile.js';
 import { DnfResource } from './resources/dnf/dnf.js';
+import { CronResource } from './resources/cron/cron-resource.js';
 import { GoenvResource } from './resources/go/goenv/goenv.js';
 import { DockerResource } from './resources/docker/docker.js';
 import { EnvFileResource } from './resources/file/env-file/env-file-resource.js';
@@ -67,6 +68,7 @@ runPlugin(Plugin.create(
   'default',
   [
     new GitResource(),
+    new CronResource(),
     new XcodeToolsResource(),
     new PathResource(),
     new AliasResource(),
