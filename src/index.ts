@@ -29,6 +29,9 @@ import { MacosSettingsResource } from './resources/macos/macos-settings/macos-se
 import { MacportsResource } from './resources/macports/macports.js';
 import { ClaudeCodeResource } from './resources/claude-code/claude-code.js';
 import { ClaudeCodeProjectResource } from './resources/claude-code/claude-code-project.js';
+import { CodexResource } from './resources/codex/codex.js';
+import { CodexProjectResource } from './resources/codex/codex-project.js';
+import { CodexAppResource } from './resources/codex/codex-app.js';
 import { OllamaResource } from './resources/ollama/ollama.js';
 import { PgcliResource } from './resources/pgcli/pgcli.js';
 import { Pip } from './resources/python/pip/pip.js';
@@ -122,6 +125,9 @@ runPlugin(Plugin.create(
     new TartVmResource(),
     new ClaudeCodeResource(),
     new ClaudeCodeProjectResource(),
+    new CodexResource(),
+    new CodexProjectResource(),
+    new CodexAppResource(),
     new OllamaResource(),
     new SyncthingResource(),
     new SyncthingDeviceResource(),

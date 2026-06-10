@@ -1,0 +1,87 @@
+---
+title: codex
+description: A reference page for the codex resource
+---
+
+The codex resource installs the [Codex CLI](https://developers.openai.com/codex) — OpenAI's terminal-based coding agent — and manages its global configuration. It handles installation via the official installer script and gives you declarative control over `~/.codex/config.toml` settings and global MCP servers.
+
+## Parameters
+
+- **config**: *(object, optional)* Key-value pairs to merge into `~/.codex/config.toml`. On apply, the declared keys are written; on destroy, only the declared keys are removed. Common settings include:
+  - `model` — the model Codex uses (e.g. `"gpt-5.1-codex"`)
+  - `model_provider` — the model provider (default: `"openai"`)
+  - `approval_policy` — `"untrusted"` | `"on-request"` | `"never"` (default: `"on-request"`)
+  - `sandbox_mode` — `"read-only"` | `"workspace-write"` | `"danger-full-access"` (default: `"workspace-write"`)
+  - `sandbox_workspace_write` — `{ network_access, writable_roots, ... }`
+  - `model_reasoning_effort` — `"minimal"` | `"low"` | `"medium"` | `"high"` | `"xhigh"`
+  - `model_reasoning_summary` — `"auto"` | `"concise"` | `"detailed"` | `"none"`
+  - `web_search` — `"disabled"` | `"cached"` | `"live"` (default: `"cached"`)
+  - `file_opener` — `"vscode"` | `"cursor"` | `"windsurf"` | `"none"`
+  - `history` — `{ persistence, max_bytes }`
+  - `shell_environment_policy` — `{ inherit, set, include_only, exclude }`
+
+- **mcpServers**: *(array, optional)* MCP servers to register globally under `[mcp_servers]` in `~/.codex/config.toml`. Each entry requires a `name` and `type`, plus transport-specific fields:
+  - **stdio**: `{ name, type: "stdio", command, args?, env?, envVars?, cwd?, startupTimeoutSec?, toolTimeoutSec? }` — local process server
+  - **http**: `{ name, type: "http", url, bearerTokenEnvVar?, httpHeaders? }` — remote streamable-HTTP server
+
+## Example usage
+
+### Install Codex with custom settings
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex",
+    "config": {
+      "model": "gpt-5.1-codex",
+      "approval_policy": "on-request",
+      "sandbox_mode": "workspace-write"
+    }
+  }
+]
+```
+
+### Codex with an MCP server
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex",
+    "mcpServers": [
+      {
+        "name": "filesystem",
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+      }
+    ]
+  }
+]
+```
+
+### Codex with a remote MCP server
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex",
+    "mcpServers": [
+      {
+        "name": "figma",
+        "type": "http",
+        "url": "https://mcp.figma.com/mcp",
+        "bearerTokenEnvVar": "FIGMA_OAUTH_TOKEN"
+      }
+    ]
+  }
+]
+```
+
+## Notes
+
+- Codex is installed via the official installer (`curl -fsSL https://chatgpt.com/codex/install.sh | sh`) on both macOS and Linux. The binary is placed at `~/.local/bin/codex`.
+- The installer adds `~/.local/bin` to your PATH. This entry remains after destroy — remove it manually if you no longer want it.
+- The `config` parameter merges only the declared top-level keys of `~/.codex/config.toml`. Existing keys not in your Codify config (including `mcp_servers`) are left untouched.
+- MCP servers are stored under `[mcp_servers.<name>]` in `~/.codex/config.toml`. Removing an MCP server from your config removes its table; other servers are untouched.
+- For per-project configuration (AGENTS.md, project-scoped settings and MCP servers), see [`codex-project`](/docs/resources/codex/codex-project). For the Codex desktop app, see [`codex-app`](/docs/resources/codex/codex-app).
+- Authentication (`codex login`) is interactive and not managed by this resource.
