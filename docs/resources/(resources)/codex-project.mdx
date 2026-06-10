@@ -1,0 +1,110 @@
+---
+title: codex-project
+description: A reference page for the codex-project resource
+---
+
+The codex-project resource manages **per-project** Codex configuration. It writes a project-scoped `AGENTS.md`, settings, and MCP servers under a specific directory — leaving global configuration untouched. Use it alongside the [`codex`](/docs/resources/codex/codex) resource, which handles installation.
+
+## Parameters
+
+- **directory**: *(string, required)* Path to the project directory. Configuration files are written relative to this path:
+  - `<directory>/AGENTS.md`
+  - `<directory>/.codex/config.toml`
+
+- **agentsMd**: *(string, optional)* Content for `<directory>/AGENTS.md`. Accepts inline text, an `https://` URL, or a `codify://documentId:fileId` cloud URL. Codex walks from the project root down to the current working directory and concatenates any `AGENTS.md` files it finds, using them as project-specific instructions.
+
+- **config**: *(object, optional)* Key-value pairs to merge into `<directory>/.codex/config.toml`. On apply, the declared keys are written; on destroy, only the declared keys are removed. Supports the same keys as the global config, e.g. `model`, `approval_policy`, `sandbox_mode`, `sandbox_workspace_write`.
+  - Note: Codex ignores `model_provider`, `openai_base_url`, `notify`, `otel`, and `profiles` in project-level config files for security reasons.
+
+- **mcpServers**: *(array, optional)* MCP servers to register for this project under `[mcp_servers]` in `<directory>/.codex/config.toml`. Each entry requires a `name` and `type`, plus transport-specific fields:
+  - **stdio**: `{ name, type: "stdio", command, args?, env?, envVars?, cwd?, startupTimeoutSec?, toolTimeoutSec? }` — local process server
+  - **http**: `{ name, type: "http", url, bearerTokenEnvVar?, httpHeaders? }` — remote streamable-HTTP server
+
+## Example usage
+
+### Per-project AGENTS.md and sandbox policy
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex-project",
+    "directory": "~/projects/my-api",
+    "agentsMd": "# Project Instructions\n\nThis is a Node.js API. Always use async/await.\nRun `npm test` before committing.",
+    "config": {
+      "sandbox_mode": "workspace-write",
+      "approval_policy": "on-request"
+    }
+  }
+]
+```
+
+### Per-project AGENTS.md with an MCP server
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex-project",
+    "directory": "~/projects/my-api",
+    "agentsMd": "# Project Instructions\n\nAlways check types with `npm run typecheck` before submitting.",
+    "mcpServers": [
+      {
+        "name": "project-db",
+        "type": "stdio",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-postgres", "postgresql://localhost/mydb"]
+      }
+    ]
+  }
+]
+```
+
+### Per-project AGENTS.md from a remote URL
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex-project",
+    "directory": "~/projects/my-api",
+    "agentsMd": "codify://my-document-id:my-file-id"
+  }
+]
+```
+
+Or from a public HTTPS URL:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex-project",
+    "directory": "~/projects/my-api",
+    "agentsMd": "https://raw.githubusercontent.com/my-org/dotfiles/main/AGENTS.md"
+  }
+]
+```
+
+### Global install + per-project config together
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex",
+    "config": {
+      "model": "gpt-5.1-codex"
+    }
+  },
+  {
+    "type": "codex-project",
+    "directory": "~/projects/my-api",
+    "agentsMd": "# My API\n\nNode.js + TypeScript. Run `npm test` before any commit."
+  }
+]
+```
+
+## Notes
+
+- The `codex` resource must be applied before `codex-project` (it declares a dependency automatically). If Codex is not installed, this resource will report as not present.
+- Multiple `codex-project` entries can coexist — each unique `directory` is a separate resource instance.
+- Destroying a `codex-project` resource removes only the per-project files (`AGENTS.md` and the `.codex/config.toml` directory). The Codex binary and global configuration are left untouched.
+- The `config` parameter merges only the declared top-level keys. Existing project config not in your Codify config is left untouched.
+- The `agentsMd` parameter manages the entire `AGENTS.md` file. On destroy, the file is removed.
+- MCP servers are stored under `[mcp_servers.<name>]` in `<directory>/.codex/config.toml`. Removing an MCP server from your config removes its table; other servers are untouched.

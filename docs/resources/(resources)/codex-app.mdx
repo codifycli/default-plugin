@@ -1,0 +1,43 @@
+---
+title: codex-app
+description: A reference page for the codex-app resource
+---
+
+The codex-app resource installs the [Codex desktop app](https://developers.openai.com/codex/app) — OpenAI's "Codex command center" for managing coding agent threads, projects, and worktrees. It is a thin wrapper around the Homebrew cask install; the app shares its login, configuration, and MCP servers with the [`codex`](/docs/resources/codex/codex) CLI and IDE extension via `~/.codex/config.toml`.
+
+This resource is **macOS only**. The Codex desktop app is also available on Windows via the Microsoft Store, but is not yet available on Linux.
+
+## Parameters
+
+This resource has no configurable parameters — it manages installation only.
+
+## Example usage
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex-app",
+    "os": ["macOS"]
+  }
+]
+```
+
+### Install the CLI and the desktop app together
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "codex",
+    "os": ["macOS"]
+  },
+  {
+    "type": "codex-app",
+    "os": ["macOS"]
+  }
+]
+```
+
+## Notes
+
+- Installed via `brew install --cask codex-app` to `/Applications/Codex.app`.
+- The desktop app, CLI, and IDE extension all read and write `~/.codex/config.toml` and share the same login session — use the [`codex`](/docs/resources/codex/codex) resource to manage settings and MCP servers declaratively.
