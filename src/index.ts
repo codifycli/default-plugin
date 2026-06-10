@@ -18,6 +18,7 @@ import { GitLfsResource } from './resources/git/lfs/git-lfs.js';
 import { GitRepositoriesResource } from './resources/git/repositories/git-repositories.js';
 import { GitRepositoryResource } from './resources/git/repository/git-repository.js';
 import { WaitGithubSshKey } from './resources/git/wait-github-ssh-key/wait-github-ssh-key.js';
+import { HermesAgentResource } from './resources/hermes-agent/hermes-agent.js';
 import { HomebrewResource } from './resources/homebrew/homebrew.js';
 import { JenvResource } from './resources/java/jenv/jenv.js';
 import { Npm } from './resources/javascript/npm/npm.js';
@@ -73,6 +74,7 @@ runPlugin(Plugin.create(
     new AliasesResource(),
     new EnvVarResource(),
     new EnvVarsResource(),
+    new HermesAgentResource(),
     new HomebrewResource(),
     new PyenvResource(),
     new UvResource(),
