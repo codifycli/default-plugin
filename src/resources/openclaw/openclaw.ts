@@ -107,7 +107,7 @@ export class OpenClawResource extends Resource<OpenClawConfig> {
     const $ = getPty();
 
     await $.spawn(
-      'bash -c "curl -fsSL https://openclaw.ai/install.sh | bash"',
+      'bash -c "curl -fsSL https://openclaw.ai/install.sh | bash -s -- --no-onboard --no-prompt"',
       { interactive: true },
     );
 
