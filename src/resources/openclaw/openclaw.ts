@@ -120,6 +120,7 @@ export class OpenClawResource extends Resource<OpenClawConfig> {
     const $ = getPty();
 
     await $.spawnSafe('openclaw gateway stop', { interactive: true });
+    await $.spawnSafe('npm uninstall -g openclaw', { interactive: true });
     await $.spawnSafe('rm -f ~/.local/bin/openclaw', { interactive: true });
 
     await fs.rm(path.join(os.homedir(), '.openclaw'), { recursive: true, force: true });
