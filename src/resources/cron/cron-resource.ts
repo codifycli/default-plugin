@@ -172,7 +172,8 @@ export class CronResource extends Resource<CronConfig> {
     const $ = getPty();
     const tmpPath = path.join(os.tmpdir(), `codify-crontab-${process.pid}-${Date.now()}.txt`);
 
-    await fs.writeFile(tmpPath, content, 'utf8');
+    const fileContent = content.length > 0 && !content.endsWith('\n') ? `${content}\n` : content;
+    await fs.writeFile(tmpPath, fileContent, 'utf8');
     try {
       await $.spawn(`crontab "${tmpPath}"`, { interactive: true });
     } finally {
