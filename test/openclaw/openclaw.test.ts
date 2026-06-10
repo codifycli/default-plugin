@@ -68,6 +68,7 @@ describe('openclaw resource integration tests', async () => {
   afterAll(async () => {
     // Best-effort cleanup in case tests left openclaw installed
     await testSpawn('openclaw gateway stop');
+    await testSpawn('npm uninstall -g openclaw');
     await testSpawn('rm -f ~/.local/bin/openclaw');
     await testSpawn('rm -rf ~/.openclaw');
   }, 60_000);
