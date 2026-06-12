@@ -13,7 +13,7 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
   override async refresh(): Promise<null | string[]> {
     const $ = getPty();
 
-    const tapsQuery = await $.spawnSafe('brew tap')
+    const tapsQuery = await $.spawnSafe('brew tap', { env: { NONINTERACTIVE: 1 }})
     if (tapsQuery.status === SpawnStatus.SUCCESS && tapsQuery.data !== null && tapsQuery.data !== undefined) {
       return tapsQuery.data
         .split('\n')
@@ -49,7 +49,7 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
     for (const tap of taps) {
       await $.spawn(`brew tap ${tap}`, {
         interactive: true,
-        env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 },
       });
     }
   }
@@ -63,7 +63,7 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
     for (const tap of taps) {
       await $.spawn(`brew untap ${tap}`, {
         interactive: true,
-        env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 },
       });
     }
   }

@@ -28,7 +28,7 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
   async refresh(desired: string[], config: Partial<HomebrewConfig> | null): Promise<null | string[]> {
     const $ = getPty();
 
-    const caskQuery = await $.spawnSafe('brew list --casks -1 --full-name')
+    const caskQuery = await $.spawnSafe('brew list --casks -1 --full-name', { env: { NONINTERACTIVE: 1 }})
 
     if (caskQuery.status === SpawnStatus.SUCCESS && caskQuery.data !== null && caskQuery.data !== undefined) {
       const installedCasks = caskQuery.data
@@ -100,7 +100,7 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
     for (const cask of casksToInstall) {
       const result = await $.spawnSafe(`brew install --casks ${cask}`, {
         interactive: true,
-        env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }
       })
 
       if (result.status === SpawnStatus.SUCCESS) {
@@ -111,7 +111,7 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
       if (result.data?.includes('It seems there is already an App at')) {
         const adoptResult = await $.spawnSafe(`brew install --casks --adopt ${cask}`, {
           interactive: true,
-          env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+          env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }
         })
 
         if (adoptResult.status === SpawnStatus.SUCCESS) {
@@ -133,7 +133,7 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
     const $ = getPty();
     const result = await $.spawnSafe(`brew uninstall ${casks.join(' ')}`, {
       interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }
     })
 
     if (result.status === SpawnStatus.SUCCESS) {
@@ -153,7 +153,7 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
     const result = (await $.spawn(
       `brew info -q --json=v2 ${casks.map((c) => `"${c}"`).join(' ')}`, {
         interactive: true,
-        env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }
       })
     )
       .data

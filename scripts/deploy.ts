@@ -89,6 +89,24 @@ if (!isBeta) {
   // Build and deploy completions as well.
   console.log('Deploying completions...')
   cp.spawnSync('source ~/.zshrc; npm run deploy:completions' , { shell: 'zsh', stdio: 'inherit' })
+
+  // Trigger vector reindex so search embeddings reflect the latest resources
+  console.log('Triggering vector reindex...')
+  const reindexKey = process.env.REINDEX_API_KEY
+  if (!reindexKey) {
+    console.warn('REINDEX_API_KEY not set — skipping reindex')
+  } else {
+    const res = await fetch('https://api.codifycli.com/v1/embeddings/reindex', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${reindexKey}` },
+    })
+    if (!res.ok) {
+      console.error(`Reindex failed: ${res.status} ${await res.text()}`)
+    } else {
+      const body = await res.json() as { resources_processed: number; templates_processed: number }
+      console.log(`Reindex complete — resources: ${body.resources_processed}, templates: ${body.templates_processed}`)
+    }
+  }
 }
 
 async function uploadResources(prerelease: boolean) {
