@@ -80,7 +80,7 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
   override async refresh(parameters: Partial<HomebrewConfig>): Promise<Partial<HomebrewConfig> | null> {
     const $ = getPty();
 
-    const homebrewInfo = await $.spawnSafe('brew config');
+    const homebrewInfo = await $.spawnSafe('brew config', { env: { HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }});
     if (homebrewInfo.status === SpawnStatus.ERROR) {
       return null;
     }
@@ -126,7 +126,7 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
       return;
     }
 
-    const homebrewInfo = await $.spawn('brew config', { interactive: true });
+    const homebrewInfo = await $.spawn('brew config', { interactive: true, env: { NONINTERACTIVE: 1 } });
     const homebrewDirectory = this.getCurrentLocation(homebrewInfo.data)
 
     if (homebrewDirectory === '/opt/homebrew') {

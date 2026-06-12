@@ -44,6 +44,21 @@ describe('Homebrew main resource integration tests', { skip: !Utils.isMacOS() },
     });
   });
 
+  it('Installs formulae with dependencies without prompting (HOMEBREW_NO_ASK)', { timeout: 300000 }, async () => {
+    // ripgrep depends on pcre2; without HOMEBREW_NO_ASK brew would interactively ask
+    // whether to install the dependency, hanging the process
+    await PluginTester.fullTest(pluginPath, [{
+      type: 'homebrew',
+      formulae: ['ripgrep'],
+    }], {
+      skipUninstall: true,
+      validateApply: async () => {
+        expect(await testSpawn('which rg')).toMatchObject({ status: SpawnStatus.SUCCESS });
+        expect(await testSpawn('brew list pcre2')).toMatchObject({ status: SpawnStatus.SUCCESS });
+      }
+    });
+  });
+
   it('Can handle casks that were already installed by skipping in the plan', { timeout: 300000 }, async () => {
     if (!Utils.isMacOS()) {
       return;

@@ -24,7 +24,9 @@ export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[
 
   override async refresh(desired: unknown, config: Partial<HomebrewConfig>): Promise<null | string[]> {
     const $ = getPty();
-    const formulaeQuery = await $.spawnSafe(`brew list --formula -1 --full-name ${config.onlyPlanUserInstalled ? '--installed-on-request' : ''}`)
+    const formulaeQuery = await $.spawnSafe(`brew list --formula -1 --full-name ${config.onlyPlanUserInstalled ? '--installed-on-request' : ''}`,
+      { env: { NONINTERACTIVE: 1 }}
+    )
 
     if (formulaeQuery.status === SpawnStatus.SUCCESS && formulaeQuery.data !== null && formulaeQuery.data !== undefined) {
       return formulaeQuery.data
@@ -59,7 +61,7 @@ export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[
     const $ = getPty();
     const result = await $.spawnSafe(`brew install --formulae ${formulae.join(' ')}`, {
       interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }
     })
 
     if (result.status === SpawnStatus.SUCCESS) {
@@ -75,9 +77,9 @@ export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[
     }
 
     const $ = getPty();
-    const result = await $.spawnSafe(`HOMEBREW_NO_AUTO_UPDATE=1 brew uninstall ${formulae.join(' ')}`, {
+    const result = await $.spawnSafe(`brew uninstall ${formulae.join(' ')}`, {
       interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 }
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }
     })
 
     if (result.status === SpawnStatus.SUCCESS) {
