@@ -82,7 +82,7 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          claude_args: "--allowedTools Bash,Read,Edit,Write,WebSearch,WebFetch --max-turns 60"
+          claude_args: "--allowedTools Bash,Read,Edit,Write,WebSearch,WebFetch --max-turns 200"
           prompt: |
             You are implementing a new Codify resource requested by the community.
 
