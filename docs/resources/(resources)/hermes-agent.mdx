@@ -1,0 +1,77 @@
+---
+title: hermes-agent
+description: A reference page for the hermes-agent resource
+---
+
+The hermes-agent resource installs [Hermes Agent](https://hermes-agent.nousresearch.com) — Nous Research's self-improving, multi-platform personal AI agent — and manages its core configuration. It handles installation via the official installer script and gives you declarative control over the default model, timezone, tool approval policy, and MCP servers.
+
+## Parameters
+
+- **model**: *(object, optional)* Default LLM provider and model, written to `~/.hermes/config.yaml` under `model`.
+  - `provider` — provider id, e.g. `"anthropic"`, `"openai"`, `"deepseek"`
+  - `default` — default model id, e.g. `"anthropic/claude-opus-4"`
+
+- **timezone**: *(string, optional)* IANA timezone used for scheduling and reports, e.g. `"America/New_York"`. Written to `~/.hermes/config.yaml` under `timezone`.
+
+- **approvalsMode**: *(string, optional)* Tool approval policy. One of:
+  - `"manual"` — ask before every tool call (default)
+  - `"smart"` — auto-approve low-risk actions
+  - `"off"` — disable approval prompts entirely
+
+- **mcpServers**: *(array, optional)* MCP servers registered in `~/.hermes/config.yaml` under `mcp_servers`. Each entry requires a unique `name`, plus either stdio or HTTP transport fields:
+  - **stdio**: `{ name, command, args?, env? }` — local process server
+  - **http**: `{ name, url, headers? }` — remote MCP endpoint
+  - `enabled` — optional boolean to disable a server without removing it (default: `true`)
+
+## Example usage
+
+### Hermes Agent with a default model and MCP server
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "hermes-agent",
+    "model": {
+      "provider": "anthropic",
+      "default": "anthropic/claude-opus-4"
+    },
+    "mcpServers": [
+      {
+        "name": "filesystem",
+        "command": "npx",
+        "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+      }
+    ]
+  }
+]
+```
+
+### Hermes Agent with timezone, approvals, and a remote MCP server
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "hermes-agent",
+    "timezone": "America/New_York",
+    "approvalsMode": "smart",
+    "mcpServers": [
+      {
+        "name": "remote-tools",
+        "url": "https://mcp.example.com/sse",
+        "headers": {
+          "Authorization": "Bearer <Replace me here!>"
+        }
+      }
+    ]
+  }
+]
+```
+
+## Notes
+
+- Hermes Agent is installed via the official installer (`curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash`) on both macOS and Linux. The installer requires `git` and automatically installs all other dependencies (uv, Python 3.11, Node.js, ripgrep, ffmpeg). This resource declares a dependency on the `git` resource.
+- The installer places the `hermes` command at `~/.local/bin/hermes` and adds it to your PATH via your shell RC file. This PATH entry remains after destroy — remove it manually if you no longer want it.
+- `model`, `timezone`, and `approvalsMode` are merged into `~/.hermes/config.yaml`. Other keys in that file are left untouched.
+- MCP servers are stored in `~/.hermes/config.yaml` under `mcp_servers`, keyed by each server's `name`. Removing an MCP server from your config removes it from the file; other servers are untouched.
+- Secrets such as provider API keys and messaging tokens (Telegram, Discord, Slack, etc.) are stored in `~/.hermes/.env` and are not managed by this resource — configure them with `hermes setup` or `hermes config set`.
+- To see all available configuration options, run `hermes doctor` or visit the [configuration reference](https://hermes-agent.nousresearch.com/docs/user-guide/configuration).
