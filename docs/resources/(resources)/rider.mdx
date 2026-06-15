@@ -1,0 +1,60 @@
+---
+title: rider
+description: A reference page for the rider resource
+---
+
+The rider resource installs [JetBrains Rider](https://www.jetbrains.com/rider/), JetBrains' .NET/C# IDE, free for non-commercial use. On macOS it is installed via Homebrew Cask (`brew install --cask rider`); on Linux via Snap (`snap install rider --classic`).
+
+## Parameters
+
+- **settingsZip** *(string, optional)* — Absolute path to a Rider settings ZIP file (exported via *File | Manage IDE Settings | Export Settings*) to import on first install. The archive is extracted directly into the Rider config directory, so all exported settings (keymaps, code styles, inspections, etc.) are applied before Rider is first launched.
+
+- **importSettings** *(boolean, optional, default: `true`)* — Controls whether the `settingsZip` is imported during `create`. Set to `false` to skip the import even when `settingsZip` is specified. This is a setting parameter and is not tracked as state, so it only has effect when the resource is first applied.
+
+- **plugins** *(string[], optional)* — JetBrains Marketplace plugin IDs to install (e.g. `"com.github.copilot"`, `"Docker"`). Plugin IDs can be found on the plugin's page in the Marketplace under *Additional Information*. Plugins are managed statefully: Codify adds missing plugins and removes plugins no longer in the list.
+
+- **jvmMaxHeapSize** *(string, optional)* — Maximum JVM heap allocated to Rider, e.g. `"2048m"` for 2 GB or `"4096m"` for 4 GB. Written to `rider.vmoptions` in the IDE config directory as `-Xmx<value>`.
+
+- **jvmMinHeapSize** *(string, optional)* — Initial JVM heap allocated to Rider, e.g. `"512m"`. Written to `rider.vmoptions` as `-Xms<value>`. Typically set to half the max heap size.
+
+## Example usage
+
+### Install Rider with plugins
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rider",
+    "plugins": [
+      "com.github.copilot",
+      "Docker"
+    ]
+  }
+]
+```
+
+### Install Rider, import previous settings, and increase heap
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rider",
+    "settingsZip": "/path/to/rider-settings.zip",
+    "importSettings": true,
+    "jvmMaxHeapSize": "4096m",
+    "jvmMinHeapSize": "1024m",
+    "plugins": [
+      "com.github.copilot",
+      "Docker"
+    ]
+  }
+]
+```
+
+## Notes
+
+- On macOS a CLI launcher symlink is created at `/usr/local/bin/rider` during install so that `rider` is available in terminal sessions. It is removed on destroy.
+- Plugin IDs must be exact JetBrains Marketplace IDs. You can find them on the plugin's Marketplace page under *Additional Information → Plugin ID*.
+- The `settingsZip` import only runs during `create` (first apply), not on subsequent applies. If you need to re-import, destroy and re-apply the resource.
+- JVM options are written to `rider.vmoptions` in `~/Library/Application Support/JetBrains/Rider<version>/` on macOS and `~/.config/JetBrains/Rider<version>/` on Linux. If Rider has never been launched, Codify creates this directory and file automatically.
+- On Linux, Snap must be available. Codify will attempt to install `snapd` via the system package manager if it is not found.
