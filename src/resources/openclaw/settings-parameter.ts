@@ -13,10 +13,23 @@ export class OpenClawSettingsParameter extends StatefulParameter<StringIndexedOb
     return { type: 'object' };
   }
 
-  override async refresh(_desired: Settings | null): Promise<Settings | null> {
+  override async refresh(desired: Settings | null): Promise<Settings | null> {
     try {
       const content = await fs.readFile(OPENCLAW_CONFIG_PATH, 'utf8');
-      return JSON.parse(content) as Settings;
+      const full = JSON.parse(content) as Settings;
+
+      // Only surface the keys the user declared. OpenClaw writes its own keys
+      // (meta, wizard, etc.) that Codify must never diff or remove.
+      if (desired == null) {
+        return full;
+      }
+      const filtered: Settings = {};
+      for (const key of Object.keys(desired)) {
+        if (key in full) {
+          filtered[key] = full[key];
+        }
+      }
+      return filtered;
     } catch {
       return null;
     }

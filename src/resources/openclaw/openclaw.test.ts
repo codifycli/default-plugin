@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { settingsSchema } from './openclaw.js';
+import { OpenClawSettingsParameter } from './settings-parameter.js';
 
 describe('openclaw settings schema', () => {
   it('rejects tools.policy — must use tools.allow / tools.deny directly', () => {
