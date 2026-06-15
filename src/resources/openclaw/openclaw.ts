@@ -1,4 +1,6 @@
 import {
+  ApplyNotes,
+  CodifyCliSender,
   CreatePlan,
   DestroyPlan,
   ExampleConfig,
@@ -481,6 +483,8 @@ export class OpenClawResource extends Resource<OpenClawConfig> {
     // triggers `openclaw gateway restart` to pick it up.
     await $.spawn('openclaw gateway install', { interactive: true });
     await $.spawn('openclaw gateway start', { interactive: true });
+
+    CodifyCliSender.sendApplyNote(ApplyNotes.NEW_SHELL_REQUIRED, 'openclaw');
   }
 
   async destroy(_plan: DestroyPlan<OpenClawConfig>): Promise<void> {

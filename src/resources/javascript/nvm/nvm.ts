@@ -1,4 +1,4 @@
-import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { ApplyNotes, CodifyCliSender, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
@@ -87,6 +87,8 @@ export class NvmResource extends Resource<NvmConfig> {
         '[ -s "$NVM_DIR/nvm.sh" ] && \\. "$NVM_DIR/nvm.sh"'
       ])
     }
+
+    CodifyCliSender.sendApplyNote(ApplyNotes.NEW_SHELL_REQUIRED, 'nvm');
   }
 
   override async destroy(): Promise<void> {
