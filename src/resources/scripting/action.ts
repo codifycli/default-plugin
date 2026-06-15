@@ -16,10 +16,10 @@ const defaultConfig: Partial<ActionConfig> = {
 
 const exampleConditional: ExampleConfig = {
   title: 'Run a script only when a condition is met',
-  description: 'Execute a setup command only when the target directory does not already exist, making the action idempotent.',
+  description: 'Execute a setup command only when the target directory does not already exist, making the action idempotent. The condition checks for the desired end-state: exit 0 = already done (skip), non-zero = not done (run). Here, "[ -d ~/.config/myapp ]" exits 0 when the directory exists (skip), and non-zero when it is missing (run the mkdir action).',
   configs: [{
     type: 'action',
-    condition: '[ ! -d ~/.config/myapp ]',
+    condition: '[ -d ~/.config/myapp ]',
     action: 'mkdir -p ~/.config/myapp && cp /etc/myapp/defaults.conf ~/.config/myapp/config.conf',
   }]
 }
