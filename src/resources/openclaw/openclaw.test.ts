@@ -51,7 +51,7 @@ describe('openclaw settings schema', () => {
 
   it('accepts the full example config shape', () => {
     const result = settingsSchema.safeParse({
-      gateway: { port: 18789, bind: 'loopback' },
+      gateway: { mode: 'local', port: 18789, bind: 'loopback' },
       agents: {
         defaults: {
           model: 'anthropic/claude-sonnet-4-6',

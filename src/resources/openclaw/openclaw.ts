@@ -116,7 +116,7 @@ const cronSchema = z
 
 const gatewaySchema = z
   .looseObject({
-    mode: z.enum(['local', 'remote']).optional(),
+    mode: z.enum(['local', 'remote']),
     port: z.number().optional(),
     bind: z.enum(['auto', 'loopback', 'lan', 'tailnet', 'custom']).optional(),
     auth: z.looseObject({
@@ -250,7 +250,9 @@ const schema = z
 export type OpenClawConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<OpenClawConfig> = {
-  settings: {},
+  settings: {
+    gateway: { mode: 'local' },
+  },
 };
 
 const exampleBasic: ExampleConfig = {
@@ -262,7 +264,7 @@ const exampleBasic: ExampleConfig = {
     {
       type: 'openclaw',
       settings: {
-        gateway: { port: 18789, bind: 'loopback' },
+        gateway: { mode: 'local', port: 18789, bind: 'loopback' },
         agents: { defaults: { model: 'anthropic/claude-sonnet-4-6' } },
       },
     },
@@ -278,6 +280,7 @@ const exampleWithChannels: ExampleConfig = {
     {
       type: 'openclaw',
       settings: {
+        gateway: { mode: 'local' },
         channels: {
           telegram: {
             botToken: '<Replace me here!>',
@@ -339,12 +342,20 @@ export class OpenClawResource extends Resource<OpenClawConfig> {
     // Ensure PATH is updated so subsequent lifecycle methods can call `openclaw`
     const localBin = path.join(os.homedir(), '.local', 'bin');
     process.env['PATH'] = `${localBin}:${process.env['PATH'] ?? ''}`;
+
+    // Register and start the gateway as a managed background service
+    // (launchd on macOS, systemd user unit on Linux). Config is written by
+    // the settings StatefulParameter after this returns, then the parameter
+    // triggers `openclaw gateway restart` to pick it up.
+    await $.spawn('openclaw gateway install', { interactive: true });
+    await $.spawn('openclaw gateway start', { interactive: true });
   }
 
   async destroy(_plan: DestroyPlan<OpenClawConfig>): Promise<void> {
     const $ = getPty();
 
     await $.spawnSafe('openclaw gateway stop', { interactive: true });
+    await $.spawnSafe('openclaw gateway uninstall', { interactive: true });
     await $.spawnSafe('npm uninstall -g openclaw', { interactive: true });
     await $.spawnSafe('rm -f ~/.local/bin/openclaw', { interactive: true });
 
