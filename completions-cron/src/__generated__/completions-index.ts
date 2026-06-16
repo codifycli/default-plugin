@@ -10,15 +10,23 @@ import mod5 from '../../../src/resources/python/uv/completions/uv.pythonVersions
 import mod6 from '../../../src/resources/python/pyenv/completions/pyenv.pythonVersions.js';
 import mod7 from '../../../src/resources/python/pip/completions/pip.install.js';
 import mod8 from '../../../src/resources/ollama/completions/ollama.models.js';
-import mod9 from '../../../src/resources/javascript/pnpm/completions/pnpm.globalEnvNodeVersion.js';
-import mod10 from '../../../src/resources/javascript/nvm/completions/nvm.nodeVersions.js';
-import mod11 from '../../../src/resources/javascript/npm/completions/npm.install.js';
-import mod12 from '../../../src/resources/homebrew/completions/homebrew.formulae.js';
-import mod13 from '../../../src/resources/homebrew/completions/homebrew.casks.js';
-import mod14 from '../../../src/resources/cursor/completions/cursor.extensions.js';
-import mod15 from '../../../src/resources/asdf/completions/asdf.plugins.js';
-import mod16 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
-import mod17 from '../../../src/resources/apt/completions/apt.install.js';
+import mod9 from '../../../src/resources/jetbrains/rustrover/completions/rustrover.plugins.js';
+import mod10 from '../../../src/resources/jetbrains/rubymine/completions/rubymine.plugins.js';
+import mod11 from '../../../src/resources/jetbrains/rider/completions/rider.plugins.js';
+import mod12 from '../../../src/resources/jetbrains/pycharm/completions/pycharm.plugins.js';
+import mod13 from '../../../src/resources/jetbrains/phpstorm/completions/phpstorm.plugins.js';
+import mod14 from '../../../src/resources/jetbrains/intellij-idea/completions/intellij-idea.plugins.js';
+import mod15 from '../../../src/resources/jetbrains/goland/completions/goland.plugins.js';
+import mod16 from '../../../src/resources/jetbrains/clion/completions/clion.plugins.js';
+import mod17 from '../../../src/resources/javascript/pnpm/completions/pnpm.globalEnvNodeVersion.js';
+import mod18 from '../../../src/resources/javascript/nvm/completions/nvm.nodeVersions.js';
+import mod19 from '../../../src/resources/javascript/npm/completions/npm.install.js';
+import mod20 from '../../../src/resources/homebrew/completions/homebrew.formulae.js';
+import mod21 from '../../../src/resources/homebrew/completions/homebrew.casks.js';
+import mod22 from '../../../src/resources/cursor/completions/cursor.extensions.js';
+import mod23 from '../../../src/resources/asdf/completions/asdf.plugins.js';
+import mod24 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
+import mod25 from '../../../src/resources/apt/completions/apt.install.js';
 
 export interface CompletionModule {
   resourceType: string
@@ -36,13 +44,21 @@ export const completionModules: CompletionModule[] = [
   { resourceType: 'pyenv', parameterPath: '/pythonVersions', fetch: mod6 },
   { resourceType: 'pip', parameterPath: '/install', fetch: mod7 },
   { resourceType: 'ollama', parameterPath: '/models', fetch: mod8 },
-  { resourceType: 'pnpm', parameterPath: '/globalEnvNodeVersion', fetch: mod9 },
-  { resourceType: 'nvm', parameterPath: '/nodeVersions', fetch: mod10 },
-  { resourceType: 'npm', parameterPath: '/install', fetch: mod11 },
-  { resourceType: 'homebrew', parameterPath: '/formulae', fetch: mod12 },
-  { resourceType: 'homebrew', parameterPath: '/casks', fetch: mod13 },
-  { resourceType: 'cursor', parameterPath: '/extensions', fetch: mod14 },
-  { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod15 },
-  { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod16 },
-  { resourceType: 'apt', parameterPath: '/install', fetch: mod17 },
+  { resourceType: 'rustrover', parameterPath: '/plugins', fetch: mod9 },
+  { resourceType: 'rubymine', parameterPath: '/plugins', fetch: mod10 },
+  { resourceType: 'rider', parameterPath: '/plugins', fetch: mod11 },
+  { resourceType: 'pycharm', parameterPath: '/plugins', fetch: mod12 },
+  { resourceType: 'phpstorm', parameterPath: '/plugins', fetch: mod13 },
+  { resourceType: 'intellij-idea', parameterPath: '/plugins', fetch: mod14 },
+  { resourceType: 'goland', parameterPath: '/plugins', fetch: mod15 },
+  { resourceType: 'clion', parameterPath: '/plugins', fetch: mod16 },
+  { resourceType: 'pnpm', parameterPath: '/globalEnvNodeVersion', fetch: mod17 },
+  { resourceType: 'nvm', parameterPath: '/nodeVersions', fetch: mod18 },
+  { resourceType: 'npm', parameterPath: '/install', fetch: mod19 },
+  { resourceType: 'homebrew', parameterPath: '/formulae', fetch: mod20 },
+  { resourceType: 'homebrew', parameterPath: '/casks', fetch: mod21 },
+  { resourceType: 'cursor', parameterPath: '/extensions', fetch: mod22 },
+  { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod23 },
+  { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod24 },
+  { resourceType: 'apt', parameterPath: '/install', fetch: mod25 },
 ]

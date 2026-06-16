@@ -249,7 +249,7 @@ const agentsSchema = z
     })).optional()
       .describe('Named agent definitions, each with its own identity, model, and capabilities.'),
   })
-  .describe('Agent defaults and named agent list.');
+  .describe('Agent defaults and named agent list. Named agents go in agents.list (array with id field) — there is no agents.workers key.');
 
 const browserSchema = z
   .looseObject({

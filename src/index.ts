@@ -61,6 +61,14 @@ import { VscodeResource } from './resources/vscode/vscode.js';
 import { WebStormResource } from './resources/webstorm/webstorm.js';
 import { XcodeToolsResource } from './resources/xcode-tools/xcode-tools.js';
 import { YumResource } from './resources/yum/yum.js';
+import { PyCharmResource } from './resources/jetbrains/pycharm/pycharm.js';
+import { ClionResource } from './resources/jetbrains/clion/clion.js';
+import { IntellijIdeaResource } from './resources/jetbrains/intellij-idea/intellij-idea.js';
+import { RustRoverResource } from './resources/jetbrains/rustrover/rustrover.js';
+import { PhpStormResource } from './resources/jetbrains/phpstorm/phpstorm.js';
+import { GoLandResource } from './resources/jetbrains/goland/goland.js';
+import { RiderResource } from './resources/jetbrains/rider/rider.js';
+import { RubyMineResource } from './resources/jetbrains/rubymine/rubymine.js';
 
 export const MIN_SUPPORTED_CLI_VERSION: string | undefined = '1.1.0';
 
@@ -89,6 +97,14 @@ runPlugin(Plugin.create(
     new CursorResource(),
     new VscodeResource(),
     new WebStormResource(),
+    new PyCharmResource(),
+    new ClionResource(),
+    new IntellijIdeaResource(),
+    new RustRoverResource(),
+    new PhpStormResource(),
+    new GoLandResource(),
+    new RiderResource(),
+    new RubyMineResource(),
     new GitRepositoryResource(),
     new GitRepositoriesResource(),
     new AndroidStudioResource(),

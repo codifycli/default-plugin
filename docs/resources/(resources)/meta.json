@@ -1,6 +1,8 @@
 {
   "pages": [
+    "ai-agents",
     "package-managers",
+    "editors-ides",
     "asdf",
     "git",
     "javascript",
