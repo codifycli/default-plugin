@@ -15,18 +15,9 @@ import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import {
+  JetBrainsCommon,
   JetBrainsPluginsParameter,
   JetBrainsProductInfo,
-  findConfigDir,
-  getOrCreateConfigDir,
-  installLinux,
-  installMacOS,
-  isInstalled,
-  readVmOptions,
-  removeVmOptions,
-  uninstallLinux,
-  uninstallMacOS,
-  writeVmOptions,
 } from '../common/jetbrains-common.js';
 
 const PRODUCT: JetBrainsProductInfo = {
@@ -127,14 +118,14 @@ export class RustRoverResource extends Resource<RustRoverConfig> {
   }
 
   override async refresh(parameters: Partial<RustRoverConfig>): Promise<Partial<RustRoverConfig> | null> {
-    const installed = await isInstalled(PRODUCT);
+    const installed = await JetBrainsCommon.isInstalled(PRODUCT);
     if (!installed) return null;
 
     const result: Partial<RustRoverConfig> = {};
 
-    const configDir = await findConfigDir(PRODUCT);
+    const configDir = await JetBrainsCommon.findConfigDir(PRODUCT);
     if (configDir) {
-      const vmOptions = await readVmOptions(PRODUCT, configDir);
+      const vmOptions = await JetBrainsCommon.readVmOptions(PRODUCT, configDir);
       if (parameters.jvmMaxHeapSize != null) result.jvmMaxHeapSize = vmOptions.maxHeap;
       if (parameters.jvmMinHeapSize != null) result.jvmMinHeapSize = vmOptions.minHeap;
     }
@@ -144,9 +135,9 @@ export class RustRoverResource extends Resource<RustRoverConfig> {
 
   override async create(plan: CreatePlan<RustRoverConfig>): Promise<void> {
     if (Utils.isMacOS()) {
-      await installMacOS(PRODUCT);
+      await JetBrainsCommon.installMacOS(PRODUCT);
     } else {
-      await installLinux(PRODUCT);
+      await JetBrainsCommon.installLinux(PRODUCT);
     }
 
     const { settingsZip, importSettings = true, jvmMaxHeapSize, jvmMinHeapSize } = plan.desiredConfig;
@@ -156,9 +147,9 @@ export class RustRoverResource extends Resource<RustRoverConfig> {
     }
 
     if (jvmMaxHeapSize != null || jvmMinHeapSize != null) {
-      const configDir = await getOrCreateConfigDir(PRODUCT);
+      const configDir = await JetBrainsCommon.getOrCreateConfigDir(PRODUCT);
       if (configDir) {
-        await writeVmOptions(PRODUCT, configDir, jvmMaxHeapSize, jvmMinHeapSize);
+        await JetBrainsCommon.writeVmOptions(PRODUCT, configDir, jvmMaxHeapSize, jvmMinHeapSize);
       }
     }
   }
@@ -166,15 +157,15 @@ export class RustRoverResource extends Resource<RustRoverConfig> {
   override async modify(pc: ParameterChange<RustRoverConfig>, plan: ModifyPlan<RustRoverConfig>): Promise<void> {
     if (pc.name !== 'jvmMaxHeapSize' && pc.name !== 'jvmMinHeapSize') return;
 
-    const configDir = await getOrCreateConfigDir(PRODUCT);
+    const configDir = await JetBrainsCommon.getOrCreateConfigDir(PRODUCT);
     if (!configDir) return;
 
     const { jvmMaxHeapSize, jvmMinHeapSize } = plan.desiredConfig;
 
     if (jvmMaxHeapSize == null && jvmMinHeapSize == null) {
-      await removeVmOptions(PRODUCT, configDir);
+      await JetBrainsCommon.removeVmOptions(PRODUCT, configDir);
     } else {
-      await writeVmOptions(PRODUCT, configDir, jvmMaxHeapSize, jvmMinHeapSize);
+      await JetBrainsCommon.writeVmOptions(PRODUCT, configDir, jvmMaxHeapSize, jvmMinHeapSize);
     }
   }
 
@@ -182,14 +173,14 @@ export class RustRoverResource extends Resource<RustRoverConfig> {
     const { jvmMaxHeapSize, jvmMinHeapSize } = plan.currentConfig;
 
     if (jvmMaxHeapSize != null || jvmMinHeapSize != null) {
-      const configDir = await findConfigDir(PRODUCT);
-      if (configDir) await removeVmOptions(PRODUCT, configDir);
+      const configDir = await JetBrainsCommon.findConfigDir(PRODUCT);
+      if (configDir) await JetBrainsCommon.removeVmOptions(PRODUCT, configDir);
     }
 
     if (Utils.isMacOS()) {
-      await uninstallMacOS(PRODUCT);
+      await JetBrainsCommon.uninstallMacOS(PRODUCT);
     } else {
-      await uninstallLinux(PRODUCT);
+      await JetBrainsCommon.uninstallLinux(PRODUCT);
     }
   }
 
@@ -201,7 +192,7 @@ export class RustRoverResource extends Resource<RustRoverConfig> {
       await Utils.installViaPkgMgr('unzip');
     }
 
-    const configDir = await getOrCreateConfigDir(PRODUCT);
+    const configDir = await JetBrainsCommon.getOrCreateConfigDir(PRODUCT);
     if (!configDir) {
       throw new Error('Cannot determine RustRover config directory for settings import.');
     }
