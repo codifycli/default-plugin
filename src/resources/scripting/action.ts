@@ -8,6 +8,8 @@ export interface ActionConfig extends StringIndexedObject {
   condition?: string;
   action: string;
   cwd?: string;
+  requiresRoot?: boolean;
+  requiresStdin?: boolean;
 }
 
 const defaultConfig: Partial<ActionConfig> = {
@@ -64,7 +66,7 @@ export class ActionResource extends Resource<ActionConfig> {
       return context.commandType === 'validationPlan' ? parameters : null;
     }
     
-    const { condition, action, cwd } = parameters;
+    const { condition, action, cwd, requiresRoot, requiresStdin } = parameters;
     const { status } = await $.spawnSafe(condition, { cwd: cwd ?? undefined });
 
     return status === SpawnStatus.ERROR
@@ -73,13 +75,21 @@ export class ActionResource extends Resource<ActionConfig> {
         ...(condition ? { condition } : undefined),
         ...(action ? { action } : undefined),
         ...(cwd ? { cwd } : undefined),
+        ...(requiresRoot ? { requiresRoot } : undefined),
+        ...(requiresStdin ? { requiresStdin } : undefined),
       };
   }
-  
+
   async create(plan: CreatePlan<ActionConfig>): Promise<void> {
     const $ = getPty();
-    await $.spawn(plan.desiredConfig.action, { cwd: plan.desiredConfig.cwd ?? undefined, interactive: true });
+    const { action, cwd, requiresRoot, requiresStdin } = plan.desiredConfig;
+    await $.spawn(action, {
+      cwd: cwd ?? undefined,
+      interactive: true,
+      stdin: requiresStdin ?? false,
+      requiresRoot: requiresRoot ?? false,
+    });
   }
   
-  async destroy(plan: DestroyPlan<ActionConfig>): Promise<void> {}
+  async destroy(_plan: DestroyPlan<ActionConfig>): Promise<void> {}
 }

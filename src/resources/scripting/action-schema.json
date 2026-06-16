@@ -16,6 +16,14 @@
     "cwd": {
       "type": "string",
       "description": "The directory that the action should be ran in."
+    },
+    "requiresRoot": {
+      "type": "boolean",
+      "description": "When true, the action is executed with root privileges (sudo). Codify handles privilege escalation — do not add sudo to the action command directly."
+    },
+    "requiresStdin": {
+      "type": "boolean",
+      "description": "When true, the action is run in interactive mode so it can read from stdin (e.g. for prompts or password input)."
     }
   },
   "required": ["action"],
