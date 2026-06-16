@@ -8,6 +8,8 @@ export interface ActionConfig extends StringIndexedObject {
   condition?: string;
   action: string;
   cwd?: string;
+  requiresRoot?: boolean;
+  requiresStdin?: boolean;
 }
 
 const defaultConfig: Partial<ActionConfig> = {
@@ -16,10 +18,10 @@ const defaultConfig: Partial<ActionConfig> = {
 
 const exampleConditional: ExampleConfig = {
   title: 'Run a script only when a condition is met',
-  description: 'Execute a setup command only when the target directory does not already exist, making the action idempotent.',
+  description: 'Execute a setup command only when the target directory does not already exist, making the action idempotent. The condition checks for the desired end-state: exit 0 = already done (skip), non-zero = not done (run). Here, "[ -d ~/.config/myapp ]" exits 0 when the directory exists (skip), and non-zero when it is missing (run the mkdir action).',
   configs: [{
     type: 'action',
-    condition: '[ ! -d ~/.config/myapp ]',
+    condition: '[ -d ~/.config/myapp ]',
     action: 'mkdir -p ~/.config/myapp && cp /etc/myapp/defaults.conf ~/.config/myapp/config.conf',
   }]
 }
@@ -64,7 +66,7 @@ export class ActionResource extends Resource<ActionConfig> {
       return context.commandType === 'validationPlan' ? parameters : null;
     }
     
-    const { condition, action, cwd } = parameters;
+    const { condition, action, cwd, requiresRoot, requiresStdin } = parameters;
     const { status } = await $.spawnSafe(condition, { cwd: cwd ?? undefined });
 
     return status === SpawnStatus.ERROR
@@ -73,13 +75,21 @@ export class ActionResource extends Resource<ActionConfig> {
         ...(condition ? { condition } : undefined),
         ...(action ? { action } : undefined),
         ...(cwd ? { cwd } : undefined),
+        ...(requiresRoot ? { requiresRoot } : undefined),
+        ...(requiresStdin ? { requiresStdin } : undefined),
       };
   }
-  
+
   async create(plan: CreatePlan<ActionConfig>): Promise<void> {
     const $ = getPty();
-    await $.spawn(plan.desiredConfig.action, { cwd: plan.desiredConfig.cwd ?? undefined, interactive: true });
+    const { action, cwd, requiresRoot, requiresStdin } = plan.desiredConfig;
+    await $.spawn(action, {
+      cwd: cwd ?? undefined,
+      interactive: true,
+      stdin: requiresStdin ?? false,
+      requiresRoot: requiresRoot ?? false,
+    });
   }
   
-  async destroy(plan: DestroyPlan<ActionConfig>): Promise<void> {}
+  async destroy(_plan: DestroyPlan<ActionConfig>): Promise<void> {}
 }

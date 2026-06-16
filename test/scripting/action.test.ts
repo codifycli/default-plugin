@@ -66,4 +66,40 @@ describe('Action tests', () => {
       }
     })
   })
+
+  it('Can run an action with requiresRoot', { timeout: 300000 }, async () => {
+    await PluginTester.fullTest(pluginPath, [
+      {
+        type: 'action',
+        condition: '[ -d /tmp/codify-root-test ]',
+        action: 'mkdir -p /tmp/codify-root-test',
+        requiresRoot: true,
+      }
+    ], {
+      skipUninstall: true,
+      skipImport: true,
+      validateApply: (plans) => {
+        expect(plans[0]).toMatchObject({ operation: ResourceOperation.CREATE });
+        expect(fs.existsSync('/tmp/codify-root-test')).to.be.true;
+      }
+    })
+  })
+
+  it('Can run an action with requiresStdin disabled', { timeout: 300000 }, async () => {
+    await PluginTester.fullTest(pluginPath, [
+      {
+        type: 'action',
+        condition: '[ -f ~/codify-stdin-test.txt ]',
+        action: 'echo hello > ~/codify-stdin-test.txt',
+        requiresStdin: false,
+      }
+    ], {
+      skipUninstall: true,
+      skipImport: true,
+      validateApply: (plans) => {
+        expect(plans[0]).toMatchObject({ operation: ResourceOperation.CREATE });
+        expect(fs.existsSync(path.resolve(os.homedir(), 'codify-stdin-test.txt'))).to.be.true;
+      }
+    })
+  })
 })

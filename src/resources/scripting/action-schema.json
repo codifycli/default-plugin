@@ -7,7 +7,7 @@
   "properties": {
     "condition": {
       "type": "string",
-      "description": "A condition (in bash) that decides if the action is triggered. Return 0 to trigger and any non-zero exit code to skip."
+      "description": "A bash condition that decides whether the action needs to run. Exit code 0 means the action is already done — skip it. Any non-zero exit code means the action should run. Think of it as a check for the desired end-state: if the check passes (exit 0), the work is done; if it fails (non-zero), run the action. Example: 'command -v mytool' exits 0 when mytool is already installed (skip), and non-zero when it is absent (run the install action)."
     },
     "action": {
       "type": "string",
@@ -16,6 +16,14 @@
     "cwd": {
       "type": "string",
       "description": "The directory that the action should be ran in."
+    },
+    "requiresRoot": {
+      "type": "boolean",
+      "description": "When true, the action is executed with root privileges (sudo). Codify handles privilege escalation — do not add sudo to the action command directly."
+    },
+    "requiresStdin": {
+      "type": "boolean",
+      "description": "When true, the action is run in interactive mode so it can read from stdin (e.g. for prompts or password input)."
     }
   },
   "required": ["action"],
