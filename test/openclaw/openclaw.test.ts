@@ -25,12 +25,12 @@ describe('openclaw resource integration tests', async () => {
 
   it('Can manage settings', { timeout: 300_000 }, async () => {
     const initialSettings = {
-      gateway: { port: 18789, bind: 'loopback' },
+      gateway: { mode: 'local', port: 18789, bind: 'loopback' },
       logging: { level: 'debug' },
     };
 
     const modifiedSettings = {
-      gateway: { port: 18790, bind: 'loopback' },
+      gateway: { mode: 'local', port: 18790, bind: 'loopback' },
       logging: { level: 'debug' },
     };
 

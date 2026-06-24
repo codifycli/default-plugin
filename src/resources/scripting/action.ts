@@ -75,8 +75,8 @@ export class ActionResource extends Resource<ActionConfig> {
         ...(condition ? { condition } : undefined),
         ...(action ? { action } : undefined),
         ...(cwd ? { cwd } : undefined),
-        ...(requiresRoot ? { requiresRoot } : undefined),
-        ...(requiresStdin ? { requiresStdin } : undefined),
+        ...(requiresRoot != null ? { requiresRoot } : undefined),
+        ...(requiresStdin != null ? { requiresStdin } : undefined),
       };
   }
 
