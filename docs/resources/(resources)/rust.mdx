@@ -1,0 +1,52 @@
+---
+title: rust
+description: A reference page for the rust resource
+---
+
+The rust resource installs [Rust](https://www.rust-lang.org/) via [rustup](https://rustup.rs/), the official Rust toolchain installer. It also manages global CLI tools installed through `cargo install`. Supported on macOS and Linux.
+
+## Parameters:
+
+- **cargoPackages**: *(array[string])* Global CLI tools to install via `cargo install`. Use the `name@version` syntax to pin a specific version (e.g. `"ripgrep@14.1.0"`). Omitting the version installs the latest release. Codify adds packages that are missing and removes packages that are no longer listed (in stateful mode).
+
+## Example usage:
+
+### Install Rust with common CLI tools
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rust",
+    "cargoPackages": ["ripgrep", "bat", "fd-find"]
+  }
+]
+```
+
+### Install Rust with pinned package versions
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rust",
+    "cargoPackages": ["ripgrep@14.1.0", "bat@0.24.0"]
+  }
+]
+```
+
+### Install Rust without any additional packages
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rust"
+  }
+]
+```
+
+## Notes:
+
+- On macOS, Xcode Command Line Tools must be installed before applying the rust resource. The [xcode-tools](/docs/resources/xcode-tools) resource can install them, and is added as a dependency automatically.
+- Rust is installed via the official `rustup` script (`https://sh.rustup.rs`). This adds `~/.cargo/bin` to your `PATH` in your shell RC file. Open a new terminal after applying to pick up the updated `PATH`.
+- To uninstall Rust and the toolchain, remove the rust resource from your config and run `codify apply`. This runs `rustup self uninstall`.
+- Package versions in `cargoPackages` must match a published version on [crates.io](https://crates.io). To find available versions, run `cargo search <name>` or visit the crate's page on crates.io.
+- Omitting `@version` for a package always tracks the latest release. Adding `@version` pins the exact version and will reinstall if the pin changes.
