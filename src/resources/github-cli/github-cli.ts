@@ -124,7 +124,7 @@ export class GithubCliResource extends Resource<GithubCliConfig> {
     const $ = getPty();
     const ghKey = CONFIG_KEY_MAP[pc.name as keyof GithubCliConfig];
     if (ghKey !== undefined && pc.newValue !== undefined) {
-      await $.spawn(`gh config set ${ghKey} ${pc.newValue}`);
+      await $.spawn(`gh config set ${ghKey} "${pc.newValue}"`);
     }
   }
 
@@ -137,7 +137,7 @@ export class GithubCliResource extends Resource<GithubCliConfig> {
     for (const [key, ghKey] of Object.entries(CONFIG_KEY_MAP) as Array<[keyof GithubCliConfig, string]>) {
       const value = config[key];
       if (value !== undefined) {
-        await $.spawn(`gh config set ${ghKey} ${value}`);
+        await $.spawn(`gh config set ${ghKey} "${value}"`);
       }
     }
   }
