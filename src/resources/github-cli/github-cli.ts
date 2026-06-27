@@ -36,13 +36,17 @@ export const schema = z
       .string()
       .optional()
       .describe('Default web browser for opening URLs'),
+    interactiveLogin: z
+      .boolean()
+      .optional()
+      .describe('If true, runs gh auth login --web after installation for browser-based authentication. Use this as a shortcut instead of declaring a separate github-cli-auth block'),
   })
   .meta({ $comment: 'https://cli.github.com/manual/' })
   .describe('GitHub CLI (gh) — installs gh and manages global configuration');
 
 export type GithubCliConfig = z.infer<typeof schema>;
 
-const CONFIG_KEY_MAP: Record<keyof GithubCliConfig, string> = {
+const CONFIG_KEY_MAP: Partial<Record<keyof GithubCliConfig, string>> = {
   gitProtocol: 'git_protocol',
   editor: 'editor',
   prompt: 'prompt',
@@ -72,6 +76,7 @@ export class GithubCliResource extends Resource<GithubCliConfig> {
         prompt: { canModify: true },
         pager: { canModify: true },
         browser: { canModify: true },
+        interactiveLogin: { type: 'boolean', setting: true },
       },
     };
   }
@@ -116,8 +121,12 @@ export class GithubCliResource extends Resource<GithubCliConfig> {
   }
 
   async create(plan: CreatePlan<GithubCliConfig>): Promise<void> {
+    const $ = getPty();
     await Utils.installViaPkgMgr('gh');
     await this.applyConfig(plan.desiredConfig);
+    if (plan.desiredConfig.interactiveLogin) {
+      await $.spawn('gh auth login --web', { interactive: true, stdin: true });
+    }
   }
 
   async modify(pc: ParameterChange<GithubCliConfig>, _plan: ModifyPlan<GithubCliConfig>): Promise<void> {

@@ -1,20 +1,20 @@
 import { ExampleConfig } from '@codifycli/plugin-core';
 
 export const exampleGithubCliBasic: ExampleConfig = {
-  title: 'Install GitHub CLI with SSH configuration',
-  description: 'Install gh and configure it to use SSH for git operations and vim as the default editor.',
+  title: 'Install GitHub CLI with interactive login',
+  description: 'Install gh and log in via browser — no token needed. Use interactiveLogin: true as a shortcut instead of a separate github-cli-auth block.',
   configs: [
     {
       type: 'github-cli',
       gitProtocol: 'ssh',
-      editor: 'vim',
+      interactiveLogin: true,
     },
   ],
 };
 
 export const exampleGithubCliFull: ExampleConfig = {
-  title: 'Full GitHub CLI setup with authentication',
-  description: 'Install gh, authenticate with a personal access token, and configure SSH as the default git protocol.',
+  title: 'GitHub CLI with token authentication',
+  description: 'Install gh, configure SSH as the default git protocol, and authenticate with a personal access token.',
   configs: [
     {
       type: 'github-cli',
