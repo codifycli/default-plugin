@@ -6,6 +6,7 @@ import {
   ResourceSettings,
   SpawnStatus,
   Utils,
+  PackageManager,
   z,
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
@@ -112,10 +113,7 @@ export class GoenvResource extends Resource<GoenvConfig> {
 
 async function installOnMacOS(): Promise<void> {
   const $ = getPty();
-  await $.spawn('brew install goenv', {
-    interactive: true,
-    env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-  });
+  await Utils.installViaPkgMgr('goenv', undefined, PackageManager.BREW);
   await FileUtils.addToShellRc(GOENV_INIT);
 }
 
@@ -132,9 +130,7 @@ async function installOnLinux(): Promise<void> {
 
 async function uninstallOnMacOS(): Promise<void> {
   const $ = getPty();
-  await $.spawnSafe('brew uninstall goenv', {
-    env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-  });
+  await Utils.uninstallViaPkgMgr('goenv', undefined, PackageManager.BREW);
   await removeGoenvFromShellRc([GOENV_INIT]);
 }
 

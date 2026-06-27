@@ -8,6 +8,7 @@ import {
   ResourceSettings,
   SpawnStatus,
   Utils,
+  PackageManager,
   getPty,
   z,
 } from '@codifycli/plugin-core';
@@ -176,10 +177,7 @@ export class WebStormResource extends Resource<WebStormConfig> {
 
   private async installMacOS(): Promise<void> {
     const $ = getPty();
-    await $.spawn('brew install --cask webstorm', {
-      interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-    });
+    await Utils.installViaPkgMgr('webstorm', { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
     // Create a CLI launcher symlink so `webstorm` works from the terminal
     await $.spawnSafe(
       `ln -sf "${MACOS_BINARY}" /usr/local/bin/webstorm`,
@@ -189,9 +187,7 @@ export class WebStormResource extends Resource<WebStormConfig> {
 
   private async uninstallMacOS(): Promise<void> {
     const $ = getPty();
-    await $.spawnSafe('brew uninstall --cask webstorm', {
-      env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-    });
+    await Utils.uninstallViaPkgMgr('webstorm', { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
     await $.spawnSafe('rm -f /usr/local/bin/webstorm', { requiresRoot: true });
   }
 

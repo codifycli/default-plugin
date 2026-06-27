@@ -7,7 +7,7 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus,
-  getPty, z
+  getPty, z, Utils, PackageManager
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
@@ -134,7 +134,7 @@ export class TartResource extends Resource<TartConfig> {
     }
 
     // Install tart via Homebrew
-    await $.spawn('brew install cirruslabs/cli/tart', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+    await Utils.installViaPkgMgr('cirruslabs/cli/tart', undefined, PackageManager.BREW);
 
     // Set TART_HOME if specified
     if (plan.desiredConfig.tartHome) {
@@ -177,7 +177,7 @@ export class TartResource extends Resource<TartConfig> {
     // Uninstall tart via Homebrew
     const { status: brewStatus } = await $.spawnSafe('which brew');
     if (brewStatus === SpawnStatus.SUCCESS) {
-      await $.spawn('brew uninstall cirruslabs/cli/tart', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+      await Utils.uninstallViaPkgMgr('cirruslabs/cli/tart', undefined, PackageManager.BREW);
     }
   }
 }

@@ -65,8 +65,9 @@ export class GithubCliAliasResource extends Resource<GithubCliAliasConfig> {
             .split('\n')
             .filter(Boolean)
             .map((line) => {
-              const tabIdx = line.indexOf('\t');
-              const alias = (tabIdx !== -1 ? line.slice(0, tabIdx) : line).trim();
+              // gh alias list outputs "alias: expansion" (colon-space separated)
+              const colonIdx = line.indexOf(':');
+              const alias = (colonIdx !== -1 ? line.slice(0, colonIdx) : line).trim();
               return { alias };
             })
             .filter((a) => Boolean(a.alias));
@@ -79,7 +80,7 @@ export class GithubCliAliasResource extends Resource<GithubCliAliasConfig> {
     const $ = getPty();
 
     const { data, status } = await $.spawnSafe('gh alias list');
-    if (status === SpawnStatus.ERROR) return null;
+    if (status === SpawnStatus.ERROR || !data.trim()) return null;
 
     const found = this.parseAliasList(data).find((a) => a.alias === params.alias);
     if (!found) return null;
@@ -119,11 +120,12 @@ export class GithubCliAliasResource extends Resource<GithubCliAliasConfig> {
       .split('\n')
       .filter(Boolean)
       .map((line) => {
-        const tabIdx = line.indexOf('\t');
-        if (tabIdx === -1) return null;
+        // gh alias list outputs "alias: expansion" (colon-space separated)
+        const colonIdx = line.indexOf(':');
+        if (colonIdx === -1) return null;
 
-        const alias = line.slice(0, tabIdx).trim();
-        const rawExpansion = line.slice(tabIdx + 1).trim();
+        const alias = line.slice(0, colonIdx).trim();
+        const rawExpansion = line.slice(colonIdx + 1).trim();
         const isShell = rawExpansion.startsWith('!');
 
         return {

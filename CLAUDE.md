@@ -300,16 +300,34 @@ Utils.isWindows()
 
 **Package Installation:**
 
-Always use `Utils.installViaPkgMgr(pkg)` from `@codifycli/plugin-core` to install system packages. This is platform-agnostic and automatically dispatches to the correct package manager (Homebrew on macOS, apt on Debian/Ubuntu, etc.). Never hardcode package manager calls like `brew install`, `apt-get install -y`, or `sudo apt install` in resource code.
+Always use `Utils.installViaPkgMgr(pkg)` from `@codifycli/plugin-core` to install system packages. This is platform-agnostic and automatically dispatches to the correct package manager (Homebrew on macOS, apt on Debian/Ubuntu, etc.). Never hardcode package manager calls like `brew install`, `apt-get install -y`, or `sudo apt install` in resource code — not even inside macOS-only branches.
+
+The function accepts an optional `PkgMgrOptionsMap` (second arg) for per-PM flags, and an optional `forcePackageManager` (third arg) to skip OS detection:
 
 ```typescript
-// Correct — works on macOS and Linux
+import { Utils, PackageManager } from '@codifycli/plugin-core';
+
+// Auto-detect OS — works on macOS (brew) and Linux (apt/dnf/etc.)
 await Utils.installViaPkgMgr('curl');
 await Utils.uninstallViaPkgMgr('curl');
 
-// Wrong — hardcoded to a specific platform/package manager
-await $.spawn('sudo apt-get install -y curl');
-await $.spawn('brew install curl');
+// Force brew for a macOS-only formula resource
+await Utils.installViaPkgMgr('syncthing', undefined, PackageManager.BREW);
+await Utils.uninstallViaPkgMgr('syncthing', undefined, PackageManager.BREW);
+
+// Force brew + cask for a macOS GUI app
+await Utils.installViaPkgMgr('cursor', { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
+await Utils.uninstallViaPkgMgr('cursor', { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
+
+// Auto-detect OS but pass custom flags per PM
+await Utils.installViaPkgMgr('github-cli', {
+  [PackageManager.APT]: { flags: ['--allow-unauthenticated'] },
+  [PackageManager.DNF]: { flags: ['--repo', 'gh-cli'] },
+});
+
+// Wrong — direct brew calls are forbidden even in macOS-only code
+await $.spawn('brew install syncthing', { ... });
+await $.spawn('brew install --cask cursor', { ... });
 ```
 
 This applies to prerequisite checks too. When a resource needs a system dependency (e.g. `curl`, `git`, `make`), always install via `Utils.installViaPkgMgr` rather than spawning a package manager directly.

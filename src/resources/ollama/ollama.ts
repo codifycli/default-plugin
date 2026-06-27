@@ -6,6 +6,7 @@ import {
   ResourceSettings,
   SpawnStatus,
   Utils,
+  PackageManager,
   getPty,
   z,
 } from '@codifycli/plugin-core';
@@ -106,10 +107,7 @@ export class OllamaResource extends Resource<OllamaConfig> {
       );
     }
 
-    await $.spawn('brew install ollama', {
-      interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
-    });
+    await Utils.installViaPkgMgr('ollama', undefined, PackageManager.BREW);
 
     // Start the Ollama server as a background service
     await $.spawn('brew services start ollama', { interactive: true });
@@ -122,9 +120,7 @@ export class OllamaResource extends Resource<OllamaConfig> {
     await $.spawnSafe('brew services stop ollama');
 
     if (await Utils.isHomebrewInstalled()) {
-      await $.spawnSafe('brew uninstall ollama', {
-        env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
-      });
+      await Utils.uninstallViaPkgMgr('ollama', undefined, PackageManager.BREW);
     }
   }
 

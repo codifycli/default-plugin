@@ -1,4 +1,4 @@
-import { Resource, ResourceSettings, SpawnStatus, Utils, getPty, FileUtils } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, Utils, PackageManager, getPty, FileUtils } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -52,7 +52,7 @@ export class AwsCliResource extends Resource<AwsCliConfig> {
 
       if (isArmArch && isHomebrewInstalled) {
         console.log('Resource: \'aws-cli\'. Detected that mac is aarch64. Installing AWS-CLI via homebrew')
-        await $.spawn('HOMEBREW_NO_AUTO_UPDATE=1 brew install awscli', { interactive: true })
+        await Utils.installViaPkgMgr('awscli', undefined, PackageManager.BREW)
 
       } else if (!isArmArch || isRosettaInstalled) {
         console.log('Resource: \'aws-cli\'. Detected that mac is not ARM or Rosetta is installed. Installing AWS-CLI standalone version')
@@ -105,7 +105,7 @@ softwareupdate --install-rosetta
     }
 
     if (installLocation.includes('homebrew')) {
-      await $.spawn('brew uninstall awscli', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+      await Utils.uninstallViaPkgMgr('awscli', undefined, PackageManager.BREW);
       return;
     }
 

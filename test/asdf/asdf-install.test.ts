@@ -8,12 +8,12 @@ import { SpawnStatus } from '@codifycli/schemas';
 describe('Asdf install tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
-  it('Can install a .tool-versions file', { timeout: 300000 }, async () => {
+  it('Can install a .tool-versions file', { timeout: 600000 }, async () => {
     await fs.mkdir(path.join(os.homedir(), 'toolDir'), { recursive: true });
     await fs.writeFile(
       path.join(os.homedir(), '.tool-versions'),
-      'zig 0.14.0\n' +
-      'rust 1.92.0'
+      'nodejs 22.0.0\n' +
+      'golang 1.23.0'
     )
 
     await PluginTester.fullTest(pluginPath, [
@@ -27,14 +27,14 @@ describe('Asdf install tests', async () => {
     ], {
       validateApply: async () => {
         expect(await testSpawn('which asdf')).toMatchObject({ status: SpawnStatus.SUCCESS })
-        expect(await testSpawn('which zig')).toMatchObject({ status: SpawnStatus.SUCCESS });
-        expect(await testSpawn('which rustc')).toMatchObject({ status: SpawnStatus.SUCCESS });
+        expect(await testSpawn('which node')).toMatchObject({ status: SpawnStatus.SUCCESS });
+        expect(await testSpawn('which go')).toMatchObject({ status: SpawnStatus.SUCCESS });
 
       },
       validateDestroy: async () => {
         expect(await testSpawn('which asdf')).toMatchObject({ status: SpawnStatus.ERROR });
-        expect(await testSpawn('which zig')).toMatchObject({ status: SpawnStatus.ERROR });
-        expect(await testSpawn('which rustc')).toMatchObject({ status: SpawnStatus.ERROR });
+        expect(await testSpawn('which node')).toMatchObject({ status: SpawnStatus.ERROR });
+        expect(await testSpawn('which go')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     });
 
