@@ -9,7 +9,8 @@ import {
   SpawnStatus,
   getPty,
   z,
-  Utils
+  Utils,
+  PackageManager,
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 
@@ -211,10 +212,7 @@ export class SyncthingResource extends Resource<SyncthingConfig> {
       throw new Error('Homebrew is not installed. Please install Homebrew before installing Syncthing.');
     }
 
-    await $.spawn('brew install syncthing', {
-      interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
-    });
+    await Utils.installViaPkgMgr('syncthing', undefined, PackageManager.BREW);
 
     const shouldLaunchAtStartup = config.launchAtStartup ?? true;
     await this.setLaunchAtStartup(shouldLaunchAtStartup);
@@ -226,9 +224,7 @@ export class SyncthingResource extends Resource<SyncthingConfig> {
   private async uninstallOnMacOs(): Promise<void> {
     const $ = getPty();
     await $.spawnSafe('brew services stop syncthing');
-    await $.spawnSafe('brew uninstall syncthing', {
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1 },
-    });
+    await Utils.uninstallViaPkgMgr('syncthing', undefined, PackageManager.BREW);
   }
 
   // ── Linux ──────────────────────────────────────────────────────────────────

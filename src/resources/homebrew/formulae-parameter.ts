@@ -61,7 +61,7 @@ export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[
     const $ = getPty();
     const result = await $.spawnSafe(`brew install --formulae ${formulae.join(' ')}`, {
       interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1, HOMEBREW_NO_REQUIRE_TAP_TRUST: 1 }
     })
 
     if (result.status === SpawnStatus.SUCCESS) {
@@ -79,7 +79,7 @@ export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[
     const $ = getPty();
     const result = await $.spawnSafe(`brew uninstall ${formulae.join(' ')}`, {
       interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 }
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1, HOMEBREW_NO_REQUIRE_TAP_TRUST: 1 }
     })
 
     if (result.status === SpawnStatus.SUCCESS) {

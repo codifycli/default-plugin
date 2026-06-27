@@ -1,4 +1,4 @@
-import { CreatePlan, ExampleConfig, FileUtils, Resource, ResourceSettings, SpawnStatus, Utils as CoreUtils, getPty, z, Utils } from '@codifycli/plugin-core';
+import { CreatePlan, ExampleConfig, FileUtils, Resource, ResourceSettings, SpawnStatus, Utils as CoreUtils, getPty, z, Utils, PackageManager } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -83,7 +83,7 @@ export class AsdfResource extends Resource<AsdfConfig> {
         throw new Error('Homebrew is not installed. Please install Homebrew before installing asdf.');
       }
 
-      await $.spawn('brew install asdf', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+      await Utils.installViaPkgMgr('asdf', undefined, PackageManager.BREW);
     }
 
     if (Utils.isLinux()) {
@@ -124,7 +124,7 @@ export class AsdfResource extends Resource<AsdfConfig> {
         return;
       }
 
-      await $.spawn('brew uninstall asdf', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+      await Utils.uninstallViaPkgMgr('asdf', undefined, PackageManager.BREW);
     } else {
       await fs.rm(asdfDir, { recursive: true, force: true });
     }
