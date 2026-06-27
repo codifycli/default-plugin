@@ -258,6 +258,19 @@ const result = await $.spawnSafe('my-tool --version')
 await $.spawn('my-tool configure', { interactive: true })
 ```
 
+**`interactive: true` vs `stdin: true`** — these are distinct options:
+
+- `interactive: true` — passes `-i` to the shell so it sources the user's RC file (`.zshrc`, `.bashrc`). Use this when the command needs PATH entries or shell aliases from the RC. It does **not** allow the user to type input.
+- `stdin: true` — connects the user's terminal stdin directly to the spawned process. Use this when the command requires real user input (e.g. browser-based OAuth prompts, interactive wizards, password entry). Without this flag, interactive prompts will hang.
+
+```typescript
+// Command needs PATH from shell RC but no user input
+await $.spawn('my-tool configure', { interactive: true })
+
+// Command requires the user to interact with it directly (e.g. browser login flow)
+await $.spawn('gh auth login --web', { interactive: true, stdin: true })
+```
+
 **Never use `sudo` inside `$.spawn` or `$.spawnSafe`.** Use `{ requiresRoot: true }` in the options instead. The framework handles privilege escalation through the parent process.
 
 ```typescript

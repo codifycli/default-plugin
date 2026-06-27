@@ -19,7 +19,8 @@ export const schema = z
   .object({
     token: z
       .string()
-      .describe('GitHub personal access token (classic or fine-grained) used for authentication'),
+      .optional()
+      .describe('GitHub personal access token (classic or fine-grained) used for authentication. Omit to use interactive browser-based login'),
     hostname: z
       .string()
       .optional()
@@ -32,6 +33,7 @@ export type GithubCliAuthConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<GithubCliAuthConfig> = {
   hostname: 'github.com',
+  token: undefined,
 };
 
 export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
@@ -54,7 +56,6 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
       importAndDestroy: {
         requiredParameters: [],
         defaultRefreshValues: {
-          token: '',
           hostname: 'github.com',
         },
       },
@@ -82,11 +83,11 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
     const $ = getPty();
     const hostname = params.hostname ?? 'github.com';
 
-    const { status } = await $.spawnSafe(`gh auth status --hostname ${hostname}`);
+    const { status } = await $.spawnSafe(`gh auth status --hostname "${hostname}"`);
     if (status === SpawnStatus.ERROR) return null;
 
     const { data: tokenData, status: tokenStatus } = await $.spawnSafe(
-      `gh auth token --hostname ${hostname}`
+      `gh auth token --hostname "${hostname}"`
     );
     if (tokenStatus === SpawnStatus.ERROR) return { hostname };
 
@@ -98,7 +99,7 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
 
   async create(plan: CreatePlan<GithubCliAuthConfig>): Promise<void> {
     const { token, hostname = 'github.com' } = plan.desiredConfig;
-    await this.loginWithToken(token, hostname);
+    await this.login(token, hostname);
   }
 
   async modify(
@@ -106,31 +107,36 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
     plan: ModifyPlan<GithubCliAuthConfig>
   ): Promise<void> {
     const { token, hostname = 'github.com' } = plan.desiredConfig;
-    await this.loginWithToken(token, hostname);
+    await this.login(token, hostname);
   }
 
   async destroy(plan: DestroyPlan<GithubCliAuthConfig>): Promise<void> {
     const $ = getPty();
     const hostname = plan.currentConfig.hostname ?? 'github.com';
 
-    const { data: statusData } = await $.spawnSafe(`gh auth status --hostname ${hostname}`);
+    const { data: statusData } = await $.spawnSafe(`gh auth status --hostname "${hostname}"`);
     const userMatch = statusData.match(/Logged in to \S+ account (\S+)/);
     const username = userMatch?.[1];
 
     if (username) {
-      await $.spawnSafe(`gh auth logout --hostname ${hostname} --user ${username}`);
+      await $.spawnSafe(`gh auth logout --hostname "${hostname}" --user "${username}"`);
     } else {
-      await $.spawnSafe(`gh auth logout --hostname ${hostname}`);
+      await $.spawnSafe(`gh auth logout --hostname "${hostname}"`);
     }
   }
 
-  private async loginWithToken(token: string, hostname: string): Promise<void> {
+  private async login(token: string | undefined, hostname: string): Promise<void> {
     const $ = getPty();
-    const tmpFile = path.join(os.tmpdir(), `.gh-token-${Date.now()}`);
 
+    if (!token) {
+      await $.spawn(`gh auth login --hostname "${hostname}" --web`, { interactive: true, stdin: true });
+      return;
+    }
+
+    const tmpFile = path.join(os.tmpdir(), `.gh-token-${Date.now()}`);
     await fs.writeFile(tmpFile, token.trim(), { mode: 0o600 });
     try {
-      await $.spawn(`gh auth login --with-token --hostname ${hostname} < "${tmpFile}"`, {
+      await $.spawn(`gh auth login --with-token --hostname "${hostname}" < "${tmpFile}"`, {
         interactive: true,
       });
     } finally {
