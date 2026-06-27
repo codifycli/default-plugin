@@ -12,7 +12,7 @@ describe('Asdf install tests', async () => {
     await fs.mkdir(path.join(os.homedir(), 'toolDir'), { recursive: true });
     await fs.writeFile(
       path.join(os.homedir(), '.tool-versions'),
-      'nodejs 22.0.0\n' +
+      'deno 2.0.0\n' +
       'golang 1.23.0'
     )
 
@@ -27,13 +27,13 @@ describe('Asdf install tests', async () => {
     ], {
       validateApply: async () => {
         expect(await testSpawn('which asdf')).toMatchObject({ status: SpawnStatus.SUCCESS })
-        expect(await testSpawn('which node')).toMatchObject({ status: SpawnStatus.SUCCESS });
+        expect(await testSpawn('which deno')).toMatchObject({ status: SpawnStatus.SUCCESS });
         expect(await testSpawn('which go')).toMatchObject({ status: SpawnStatus.SUCCESS });
 
       },
       validateDestroy: async () => {
         expect(await testSpawn('which asdf')).toMatchObject({ status: SpawnStatus.ERROR });
-        expect(await testSpawn('which node')).toMatchObject({ status: SpawnStatus.ERROR });
+        expect(await testSpawn('which deno')).toMatchObject({ status: SpawnStatus.ERROR });
         expect(await testSpawn('which go')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     });

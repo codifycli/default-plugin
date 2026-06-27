@@ -9,7 +9,8 @@ if (Utils.isLinux()) {
   // Uninstall resources that have Codify resource definitions
   await PluginTester.uninstall(pluginPath, [
     { type: 'docker' },
-    { type: 'aws-cli'}
+    { type: 'aws-cli'},
+    { type: 'github-cli' },
   ]);
 
   await testSpawn('apt-get autoremove -y ruby rpm python awscli needrestart', { requiresRoot: true }); // remove needrestart to keep logs clean.
@@ -26,6 +27,7 @@ if (Utils.isLinux()) {
 } else {
   await PluginTester.uninstall(pluginPath, [
     { type: 'aws-cli' },
+    { type: 'github-cli' }
   ]);
 
   await testSpawn('brew uninstall ant gradle kotlin maven selenium-server google-chrome pipx $(brew list | grep -E \'^python(@|$)\') $(brew list | grep -E \'^ruby(@|$)\') aws-sam-cli azure-cli rustup git-lfs $(brew list | grep -E \'^openjdk(@|$)\')', { interactive: true });
