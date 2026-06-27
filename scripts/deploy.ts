@@ -85,6 +85,26 @@ const versionRow = await client.from('registry_plugin_versions').upsert({
 
 await uploadResources(isBeta);
 
+if (isBeta) {
+  // Generate embeddings for prerelease resources so the AI agent can find them via semantic search
+  console.log('Triggering vector reindex for prerelease resources...')
+  const reindexKey = process.env.REINDEX_API_KEY
+  if (!reindexKey) {
+    console.warn('REINDEX_API_KEY not set — skipping prerelease reindex')
+  } else {
+    const res = await fetch('https://api.codifycli.com/v1/embeddings/reindex', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${reindexKey}` },
+    })
+    if (!res.ok) {
+      console.error(`Prerelease reindex failed: ${res.status} ${await res.text()}`)
+    } else {
+      const body = await res.json() as { resources_processed: number; templates_processed: number }
+      console.log(`Prerelease reindex complete — resources: ${body.resources_processed}`)
+    }
+  }
+}
+
 if (!isBeta) {
   // Build and deploy completions as well.
   console.log('Deploying completions...')
