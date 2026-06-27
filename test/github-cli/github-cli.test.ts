@@ -1,10 +1,14 @@
 import { SpawnStatus } from '@codifycli/plugin-core';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 
 describe('GitHub CLI integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
+
+  beforeAll(async () => {
+    await PluginTester.uninstall(pluginPath, [{ type: 'github-cli' }]);
+  }, 60_000);
 
   it('Can install and uninstall GitHub CLI', { timeout: 300_000 }, async () => {
     await PluginTester.fullTest(
@@ -79,7 +83,6 @@ describe('GitHub CLI integration tests', async () => {
         },
         testModify: {
           modifiedConfigs: [
-            { type: 'github-cli' },
             {
               type: 'github-cli-alias',
               alias: 'codify-test-alias',
