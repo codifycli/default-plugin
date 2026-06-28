@@ -96,7 +96,7 @@ export class GithubCliAliasResource extends Resource<GithubCliAliasConfig> {
     const $ = getPty();
     const { alias, expansion, shell } = plan.desiredConfig;
     const shellFlag = shell ? ' --shell' : '';
-    await $.spawn(`gh alias set ${alias} '${expansion.replace(/'/g, "'\\''")}'${shellFlag}`);
+    await $.spawn(`gh alias set --clobber ${alias} '${expansion.replace(/'/g, "'\\''")}'${shellFlag}`);
   }
 
   async modify(pc: ParameterChange<GithubCliAliasConfig>, plan: ModifyPlan<GithubCliAliasConfig>): Promise<void> {
@@ -112,7 +112,9 @@ export class GithubCliAliasResource extends Resource<GithubCliAliasConfig> {
 
   async destroy(plan: DestroyPlan<GithubCliAliasConfig>): Promise<void> {
     const $ = getPty();
-    await $.spawn(`gh alias delete ${plan.currentConfig.alias}`);
+    const { status } = await $.spawnSafe('which gh');
+    if (status === SpawnStatus.ERROR) return;
+    await $.spawnSafe(`gh alias delete ${plan.currentConfig.alias}`);
   }
 
   private parseAliasList(output: string): Array<{ alias: string; expansion: string; shell: boolean }> {

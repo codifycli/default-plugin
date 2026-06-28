@@ -7,7 +7,10 @@ describe('GitHub CLI integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   beforeAll(async () => {
-    await PluginTester.uninstall(pluginPath, [{ type: 'github-cli' }]);
+    const isInstalled = await testSpawn('which gh');
+    if (isInstalled.status === SpawnStatus.SUCCESS) {
+      await PluginTester.uninstall(pluginPath, [{ type: 'github-cli' }]);
+    }
   }, 60_000);
 
   it('Can install and uninstall GitHub CLI', { timeout: 300_000 }, async () => {
