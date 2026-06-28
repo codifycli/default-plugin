@@ -1,30 +1,120 @@
 name: Claude Test Fixer
 on:
   workflow_run:
-    workflows: ["Test all cron (Linux)", "Test all cron (MacOS)"]
+    workflows: ["Test all (Linux)", "Test all (MacOS)"]
     types: [completed]
 
 jobs:
-  fix-on-failure:
+  determine-runner:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    outputs:
+      runner: ${{ steps.pick.outputs.runner }}
+    steps:
+      - id: pick
+        run: |
+          if [[ "${{ github.event.workflow_run.name }}" == *"MacOS"* ]]; then
+            echo "runner=macos-latest" >> $GITHUB_OUTPUT
+          else
+            echo "runner=ubuntu-latest" >> $GITHUB_OUTPUT
+          fi
+
+  fix-on-failure:
+    needs: determine-runner
+    runs-on: ${{ needs.determine-runner.outputs.runner }}
     permissions:
       contents: write
       pull-requests: write
-      actions: read # Allows Claude to read the logs of the failed run
+      actions: read
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24.x'
+          cache: 'npm'
+
+      - name: Enable linger (Linux only)
+        if: runner.os == 'Linux'
+        run: loginctl enable-linger $(whoami)
+
+      - run: npm ci
+
+      - name: Fetch and filter failure logs from all shards
+        id: fetch-logs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          REPO="${GITHUB_REPOSITORY}"
+          RUN_ID="${{ github.event.workflow_run.id }}"
+
+          gh api "repos/${REPO}/actions/runs/${RUN_ID}/jobs" --paginate > all_jobs.json
+          FAILED_JOB_IDS=$(jq -r '.jobs[] | select(.conclusion == "failure") | .id' all_jobs.json)
+
+          : > failed_logs.txt
+          FAILED_TEST_FILES=""
+
+          for job_id in $FAILED_JOB_IDS; do
+            JOB_NAME=$(jq -r ".jobs[] | select(.id == $job_id) | .name" all_jobs.json)
+            echo "=== Failed Shard: ${JOB_NAME} ===" >> failed_logs.txt
+
+            gh api "repos/${REPO}/actions/jobs/${job_id}/logs" > raw_log.txt 2>/dev/null || {
+              echo "[Could not fetch logs for job ${job_id}]" >> failed_logs.txt
+              continue
+            }
+
+            # "Failed Tests" is always the last section in vitest output —
+            # take from its line to EOF so we capture all failures without a hard limit.
+            START_LINE=$(grep -n "Failed Tests" raw_log.txt | tail -1 | cut -d: -f1)
+            if [ -n "$START_LINE" ]; then
+              CONTEXT_START=$((START_LINE > 5 ? START_LINE - 5 : 1))
+              tail -n +"$CONTEXT_START" raw_log.txt >> failed_logs.txt
+            else
+              echo "[No 'Failed Tests' section found — showing last 100 lines]" >> failed_logs.txt
+              tail -100 raw_log.txt >> failed_logs.txt
+            fi
+            echo "" >> failed_logs.txt
+
+            NEW_FILES=$(grep " FAIL  test/" raw_log.txt | grep -o "test/[^[:space:]>]*\.test\.ts" | sort -u | tr '\n' ' ')
+            FAILED_TEST_FILES="${FAILED_TEST_FILES}${NEW_FILES}"
+          done
+
+          FAILED_TEST_FILES=$(echo "${FAILED_TEST_FILES}" | tr ' ' '\n' | grep -v '^$' | sort -u | tr '\n' ' ' | xargs)
+          echo "failed_test_files=${FAILED_TEST_FILES}" >> "$GITHUB_OUTPUT"
+
       - name: Claude Fix Failed Tests
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
-            The "CI Tests" workflow just failed. 
-            1. Analyze the logs from the last failed run.
-            2. Identify the root cause of the test failure.
-            3. Implement a fix and create a new pull request.
-            
-            
+            The "${{ github.event.workflow_run.name }}" workflow failed on branch "${{ github.event.workflow_run.head_branch }}".
+
+            Failing test files: ${{ steps.fetch-logs.outputs.failed_test_files }}
+
+            Filtered failure logs from all failed shards are in `failed_logs.txt` in the working directory. Read it first.
+
+            Follow these steps carefully:
+
+            1. **Diagnose the root cause**: Read `failed_logs.txt` thoroughly. Before writing a single line of code, understand WHY the tests are failing — not just the symptom. Read the relevant source files to understand the existing architecture and patterns.
+
+            2. **Implement an architecturally sound fix**: The fix must address the underlying root cause, match existing code patterns in this codebase, and introduce no workarounds or hacks. Do not mask symptoms.
+
+            3. **Verify each fix**: For each failing test file, run:
+               ```
+               npm run test -- <test_file_path> --no-file-parallelism --disable-console-intercept
+               ```
+               On macOS, prepend `CI=true` and ensure `/opt/homebrew/bin` is in PATH.
+
+            4. **Iterate until all tests pass**: If tests still fail after a fix, re-read the output, deepen your understanding of the root cause, and refine the fix. Do not give up and do not apply increasingly speculative patches. Each iteration must be grounded in analysis.
+
+            5. **Create a PR only after all failing tests pass**:
+               - Create a new branch from "${{ github.event.workflow_run.head_branch }}" (e.g. `fix/claude-auto-<short-description>`)
+               - Commit the changes with a descriptive message explaining the root cause and fix
+               - Open a pull request targeting "${{ github.event.workflow_run.head_branch }}"
 
           additional_permissions: |
             actions: read
