@@ -51,6 +51,11 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
         interactive: true,
         env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 },
       });
+      // Homebrew 5.x+ requires taps to be explicitly trusted before their formulae/casks
+      // can be installed by short name. Auto-trust user-declared taps since they've opted in.
+      await $.spawnSafe(`brew trust ${tap}`, {
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1, NONINTERACTIVE: 1 },
+      });
     }
   }
 

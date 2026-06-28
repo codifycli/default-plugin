@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus, Utils, PackageManager } from '@codifycli/plugin-core';
 import fs from 'node:fs/promises';
 import semver from 'semver';
 
@@ -142,7 +142,7 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
         // That version is not currently installed with homebrew. Let's install it
         if (status === SpawnStatus.ERROR) {
           console.log(`Homebrew detected. Attempting to install java version ${openjdkName} automatically using homebrew`)
-          await $.spawn(`brew install ${openjdkName}`, { interactive: true })
+          await Utils.installViaPkgMgr(openjdkName, undefined, PackageManager.BREW)
         }
 
         location = (await this.getHomebrewInstallLocation(openjdkName))!;
@@ -208,7 +208,7 @@ export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string>
       const location = await this.getHomebrewInstallLocation(openjdkName);
       if (location) {
         await $.spawn(`jenv remove ${location}`, { interactive: true })
-        await $.spawn(`brew uninstall ${openjdkName}`, { interactive: true })
+        await Utils.uninstallViaPkgMgr(openjdkName, undefined, PackageManager.BREW)
       }
 
       return

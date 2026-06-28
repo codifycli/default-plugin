@@ -1,4 +1,4 @@
-import { ArrayStatefulParameter, getPty, Plan, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { ArrayStatefulParameter, getPty, Plan, SpawnStatus, Utils, PackageManager } from '@codifycli/plugin-core';
 import { StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -218,10 +218,7 @@ export class JetBrainsCommon {
 
   static async installMacOS(product: JetBrainsProductInfo): Promise<void> {
     const $ = getPty();
-    await $.spawn(`brew install --cask ${product.caskName}`, {
-      interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-    });
+    await Utils.installViaPkgMgr(product.caskName, { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
     // Create a CLI launcher symlink so `<macBinaryName>` works from the terminal
     await $.spawnSafe(
       `ln -sf "${JetBrainsCommon.getMacBinary(product)}" /usr/local/bin/${product.macBinaryName}`,
@@ -231,9 +228,7 @@ export class JetBrainsCommon {
 
   static async uninstallMacOS(product: JetBrainsProductInfo): Promise<void> {
     const $ = getPty();
-    await $.spawnSafe(`brew uninstall --cask ${product.caskName}`, {
-      env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-    });
+    await Utils.uninstallViaPkgMgr(product.caskName, { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
     await $.spawnSafe(`rm -f /usr/local/bin/${product.macBinaryName}`, { requiresRoot: true });
   }
 

@@ -5,7 +5,7 @@ import {
   ResourceSettings,
   SpawnStatus,
   getPty,
-  Utils, FileUtils
+  Utils, FileUtils, PackageManager
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
@@ -167,7 +167,7 @@ ${JSON.stringify(releaseInfo, null, 2)}
     }
 
     if (installLocationQuery.data.includes('homebrew')) {
-      await $.spawn('brew uninstall terraform', { interactive: true });
+      await Utils.uninstallViaPkgMgr('terraform', undefined, PackageManager.BREW);
       return;
     }
 

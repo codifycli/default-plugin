@@ -7,6 +7,7 @@ import {
   ResourceSettings,
   SpawnStatus,
   Utils,
+  PackageManager,
   getPty,
   z,
 } from '@codifycli/plugin-core';
@@ -170,7 +171,7 @@ export class CursorResource extends Resource<CursorConfig> {
 
   private async installMacOS(): Promise<void> {
     const $ = getPty();
-    await $.spawn('brew install --cask cursor', { interactive: true });
+    await Utils.installViaPkgMgr('cursor', { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
   }
 
   private async installLinux(plan: CreatePlan<CursorConfig>): Promise<void> {

@@ -1,4 +1,4 @@
-import { FileUtils, getPty, Resource, ResourceSettings, SpawnStatus, Utils, z } from '@codifycli/plugin-core';
+import { FileUtils, getPty, Resource, ResourceSettings, SpawnStatus, Utils, PackageManager, z } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import os from 'node:os';
 import path from 'node:path';
@@ -62,10 +62,7 @@ export class RbenvResource extends Resource<RbenvConfig> {
 
 async function installOnMacOS(): Promise<void> {
   const $ = getPty();
-  await $.spawn('brew install rbenv ruby-build', {
-    interactive: true,
-    env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-  });
+  await Utils.installViaPkgMgr('rbenv ruby-build', undefined, PackageManager.BREW);
   await FileUtils.addToShellRc(RBENV_INIT);
 }
 
@@ -86,10 +83,7 @@ async function installOnLinux(): Promise<void> {
 
 async function uninstallOnMacOS(): Promise<void> {
   const $ = getPty();
-  await $.spawn('brew uninstall rbenv ruby-build', {
-    interactive: true,
-    env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-  });
+  await Utils.uninstallViaPkgMgr('rbenv ruby-build', undefined, PackageManager.BREW);
   await removeRbenvFromShellRc([RBENV_INIT]);
 }
 

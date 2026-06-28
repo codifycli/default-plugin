@@ -1,4 +1,4 @@
-import { Resource, ResourceSettings, SpawnStatus, getPty, Utils } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, getPty, Utils, PackageManager } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs';
 
@@ -74,7 +74,7 @@ export class JenvResource extends Resource<JenvConfig> {
 
       const jenvQuery = await $.spawnSafe('which jenv', { interactive: true })
       if (jenvQuery.status === SpawnStatus.ERROR) {
-        await $.spawn('brew install jenv', { interactive: true })
+        await Utils.installViaPkgMgr('jenv', undefined, PackageManager.BREW)
       }
     } else {
       const jenvQuery = await $.spawnSafe('which jenv', { interactive: true })
@@ -103,7 +103,7 @@ export class JenvResource extends Resource<JenvConfig> {
       if (await Utils.isHomebrewInstalled()) {
         const isHomebrewInstall = await $.spawnSafe('brew list jenv', { interactive: true });
         if (isHomebrewInstall.status === SpawnStatus.SUCCESS) {
-          await $.spawn('brew uninstall jenv', { interactive: true });
+          await Utils.uninstallViaPkgMgr('jenv', undefined, PackageManager.BREW);
         }
       }
       await $.spawnSafe('rm -rf $HOME/.jenv');

@@ -7,7 +7,7 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus,
-  getPty, z
+  getPty, z, Utils, PackageManager
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
@@ -133,8 +133,17 @@ export class TartResource extends Resource<TartConfig> {
       throw new Error('Homebrew is not installed. Please install Homebrew before installing tart.');
     }
 
+    // Tap and trust cirruslabs/cli so all formulae from the tap (including the
+    // softnet dependency) are allowed by Homebrew 5.x+ tap trust enforcement.
+    await $.spawnSafe('brew tap cirruslabs/cli', {
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 },
+    });
+    await $.spawnSafe('brew trust cirruslabs/cli', {
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, NONINTERACTIVE: 1 },
+    });
+
     // Install tart via Homebrew
-    await $.spawn('brew install cirruslabs/cli/tart', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+    await Utils.installViaPkgMgr('cirruslabs/cli/tart', undefined, PackageManager.BREW);
 
     // Set TART_HOME if specified
     if (plan.desiredConfig.tartHome) {
@@ -177,7 +186,7 @@ export class TartResource extends Resource<TartConfig> {
     // Uninstall tart via Homebrew
     const { status: brewStatus } = await $.spawnSafe('which brew');
     if (brewStatus === SpawnStatus.SUCCESS) {
-      await $.spawn('brew uninstall cirruslabs/cli/tart', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: 1 } });
+      await Utils.uninstallViaPkgMgr('cirruslabs/cli/tart', undefined, PackageManager.BREW);
     }
   }
 }

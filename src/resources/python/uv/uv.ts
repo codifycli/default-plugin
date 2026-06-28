@@ -6,6 +6,7 @@ import {
   ResourceSettings,
   SpawnStatus,
   Utils,
+  PackageManager,
   z
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
@@ -111,12 +112,12 @@ export class UvResource extends Resource<UvConfig> {
 
 async function installOnMacOS(): Promise<void> {
   const $ = getPty();
-  await $.spawn('brew install uv', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: '1' } });
+  await Utils.installViaPkgMgr('uv', undefined, PackageManager.BREW);
 }
 
 async function uninstallOnMacOS(): Promise<void> {
   const $ = getPty();
-  await $.spawn('brew uninstall uv', { interactive: true, env: { HOMEBREW_NO_AUTO_UPDATE: '1' } });
+  await Utils.uninstallViaPkgMgr('uv', undefined, PackageManager.BREW);
 }
 
 async function installOnLinux(): Promise<void> {
