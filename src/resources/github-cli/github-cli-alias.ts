@@ -112,6 +112,8 @@ export class GithubCliAliasResource extends Resource<GithubCliAliasConfig> {
 
   async destroy(plan: DestroyPlan<GithubCliAliasConfig>): Promise<void> {
     const $ = getPty();
+    const { status } = await $.spawnSafe('which gh');
+    if (status === SpawnStatus.ERROR) return;
     await $.spawn(`gh alias delete ${plan.currentConfig.alias}`);
   }
 
