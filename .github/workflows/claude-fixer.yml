@@ -63,34 +63,35 @@ jobs:
           REPO="${GITHUB_REPOSITORY}"
           RUN_ID="${{ github.event.workflow_run.id }}"
 
-          gh api "repos/${REPO}/actions/runs/${RUN_ID}/jobs" --paginate > all_jobs.json
-          FAILED_JOB_IDS=$(jq -r '.jobs[] | select(.conclusion == "failure") | .id' all_jobs.json)
+          # Write all temp files to /tmp so the working tree stays clean for Claude's changes
+          gh api "repos/${REPO}/actions/runs/${RUN_ID}/jobs" --paginate > /tmp/all_jobs.json
+          FAILED_JOB_IDS=$(jq -r '.jobs[] | select(.conclusion == "failure") | .id' /tmp/all_jobs.json)
 
-          : > failed_logs.txt
+          : > /tmp/failed_logs.txt
           FAILED_TEST_FILES=""
 
           for job_id in $FAILED_JOB_IDS; do
-            JOB_NAME=$(jq -r ".jobs[] | select(.id == $job_id) | .name" all_jobs.json)
-            echo "=== Failed Shard: ${JOB_NAME} ===" >> failed_logs.txt
+            JOB_NAME=$(jq -r ".jobs[] | select(.id == $job_id) | .name" /tmp/all_jobs.json)
+            echo "=== Failed Shard: ${JOB_NAME} ===" >> /tmp/failed_logs.txt
 
-            gh api "repos/${REPO}/actions/jobs/${job_id}/logs" > raw_log.txt 2>/dev/null || {
-              echo "[Could not fetch logs for job ${job_id}]" >> failed_logs.txt
+            gh api "repos/${REPO}/actions/jobs/${job_id}/logs" > /tmp/raw_log.txt 2>/dev/null || {
+              echo "[Could not fetch logs for job ${job_id}]" >> /tmp/failed_logs.txt
               continue
             }
 
             # "Failed Tests" is always the last section in vitest output —
             # take from its line to EOF so we capture all failures without a hard limit.
-            START_LINE=$(grep -n "Failed Tests" raw_log.txt | tail -1 | cut -d: -f1)
+            START_LINE=$(grep -n "Failed Tests" /tmp/raw_log.txt | tail -1 | cut -d: -f1)
             if [ -n "$START_LINE" ]; then
               CONTEXT_START=$((START_LINE > 5 ? START_LINE - 5 : 1))
-              tail -n +"$CONTEXT_START" raw_log.txt >> failed_logs.txt
+              tail -n +"$CONTEXT_START" /tmp/raw_log.txt >> /tmp/failed_logs.txt
             else
-              echo "[No 'Failed Tests' section found — showing last 100 lines]" >> failed_logs.txt
-              tail -100 raw_log.txt >> failed_logs.txt
+              echo "[No 'Failed Tests' section found — showing last 100 lines]" >> /tmp/failed_logs.txt
+              tail -100 /tmp/raw_log.txt >> /tmp/failed_logs.txt
             fi
-            echo "" >> failed_logs.txt
+            echo "" >> /tmp/failed_logs.txt
 
-            NEW_FILES=$(grep " FAIL  test/" raw_log.txt | grep -o "test/[^[:space:]>]*\.test\.ts" | sort -u | tr '\n' ' ')
+            NEW_FILES=$(grep " FAIL  test/" /tmp/raw_log.txt | grep -o "test/[^[:space:]>]*\.test\.ts" | sort -u | tr '\n' ' ')
             FAILED_TEST_FILES="${FAILED_TEST_FILES}${NEW_FILES}"
           done
 
@@ -101,16 +102,17 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: "--allowedTools Bash,Read,Edit,Write --max-turns 100"
           prompt: |
             The "${{ github.event.workflow_run.name }}" workflow failed on branch "${{ github.event.workflow_run.head_branch }}".
 
             Failing test files: ${{ steps.fetch-logs.outputs.failed_test_files }}
 
-            Filtered failure logs from all failed shards are in `failed_logs.txt` in the working directory. Read it first.
+            Filtered failure logs from all failed shards are in `/tmp/failed_logs.txt`. Read it first.
 
             Follow these steps carefully:
 
-            1. **Diagnose the root cause**: Read `failed_logs.txt` thoroughly. Before writing a single line of code, understand WHY the tests are failing — not just the symptom. Read the relevant source files to understand the existing architecture and patterns.
+            1. **Diagnose the root cause**: Read `/tmp/failed_logs.txt` thoroughly. Before writing a single line of code, understand WHY the tests are failing — not just the symptom. Read the relevant source files to understand the existing architecture and patterns.
 
             2. **Implement an architecturally sound fix**: The fix must address the underlying root cause, match existing code patterns in this codebase, and introduce no workarounds or hacks. Do not mask symptoms.
 
@@ -142,15 +144,37 @@ jobs:
 
       - name: Open pull request
         if: steps.auto-commit.outputs.changes_detected == 'true'
+        id: create-pr
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr create \
-            --title "fix: auto-fix test failures from ${{ github.event.workflow_run.name }}" \
+          PR_URL=$(gh pr create \
+            --title "fix: auto-fix ${{ github.event.workflow_run.name }} failures on ${{ github.event.workflow_run.head_branch }}" \
             --body "Failures detected in \`${{ github.event.workflow_run.name }}\` on branch \`${{ github.event.workflow_run.head_branch }}\`.
 
           This PR was automatically generated by the Claude Test Fixer workflow.
 
           > ⚠️ AI-generated fix. Please review carefully before merging." \
             --base ${{ github.event.workflow_run.head_branch }} \
-            --head ${{ steps.branch.outputs.name }}
+            --head ${{ steps.branch.outputs.name }})
+          echo "pr-url=$PR_URL" >> $GITHUB_OUTPUT
+
+      - name: Add failure logs as PR comment
+        if: steps.auto-commit.outputs.changes_detected == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo '## Test Failure Logs'
+            echo ''
+            echo '<details>'
+            echo '<summary>Click to expand failure logs from the failed CI run</summary>'
+            echo ''
+            echo '```'
+            head -c 60000 /tmp/failed_logs.txt
+            echo '```'
+            echo ''
+            echo '</details>'
+          } > /tmp/pr-comment.md
+
+          gh pr comment "${{ steps.create-pr.outputs.pr-url }}" --body-file /tmp/pr-comment.md
