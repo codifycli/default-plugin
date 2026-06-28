@@ -5,7 +5,24 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-describe.skipIf(!process.env.JETBRAINS_MANUAL)('GoLand integration tests', async () => {
+const PRODUCTS = [
+  { type: 'intellij-idea', macAppName: 'IntelliJ IDEA', configPrefix: 'IntelliJIdea', vmoptionsFile: 'idea.vmoptions',      linuxCommand: 'intellij-idea-community' },
+  { type: 'rider',         macAppName: 'Rider',          configPrefix: 'Rider',        vmoptionsFile: 'rider.vmoptions',     linuxCommand: 'rider'                   },
+  { type: 'clion',         macAppName: 'CLion',          configPrefix: 'CLion',        vmoptionsFile: 'clion.vmoptions',     linuxCommand: 'clion'                   },
+  { type: 'pycharm',       macAppName: 'PyCharm',        configPrefix: 'PyCharm',      vmoptionsFile: 'pycharm.vmoptions',   linuxCommand: 'pycharm-community'       },
+  { type: 'rustrover',     macAppName: 'RustRover',      configPrefix: 'RustRover',    vmoptionsFile: 'rustrover.vmoptions', linuxCommand: 'rustrover'               },
+  { type: 'phpstorm',      macAppName: 'PhpStorm',       configPrefix: 'PhpStorm',     vmoptionsFile: 'phpstorm.vmoptions',  linuxCommand: 'phpstorm'                },
+  { type: 'rubymine',      macAppName: 'RubyMine',       configPrefix: 'RubyMine',     vmoptionsFile: 'rubymine.vmoptions',  linuxCommand: 'rubymine'                },
+  { type: 'goland',        macAppName: 'GoLand',         configPrefix: 'GoLand',       vmoptionsFile: 'goland.vmoptions',    linuxCommand: 'goland'                  },
+] as const;
+
+const selected = process.env.JETBRAINS_IDE
+  ? (PRODUCTS.find((p) => p.type === process.env.JETBRAINS_IDE) ?? PRODUCTS[0])
+  : PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+
+console.log(`[JetBrains tests] Selected IDE: ${selected.type}`);
+
+describe(`JetBrains integration tests (${selected.type})`, async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   let xdgLine: string | null = null;
@@ -40,24 +57,24 @@ describe.skipIf(!process.env.JETBRAINS_MANUAL)('GoLand integration tests', async
     await fs.writeFile(bashrc, contents.replace(`\n${xdgLine}\n`, ''));
   });
 
-  it('Can install GoLand', { timeout: 600_000 }, async () => {
-    await PluginTester.fullTest(pluginPath, [{ type: 'goland' }], {
+  it(`Can install ${selected.macAppName}`, { timeout: 600_000 }, async () => {
+    await PluginTester.fullTest(pluginPath, [{ type: selected.type }], {
       validateApply: async () => {
         if (Utils.isMacOS()) {
-          const stat = await fs.lstat('/Applications/GoLand.app');
+          const stat = await fs.lstat(`/Applications/${selected.macAppName}.app`);
           expect(stat.isDirectory()).to.be.true;
         } else {
-          const { data } = await testSpawn('which goland');
-          expect(data?.trim()).to.include('goland');
+          const { data } = await testSpawn(`which ${selected.linuxCommand}`);
+          expect(data?.trim()).to.include(selected.linuxCommand);
         }
       },
       validateDestroy: async () => {
         if (Utils.isMacOS()) {
-          const exists = await fs.access('/Applications/GoLand.app').then(() => true).catch(() => false);
+          const exists = await fs.access(`/Applications/${selected.macAppName}.app`).then(() => true).catch(() => false);
           expect(exists).to.be.false;
         } else {
-          const { data } = await testSpawn('which goland');
-          expect(data?.trim() ?? '').not.to.include('goland');
+          const { data } = await testSpawn(`which ${selected.linuxCommand}`);
+          expect(data?.trim() ?? '').not.to.include(selected.linuxCommand);
         }
       },
     });
@@ -71,16 +88,16 @@ describe.skipIf(!process.env.JETBRAINS_MANUAL)('GoLand integration tests', async
     const findVmOptions = async (): Promise<string | null> => {
       try {
         const entries = await fs.readdir(configParent);
-        const dir = entries.filter((e) => e.startsWith('GoLand')).sort().pop();
+        const dir = entries.filter((e) => e.startsWith(selected.configPrefix)).sort().pop();
         if (!dir) return null;
-        return path.join(configParent, dir, 'goland.vmoptions');
+        return path.join(configParent, dir, selected.vmoptionsFile);
       } catch {
         return null;
       }
     };
 
     await PluginTester.fullTest(pluginPath, [{
-      type: 'goland',
+      type: selected.type,
       jvmMaxHeapSize: '2048m',
       jvmMinHeapSize: '512m',
     }], {
@@ -93,7 +110,7 @@ describe.skipIf(!process.env.JETBRAINS_MANUAL)('GoLand integration tests', async
       },
       testModify: {
         modifiedConfigs: [{
-          type: 'goland',
+          type: selected.type,
           jvmMaxHeapSize: '4096m',
           jvmMinHeapSize: '1024m',
         }],
@@ -119,8 +136,8 @@ describe.skipIf(!process.env.JETBRAINS_MANUAL)('GoLand integration tests', async
 
   it('Can install plugins', { timeout: 600_000 }, async () => {
     await PluginTester.fullTest(pluginPath, [{
-      type: 'goland',
+      type: selected.type,
       plugins: ['Docker'],
-    }])
-  })
+    }]);
+  });
 });

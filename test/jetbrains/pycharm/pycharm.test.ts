@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-describe('PyCharm integration tests', async () => {
+describe.skipIf(!process.env.JETBRAINS_MANUAL)('PyCharm integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   let xdgLine: string | null = null;
