@@ -133,6 +133,15 @@ export class TartResource extends Resource<TartConfig> {
       throw new Error('Homebrew is not installed. Please install Homebrew before installing tart.');
     }
 
+    // Tap and trust cirruslabs/cli so all formulae from the tap (including the
+    // softnet dependency) are allowed by Homebrew 5.x+ tap trust enforcement.
+    await $.spawnSafe('brew tap cirruslabs/cli', {
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 },
+    });
+    await $.spawnSafe('brew trust cirruslabs/cli', {
+      env: { HOMEBREW_NO_AUTO_UPDATE: 1, NONINTERACTIVE: 1 },
+    });
+
     // Install tart via Homebrew
     await Utils.installViaPkgMgr('cirruslabs/cli/tart', undefined, PackageManager.BREW);
 
