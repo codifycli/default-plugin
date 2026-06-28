@@ -1,0 +1,103 @@
+=== Failed Shard: build-and-test (ubuntu-latest, 15/20) ===
+[No 'Failed Tests' section found — showing last 100 lines]
+2026-06-28T12:49:31.9798025Z pulling 62fbfd9ed093: 100% ▕██████████████████▏  182 B                         [K
+2026-06-28T12:49:31.9799077Z pulling cfc7749b96f6: 100% ▕██████████████████▏  11 KB                         [K
+2026-06-28T12:49:31.9800239Z pulling ca7a9654b546: 100% ▕██████████████████▏   89 B                         [K
+2026-06-28T12:49:31.9800930Z pulling f590523c855b: 100% ▕██████████████████▏  488 B                         [K
+2026-06-28T12:49:31.9819289Z verifying sha256 digest ⠋ [K[?25h[?2026l[?2026h[?25l[A[A[A[A[A[A[1Gpulling manifest [K
+2026-06-28T12:49:31.9820821Z pulling eb2c714d40d4: 100% ▕██████████████████▏  91 MB                         [K
+2026-06-28T12:49:31.9821975Z pulling 62fbfd9ed093: 100% ▕██████████████████▏  182 B                         [K
+2026-06-28T12:49:31.9823161Z pulling cfc7749b96f6: 100% ▕██████████████████▏  11 KB                         [K
+2026-06-28T12:49:31.9824312Z pulling ca7a9654b546: 100% ▕██████████████████▏   89 B                         [K
+2026-06-28T12:49:31.9825419Z pulling f590523c855b: 100% ▕██████████████████▏  488 B                         [K
+2026-06-28T12:49:31.9826220Z verifying sha256 digest [K
+2026-06-28T12:49:31.9827111Z writing manifest [K
+2026-06-28T12:49:31.9827456Z success [K[?25h[?2026l
+2026-06-28T12:49:32.1057250Z Running command: which ollama
+2026-06-28T12:49:32.1079325Z /usr/local/bin/ollama
+2026-06-28T12:49:32.1146046Z Running command: ollama list
+2026-06-28T12:49:32.1296481Z NAME           ID              SIZE     MODIFIED               
+2026-06-28T12:49:32.1297037Z smollm:135m    b0b2a4617438    91 MB    Less than a second ago    
+2026-06-28T12:49:32.1336697Z Running command:  which ollama
+2026-06-28T12:49:32.1530691Z /usr/local/bin/ollama
+2026-06-28T12:49:32.1535480Z Running command:  ollama list
+2026-06-28T12:49:32.1852743Z NAME           ID              SIZE     MODIFIED               
+2026-06-28T12:49:32.1853528Z smollm:135m    b0b2a4617438    91 MB    Less than a second ago    
+2026-06-28T12:49:33.3750797Z Testing import...
+2026-06-28T12:49:33.4551650Z Running command: which ollama
+2026-06-28T12:49:33.4580307Z /usr/local/bin/ollama
+2026-06-28T12:49:33.4646549Z Running command: ollama list
+2026-06-28T12:49:33.4791456Z NAME           ID              SIZE     MODIFIED     
+2026-06-28T12:49:33.4792176Z smollm:135m    b0b2a4617438    91 MB    1 second ago    
+2026-06-28T12:49:34.6731414Z Testing destroy...
+2026-06-28T12:49:34.7565726Z Running command: which ollama
+2026-06-28T12:49:34.7594794Z /usr/local/bin/ollama
+2026-06-28T12:49:34.7664158Z Running command: ollama list
+2026-06-28T12:49:34.7808652Z NAME           ID              SIZE     MODIFIED      
+2026-06-28T12:49:34.7809281Z smollm:135m    b0b2a4617438    91 MB    2 seconds ago    
+2026-06-28T12:49:34.7857182Z Running command: sudo systemctl stop ollama
+2026-06-28T12:49:34.8088407Z Running command: sudo systemctl disable ollama
+2026-06-28T12:49:34.8354266Z Removed "/etc/systemd/system/default.target.wants/ollama.service".
+2026-06-28T12:49:34.8354767Z 
+2026-06-28T12:49:35.1135713Z Running command: sudo rm -f /etc/systemd/system/ollama.service
+2026-06-28T12:49:35.1240182Z Running command: sudo rm -f /usr/local/bin/ollama
+2026-06-28T12:49:35.1416676Z Running command: sudo rm -rf /usr/share/ollama
+2026-06-28T12:49:35.2833993Z Running command: sudo userdel ollama
+2026-06-28T12:49:35.3055122Z userdel: group ollama not removed because it has other members.
+2026-06-28T12:49:35.3146172Z Running command: sudo groupdel ollama
+2026-06-28T12:49:35.4584815Z Running command: which ollama
+2026-06-28T12:49:35.4628698Z Running command:  which ollama
+2026-06-28T12:49:35.4833622Z Running command: sudo systemctl stop ollama
+2026-06-28T12:49:35.5179448Z [0;1;31mFailed to stop ollama.service: Unit ollama.service not loaded.[0m
+2026-06-28T12:49:35.5180216Z 
+2026-06-28T12:49:35.5202076Z Running command: sudo rm -f /usr/local/bin/ollama
+2026-06-28T12:49:35.5495528Z  [32m✓[39m test/ollama/ollama.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[33m 60799[2mms[22m[39m
+2026-06-28T12:49:35.5649674Z 
+2026-06-28T12:49:35.5657337Z [31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+2026-06-28T12:49:35.5657795Z 
+2026-06-28T12:49:35.5669422Z [2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (4)[39m
+2026-06-28T12:49:35.5671053Z [2m      Tests [22m [1m[32m8 passed[39m[22m[90m (11)[39m
+2026-06-28T12:49:35.5671955Z [2m   Start at [22m 12:45:56
+2026-06-28T12:49:35.5673870Z [2m   Duration [22m 218.59s[2m (transform 69ms, setup 406ms, collect 386ms, tests 217.09s, environment 1ms, prepare 224ms)[22m
+2026-06-28T12:49:35.5674739Z 
+2026-06-28T12:49:35.5678005Z [31m[1m[7m FAIL [27m[22m[39m test/github-cli/github-cli.test.ts[2m > [22mGitHub CLI integration tests
+2026-06-28T12:49:35.5679852Z [31m[1mError[22m: [apply_validation] Failed to apply changes to resource: "github-cli". Additional changes are needed to complete apply.
+2026-06-28T12:49:35.5681090Z Changes remaining:
+2026-06-28T12:49:35.5681441Z {
+2026-06-28T12:49:35.5681745Z   "operation": "create",
+2026-06-28T12:49:35.5682099Z   "parameters": []
+2026-06-28T12:49:35.5682421Z }
+2026-06-28T12:49:35.5682703Z Details: {
+2026-06-28T12:49:35.5682999Z   "plan": {
+2026-06-28T12:49:35.5683634Z     "planId": "997c96d8-ae72-46f8-baa4-f0e04d913068",
+2026-06-28T12:49:35.5684133Z     "operation": "create",
+2026-06-28T12:49:35.5684516Z     "isStateful": true,
+2026-06-28T12:49:35.5684935Z     "resourceType": "github-cli",
+2026-06-28T12:49:35.5685331Z     "parameters": []
+2026-06-28T12:49:35.5685654Z   },
+2026-06-28T12:49:35.5685936Z   "logs": []
+2026-06-28T12:49:35.5686327Z }[39m
+2026-06-28T12:49:35.5687415Z [90m [2m❯[22m ChildProcess.<anonymous> node_modules/@codifycli/plugin-test/src/test-utils.ts:[2m31:20[22m[39m
+2026-06-28T12:49:35.5688857Z [90m [2m❯[22m ChildProcess.emit node:events:[2m521:24[22m[39m
+2026-06-28T12:49:35.5689292Z 
+2026-06-28T12:49:35.5689714Z [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+2026-06-28T12:49:35.5690318Z 
+2026-06-28T12:49:35.5916256Z ##[error]Process completed with exit code 1.
+2026-06-28T12:49:35.6067709Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+2026-06-28T12:49:35.6068905Z Post job cleanup.
+2026-06-28T12:49:35.6968046Z [command]/usr/bin/git version
+2026-06-28T12:49:35.7006457Z git version 2.54.0
+2026-06-28T12:49:35.7077398Z Temporarily overriding HOME='/home/runner/work/_temp/53e1af48-0a7c-4633-aa59-edca75539d77' before making global git config changes
+2026-06-28T12:49:35.7078724Z Adding repository directory to the temporary git global config as a safe directory
+2026-06-28T12:49:35.7084905Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/default-plugin/default-plugin
+2026-06-28T12:49:35.7127444Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+2026-06-28T12:49:35.7167467Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+2026-06-28T12:49:35.7429347Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+2026-06-28T12:49:35.7457126Z http.https://github.com/.extraheader
+2026-06-28T12:49:35.7468177Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+2026-06-28T12:49:35.7515706Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+2026-06-28T12:49:35.7761512Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+2026-06-28T12:49:35.7796107Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+2026-06-28T12:49:35.8203496Z Cleaning up orphan processes
+2026-06-28T12:49:35.8558663Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+
