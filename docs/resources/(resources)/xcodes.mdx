@@ -1,0 +1,52 @@
+---
+title: xcodes
+description: Reference page for the xcodes resource
+---
+
+The xcodes resource installs the [xcodes CLI](https://github.com/XcodesOrg/xcodes) tool and manages multiple Xcode versions on macOS. xcodes is the recommended way for iOS/macOS teams to ensure all developers are running the same Xcode version.
+
+Installing Xcode versions requires an Apple Developer account. xcodes will prompt for Apple ID credentials interactively on first use and caches them in the macOS Keychain. For non-interactive environments, set `XCODES_USERNAME` and `XCODES_PASSWORD` environment variables before applying.
+
+## Parameters
+
+- **xcodeVersions**: *(string[])* List of Xcode versions to install (e.g. `["15.4", "14.3.1"]`). Version strings match what `xcodes list` shows — stable versions use a dotted number (`15.4`), beta/RC versions include the label (`15 Beta 3`).
+- **selected**: *(string)* The active Xcode version to use, equivalent to running `xcodes select`. Must be one of the installed `xcodeVersions`.
+
+## Example usage
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "xcodes",
+    "xcodeVersions": ["15.4"],
+    "selected": "15.4",
+    "os": ["macOS"]
+  }
+]
+```
+
+Multiple versions side by side:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "xcodes",
+    "xcodeVersions": ["14.3.1", "15.4"],
+    "selected": "15.4",
+    "os": ["macOS"]
+  }
+]
+```
+
+## Authentication
+
+xcodes requires Apple ID credentials to download Xcode from Apple's servers. On first install Codify will prompt for your credentials interactively (including two-factor authentication). The credentials are stored in the macOS Keychain for future use.
+
+For CI or fully non-interactive environments, export the following environment variables before running Codify:
+
+```bash
+export XCODES_USERNAME="your@apple.id"
+export XCODES_PASSWORD="your-app-specific-password"
+```
+
+Use an [app-specific password](https://appleid.apple.com/account/manage) rather than your main Apple ID password when running non-interactively.

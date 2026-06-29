@@ -68,6 +68,7 @@ import { CursorResource } from './resources/cursor/cursor.js';
 import { VscodeResource } from './resources/vscode/vscode.js';
 import { WebStormResource } from './resources/webstorm/webstorm.js';
 import { XcodeToolsResource } from './resources/xcode-tools/xcode-tools.js';
+import { XcodesResource } from './resources/xcodes/xcodes-resource.js';
 import { YumResource } from './resources/yum/yum.js';
 import { PyCharmResource } from './resources/jetbrains/pycharm/pycharm.js';
 import { ClionResource } from './resources/jetbrains/clion/clion.js';
@@ -86,6 +87,7 @@ runPlugin(Plugin.create(
   [
     new GitResource(),
     new XcodeToolsResource(),
+    new XcodesResource(),
     new PathResource(),
     new AliasResource(),
     new AliasesResource(),
