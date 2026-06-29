@@ -1,4 +1,6 @@
 import { Plugin, runPlugin } from '@codifycli/plugin-core';
+import { AndroidCliResource } from './resources/android/android-cli/android-cli.js';
+import { AndroidEmulatorResource } from './resources/android/android-cli/android-emulator.js';
 import { AndroidStudioResource } from './resources/android/android-studio.js';
 import { AptResource } from './resources/apt/apt.js';
 import { AsdfResource } from './resources/asdf/asdf.js';
@@ -113,6 +115,8 @@ runPlugin(Plugin.create(
     new GitRepositoryResource(),
     new GitRepositoriesResource(),
     new AndroidStudioResource(),
+    new AndroidCliResource(),
+    new AndroidEmulatorResource(),
     new AsdfResource(),
     new AsdfPluginResource(),
     new AsdfInstallResource(),
