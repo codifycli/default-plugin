@@ -34,7 +34,8 @@ describe('Asdf install tests', async () => {
       validateDestroy: async () => {
         expect(await testSpawn('which asdf')).toMatchObject({ status: SpawnStatus.ERROR });
         expect(await testSpawn('which deno')).toMatchObject({ status: SpawnStatus.ERROR });
-        expect(await testSpawn('which go')).toMatchObject({ status: SpawnStatus.ERROR });
+        // Check the asdf shim is gone rather than `which go` — system Go may be pre-installed on the runner
+        expect(await testSpawn('test -f ~/.asdf/shims/go')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     });
 
@@ -59,7 +60,8 @@ describe('Asdf install tests', async () => {
       },
       validateDestroy: async () => {
         expect(await testSpawn('which asdf')).toMatchObject({ status: SpawnStatus.ERROR });
-        expect(await testSpawn('which go')).toMatchObject({ status: SpawnStatus.ERROR });
+        // Check the asdf shim is gone rather than `which go` — system Go may be pre-installed on the runner
+        expect(await testSpawn('test -f ~/.asdf/shims/go')).toMatchObject({ status: SpawnStatus.ERROR });
       }
     });
   })
