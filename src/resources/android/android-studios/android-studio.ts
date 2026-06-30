@@ -123,7 +123,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
 
     return {
       directory,
-      version: installedVersion,
+      ...(installedVersion ? { version: installedVersion } : {}),
     };
   }
 
@@ -250,12 +250,17 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
         || parameters.version === plist.CFBundleShortVersionString
       )
 
-    return matched.length > 0
-      ? {
-        directory: path.dirname(matched[0].location),
-        version: matched[0].webInfo?.version ?? matched[0].plist.CFBundleShortVersionString
-      }
-      : null;
+    if (matched.length === 0) return null;
+
+    const best = matched[0];
+    const version = best.webInfo?.version
+      ?? this.allAndroidStudioVersions?.find((v) => v.build === best.plist.CFBundleVersion)?.version
+      ?? best.plist.CFBundleShortVersionString;
+
+    return {
+      directory: path.dirname(best.location),
+      version,
+    };
   }
 
   private getVersionData(
