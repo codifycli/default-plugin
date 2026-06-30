@@ -1,4 +1,9 @@
 {
-  "title": "ai & agents",
-  "pages": ["claude-code", "claude-code-project", "ollama", "openclaw"]
+  "title": "AI & Agents",
+  "pages": [
+    "claude-code",
+    "claude-code-project",
+    "ollama",
+    "openclaw"
+  ]
 }

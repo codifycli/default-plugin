@@ -1,4 +1,8 @@
 {
-  "title": "syncthing",
-  "pages": ["syncthing", "syncthing-device", "syncthing-folder"]
+  "title": "Syncthing",
+  "pages": [
+    "syncthing",
+    "syncthing-device",
+    "syncthing-folder"
+  ]
 }

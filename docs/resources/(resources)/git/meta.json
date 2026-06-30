@@ -1,4 +1,9 @@
 {
-  "title": "git",
-  "pages": ["git", "git-lfs", "git-repository", "wait-github-ssh-key"]
+  "title": "Git",
+  "pages": [
+    "git",
+    "git-lfs",
+    "git-repository",
+    "wait-github-ssh-key"
+  ]
 }

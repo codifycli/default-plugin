@@ -1,4 +1,12 @@
 {
-  "title": "python",
-  "pages": ["pip", "pip-sync", "pyenv", "uv", "venv-project", "virtualenv", "virtualenv-project"]
+  "title": "Python",
+  "pages": [
+    "pip",
+    "pip-sync",
+    "pyenv",
+    "uv",
+    "venv-project",
+    "virtualenv",
+    "virtualenv-project"
+  ]
 }

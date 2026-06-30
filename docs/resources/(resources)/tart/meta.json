@@ -1,4 +1,7 @@
 {
-  "title": "tart",
-  "pages": ["tart", "tart-vm"]
+  "title": "Tart",
+  "pages": [
+    "tart",
+    "tart-vm"
+  ]
 }

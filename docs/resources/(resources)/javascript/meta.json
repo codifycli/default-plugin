@@ -1,4 +1,10 @@
 {
-  "title": "javascript",
-  "pages": ["fast-node-manager", "npm", "npm-login", "nvm", "pnpm"]
+  "title": "JavaScript",
+  "pages": [
+    "fast-node-manager",
+    "npm",
+    "npm-login",
+    "nvm",
+    "pnpm"
+  ]
 }
