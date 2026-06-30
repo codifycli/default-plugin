@@ -92,7 +92,14 @@ export class AsdfResource extends Resource<AsdfConfig> {
         await CoreUtils.installViaPkgMgr('curl');
       }
 
-      const { data: latestVersion } = await $.spawn('curl -s https://api.github.com/repos/asdf-vm/asdf/releases/latest | grep \'"tag_name":\' | sed -E \'s/.*"([^"]+)".*/\\1/\'');
+      // Extract latest version from GitHub's /releases/latest redirect — avoids API rate limits
+      const { data: locationData } = await $.spawn(
+        "curl -sI https://github.com/asdf-vm/asdf/releases/latest | grep -i 'location:' | sed 's|.*/tag/||' | tr -d '\\r\\n'"
+      );
+      const latestVersion = locationData.trim();
+      if (!latestVersion) {
+        throw new Error('Failed to determine the latest asdf version from GitHub. Check network connectivity.');
+      }
 
       // Create .asdf directory if it doesn't exist
       const asdfDir = path.join(os.homedir(), '.local', 'bin');
