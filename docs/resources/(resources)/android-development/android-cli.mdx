@@ -1,0 +1,72 @@
+---
+title: android-cli
+description: Reference pages for the Android CLI resources
+---
+
+The `android-cli` resource installs and configures [Android CLI](https://developer.android.com/tools/agents/android-cli), Google's command-line tool for managing the Android development environment. It manages the CLI itself, SDK packages, and Android Virtual Devices (AVDs) in a single resource.
+
+On macOS, Android CLI is installed via the official curl script (ARM64 and x86_64 supported). On Linux, only AMD64/x86_64 is supported.
+
+## Parameters
+
+- **sdkPath**: *(string)* Path to the Android SDK directory. Written to `~/.androidrc` as `--sdk=<path>`. Defaults to the android CLI's built-in default location if omitted.
+- **sdkPackages**: *(string[])* Android SDK packages to install declaratively. Package paths use forward-slash notation (e.g. `platforms/android-35`, `build-tools/35.0.0`, `cmdline-tools/latest`, `platform-tools`, `system-images/android-35/google_apis_playstore/x86_64`). Run `android sdk list --all` to see all available identifiers.
+- **emulators**: *(string[])* Android emulator profiles to create as AVDs. Each string is a hardware profile name (e.g. `medium_phone`, `pixel_9`). Emulators are always created after `sdkPackages` are installed. Run `android emulator create --list-profiles` to see available profiles.
+
+## Example usage
+
+Install the CLI with essential SDK packages:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "android-cli",
+    "sdkPackages": [
+      "cmdline-tools/latest",
+      "platform-tools",
+      "platforms/android-35",
+      "build-tools/35.0.0"
+    ]
+  }
+]
+```
+
+Full Android development environment with an emulator:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "android-cli",
+    "sdkPackages": [
+      "cmdline-tools/latest",
+      "platform-tools",
+      "platforms/android-35",
+      "build-tools/35.0.0",
+      "system-images/android-35/google_apis_playstore/x86_64"
+    ],
+    "emulators": ["pixel_9"]
+  }
+]
+```
+
+## Common emulator profiles
+
+| Profile | Description |
+|---------|-------------|
+| `medium_phone` | Generic medium phone (default) |
+| `small_phone` | Generic small phone |
+| `foldable` | Foldable form factor |
+| `medium_tablet` | Generic medium tablet |
+| `pixel_9` | Google Pixel 9 |
+| `pixel_9_pro` | Google Pixel 9 Pro |
+| `pixel_9_pro_fold` | Google Pixel 9 Pro Fold |
+| `pixel_8` | Google Pixel 8 |
+| `wear_os_large_round` | Wear OS round watch |
+| `tv_1080p` | Android TV 1080p |
+| `automotive_1024p_landscape` | Android Automotive |
+
+## Notes
+
+- Linux ARM64 is **not** supported. Only AMD64/x86_64 is supported on Linux.
+- AVDs are removed using `android emulator remove`.
+- Run `android info` to display the default SDK path in use.

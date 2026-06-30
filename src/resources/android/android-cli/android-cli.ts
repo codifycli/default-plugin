@@ -15,6 +15,7 @@ import * as fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import { AndroidEmulatorsParameter } from './android-emulators-parameter.js';
 import { AndroidSdkPackagesParameter } from './android-sdk-packages-parameter.js';
 import { exampleAndroidCliBasic, exampleAndroidCliFullSetup } from './examples.js';
 
@@ -32,6 +33,12 @@ export const schema = z
         'Android SDK packages to install. Examples: "platforms/android-35", "build-tools/35.0.0", "platform-tools", "cmdline-tools/latest", "system-images/android-35/google_apis_playstore/x86_64".'
       )
       .optional(),
+    emulators: z
+      .array(z.string())
+      .describe(
+        'Android emulator profiles to create as AVDs (e.g. "medium_phone", "pixel_9"). Run `android emulator create --list-profiles` to see available options.'
+      )
+      .optional(),
   })
   .describe('Android CLI — installs the android command-line tool and manages the Android SDK environment');
 
@@ -41,6 +48,7 @@ const ANDROIDRC_PATH = path.join(os.homedir(), '.androidrc');
 
 const defaultConfig: Partial<AndroidCliConfig> = {
   sdkPackages: [],
+  emulators: [],
 };
 
 export class AndroidCliResource extends Resource<AndroidCliConfig> {
@@ -54,9 +62,11 @@ export class AndroidCliResource extends Resource<AndroidCliConfig> {
       },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
+      removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
         sdkPath: { type: 'directory', canModify: true },
-        sdkPackages: { type: 'stateful', definition: new AndroidSdkPackagesParameter() },
+        sdkPackages: { type: 'stateful', definition: new AndroidSdkPackagesParameter(), order: 1 },
+        emulators: { type: 'stateful', definition: new AndroidEmulatorsParameter(), order: 2 },
       },
     };
   }

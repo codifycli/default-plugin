@@ -76,16 +76,13 @@ describe.skipIf(isLinuxArm)('Android Emulator integration tests', async () => {
       [
         {
           type: 'android-cli',
-          sdkPackages:[
+          sdkPackages: [
             'cmdline-tools/latest',
             'platform-tools',
             'platforms/android-35',
             'system-images/android-35/google_apis_playstore/x86_64',
           ],
-        },
-        {
-          type: 'android-emulator',
-          profile: 'medium_phone',
+          emulators: ['medium_phone'],
         },
       ],
       {
