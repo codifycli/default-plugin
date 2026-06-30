@@ -1,9 +1,12 @@
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import { SpawnStatus } from '@codifycli/schemas';
 import * as path from 'node:path';
+import * as os from 'node:os';
 import { beforeAll, describe, expect, it } from 'vitest';
 
-describe('Android CLI integration tests', async () => {
+const isLinuxArm = os.platform() === 'linux' && os.arch() === 'arm64';
+
+describe.skipIf(isLinuxArm)('Android CLI integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   beforeAll(async () => {
@@ -57,7 +60,7 @@ describe('Android CLI integration tests', async () => {
   });
 });
 
-describe('Android Emulator integration tests', async () => {
+describe.skipIf(isLinuxArm)('Android Emulator integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   beforeAll(async () => {
