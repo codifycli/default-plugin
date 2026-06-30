@@ -2,7 +2,6 @@ import {
   CreatePlan,
   DestroyPlan,
   ModifyPlan,
-  PackageManager,
   ParameterChange,
   Resource,
   ResourceSettings,
@@ -27,7 +26,7 @@ export const schema = z
         'Path to the Android SDK directory. Written to ~/.androidrc as --sdk=<path>. Defaults to the android CLI default location.'
       )
       .optional(),
-    packages: z
+    sdkPackages: z
       .array(z.string())
       .describe(
         'Android SDK packages to install. Examples: "platforms/android-35", "build-tools/35.0.0", "platform-tools", "cmdline-tools/latest", "system-images/android-35/google_apis_playstore/x86_64".'
@@ -41,7 +40,7 @@ export type AndroidCliConfig = z.infer<typeof schema>;
 const ANDROIDRC_PATH = path.join(os.homedir(), '.androidrc');
 
 const defaultConfig: Partial<AndroidCliConfig> = {
-  packages: [],
+  sdkPackages: [],
 };
 
 export class AndroidCliResource extends Resource<AndroidCliConfig> {
@@ -57,7 +56,7 @@ export class AndroidCliResource extends Resource<AndroidCliConfig> {
       schema,
       parameterSettings: {
         sdkPath: { type: 'directory', canModify: true },
-        packages: { type: 'stateful', definition: new AndroidSdkPackagesParameter() },
+        sdkPackages: { type: 'stateful', definition: new AndroidSdkPackagesParameter() },
       },
     };
   }
@@ -87,13 +86,16 @@ export class AndroidCliResource extends Resource<AndroidCliConfig> {
   async create(plan: CreatePlan<AndroidCliConfig>): Promise<void> {
     const $ = getPty();
 
+    const isArm = await Utils.isArmArch();
+
     if (Utils.isMacOS()) {
-      await $.spawnSafe('brew tap android/tap', {
-        env: { HOMEBREW_NO_AUTO_UPDATE: '1', HOMEBREW_NO_ASK: '1', NONINTERACTIVE: '1' },
-      });
-      await Utils.installViaPkgMgr('android-cli', undefined, PackageManager.BREW);
+      const arch = isArm ? 'darwin_arm64' : 'darwin_x86_64';
+      await $.spawn(
+        `curl -fsSL https://dl.google.com/android/cli/latest/${arch}/install.sh | bash`,
+        { interactive: true }
+      );
     } else {
-      if (await Utils.isArmArch()) {
+      if (isArm) {
         throw new Error(
           'Android CLI does not support Linux ARM64. Only AMD64/x86_64 is supported on Linux.'
         );
@@ -120,12 +122,8 @@ export class AndroidCliResource extends Resource<AndroidCliConfig> {
   }
 
   async destroy(plan: DestroyPlan<AndroidCliConfig>): Promise<void> {
-    if (Utils.isMacOS()) {
-      await Utils.uninstallViaPkgMgr('android-cli', undefined, PackageManager.BREW);
-    } else {
-      const androidBinPath = path.join(os.homedir(), '.local', 'bin', 'android');
-      await fs.rm(androidBinPath, { force: true });
-    }
+    const androidBinPath = path.join(os.homedir(), '.local', 'bin', 'android');
+    await fs.rm(androidBinPath, { force: true });
 
     if (plan.currentConfig.sdkPath) {
       await this.removeSdkPath();

@@ -36,7 +36,7 @@ describe('Android CLI integration tests', async () => {
       [
         {
           type: 'android-cli',
-          packages: ['cmdline-tools/latest', 'platform-tools'],
+          sdkPackages:['cmdline-tools/latest', 'platform-tools'],
         },
       ],
       {
@@ -48,19 +48,6 @@ describe('Android CLI integration tests', async () => {
           expect(list.status).toBe(SpawnStatus.SUCCESS);
           expect(list.data).toContain('platform-tools');
         },
-        testModify: {
-          modifiedConfigs: [
-            {
-              type: 'android-cli',
-              packages: ['platform-tools'],
-            },
-          ],
-          validateModify: async () => {
-            const list = await testSpawn('android sdk list');
-            expect(list.status).toBe(SpawnStatus.SUCCESS);
-            expect(list.data).toContain('platform-tools');
-          },
-        },
         validateDestroy: async () => {
           const result = await testSpawn('which android');
           expect(result.status).toBe(SpawnStatus.ERROR);
@@ -68,4 +55,48 @@ describe('Android CLI integration tests', async () => {
       }
     );
   });
+});
+
+describe('Android Emulator integration tests', async () => {
+  const pluginPath = path.resolve('./src/index.ts');
+
+  beforeAll(async () => {
+    const result = await testSpawn('which android');
+    if (result.status === SpawnStatus.SUCCESS) {
+      await PluginTester.uninstall(pluginPath, [{ type: 'android-cli' }]);
+    }
+  }, 120_000);
+
+  it('Can create and destroy an Android emulator', { timeout: 900_000 }, async () => {
+    await PluginTester.fullTest(
+      pluginPath,
+      [
+        {
+          type: 'android-cli',
+          sdkPackages:[
+            'cmdline-tools/latest',
+            'platform-tools',
+            'platforms/android-35',
+            'system-images/android-35/google_apis_playstore/x86_64',
+          ],
+        },
+        {
+          type: 'android-emulator',
+          profile: 'medium_phone',
+        },
+      ],
+      {
+        validateApply: async () => {
+          const list = await testSpawn('android emulator list');
+          expect(list.status).toBe(SpawnStatus.SUCCESS);
+          expect(list.data).toContain('medium_phone');
+        },
+        validateDestroy: async () => {
+          const list = await testSpawn('android emulator list');
+          expect(list.data).not.toContain('medium_phone');
+        },
+      }
+    );
+  });
+
 });

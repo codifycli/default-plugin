@@ -1,7 +1,6 @@
 import { Plugin, runPlugin } from '@codifycli/plugin-core';
 import { AndroidCliResource } from './resources/android/android-cli/android-cli.js';
 import { AndroidEmulatorResource } from './resources/android/android-cli/android-emulator.js';
-import { AndroidStudioResource } from './resources/android/android-studio.js';
 import { AptResource } from './resources/apt/apt.js';
 import { AsdfResource } from './resources/asdf/asdf.js';
 import { AsdfInstallResource } from './resources/asdf/asdf-install.js';
@@ -76,6 +75,7 @@ import { PhpStormResource } from './resources/jetbrains/phpstorm/phpstorm.js';
 import { GoLandResource } from './resources/jetbrains/goland/goland.js';
 import { RiderResource } from './resources/jetbrains/rider/rider.js';
 import { RubyMineResource } from './resources/jetbrains/rubymine/rubymine.js';
+import {AndroidStudioResource} from "./resources/android/android-studios/android-studio.js";
 
 export const MIN_SUPPORTED_CLI_VERSION: string | undefined = '1.1.0';
 

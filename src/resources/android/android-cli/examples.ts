@@ -6,7 +6,7 @@ export const exampleAndroidCliBasic: ExampleConfig = {
   configs: [
     {
       type: 'android-cli',
-      packages: ['cmdline-tools/latest', 'platform-tools', 'platforms/android-35', 'build-tools/35.0.0'],
+      sdkPackages:['cmdline-tools/latest', 'platform-tools', 'platforms/android-35', 'build-tools/35.0.0'],
     },
   ],
 };
@@ -17,7 +17,7 @@ export const exampleAndroidCliFullSetup: ExampleConfig = {
   configs: [
     {
       type: 'android-cli',
-      packages: [
+      sdkPackages:[
         'cmdline-tools/latest',
         'platform-tools',
         'platforms/android-35',
@@ -38,7 +38,7 @@ export const exampleAndroidEmulatorBasic: ExampleConfig = {
   configs: [
     {
       type: 'android-cli',
-      packages: [
+      sdkPackages:[
         'cmdline-tools/latest',
         'platform-tools',
         'platforms/android-35',

@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import plist from 'plist';
 
-import { Utils as LocalUtils } from '../../utils/index.js';
+import { Utils as LocalUtils } from '../../../utils/index.js';
 import { AndroidStudioPlist, AndroidStudioVersionData } from './types.js';
 
 export const schema = z.object({

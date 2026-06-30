@@ -19,14 +19,8 @@ export const schema = z
     profile: z
       .string()
       .describe(
-        'Android hardware profile for the emulator (e.g. "medium_phone", "pixel_9"). Run `android emulator create --list-profiles` to see all available profiles.'
+        'Android hardware profile for the emulator (e.g. "medium_phone", "pixel_9"). Run `android emulator create --list-profiles` to see all available profiles. The profile name is also used as the AVD name.'
       ),
-    name: z
-      .string()
-      .describe(
-        'Custom name for the Android Virtual Device. Defaults to the profile name if not specified.'
-      )
-      .optional(),
   })
   .describe('Create and manage an Android Virtual Device (AVD) using the android CLI');
 
@@ -52,10 +46,9 @@ export class AndroidEmulatorResource extends Resource<AndroidEmulatorConfig> {
       dependencies: ['android-cli'],
       parameterSettings: {
         profile: {},
-        name: { canModify: false },
       },
       allowMultiple: {
-        identifyingParameters: ['profile', 'name'],
+        identifyingParameters: ['profile'],
       },
     };
   }
@@ -66,7 +59,7 @@ export class AndroidEmulatorResource extends Resource<AndroidEmulatorConfig> {
     const { status, data } = await $.spawnSafe('android emulator list', { interactive: true });
     if (status === SpawnStatus.ERROR) return null;
 
-    const avdName = this.resolveAvdName(params);
+    const avdName = params.profile;
     if (!avdName) return null;
 
     const lines = data.split('\n').map((l) => l.trim()).filter(Boolean);
@@ -76,41 +69,24 @@ export class AndroidEmulatorResource extends Resource<AndroidEmulatorConfig> {
 
     if (!found) return null;
 
-    return {
-      profile: params.profile,
-      ...(params.name ? { name: params.name } : {}),
-    };
+    return { profile: params.profile };
   }
 
   async create(plan: CreatePlan<AndroidEmulatorConfig>): Promise<void> {
     const $ = getPty();
-    const { profile, name } = plan.desiredConfig;
-
-    let cmd = `android emulator create --profile="${profile}"`;
-    if (name) {
-      // The android CLI may support --name in future releases; include it if provided.
-      cmd += ` --name="${name}"`;
-    }
-
-    await $.spawn(cmd, { interactive: true });
+    await $.spawn(`android emulator create "${plan.desiredConfig.profile}"`, { interactive: true });
   }
 
   async destroy(plan: DestroyPlan<AndroidEmulatorConfig>): Promise<void> {
     const $ = getPty();
-    const avdName = this.resolveAvdName(plan.currentConfig);
+    const avdName = plan.currentConfig.profile;
     if (!avdName) return;
 
-    // Try avdmanager first (available when cmdline-tools is installed)
     const { status } = await $.spawnSafe(`avdmanager delete avd -n "${avdName}"`, { interactive: true });
 
     if (status === SpawnStatus.ERROR) {
-      // Fallback: remove AVD files directly
       await fs.rm(path.join(AVD_DIR, `${avdName}.avd`), { recursive: true, force: true });
       await fs.rm(path.join(AVD_DIR, `${avdName}.ini`), { force: true });
     }
-  }
-
-  private resolveAvdName(params: Partial<AndroidEmulatorConfig>): string | undefined {
-    return params.name ?? params.profile;
   }
 }
