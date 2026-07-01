@@ -9,6 +9,8 @@ import {
   Utils,
   getPty,
   z,
+  CodifyCliSender,
+  ApplyNotes,
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
@@ -119,6 +121,8 @@ export class AndroidCliResource extends Resource<AndroidCliConfig> {
     if (plan.desiredConfig.sdkPath) {
       await this.setSdkPath(plan.desiredConfig.sdkPath);
     }
+
+    CodifyCliSender.sendApplyNote(ApplyNotes.NEW_SHELL_REQUIRED, 'android-cli')
   }
 
   async modify(pc: ParameterChange<AndroidCliConfig>, _plan: ModifyPlan<AndroidCliConfig>): Promise<void> {
