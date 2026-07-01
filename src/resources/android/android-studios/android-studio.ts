@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, Resource, ResourceSettings, Utils, getPty, z } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, Resource, ResourceSettings, SpawnStatus, Utils, getPty, z } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
 import os from 'node:os';
@@ -189,7 +189,12 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-android-'))
 
     try {
-      await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused ${downloadLink.link} -o android-studio.tar.gz`, { cwd: temporaryDir });
+      const { status: curlStatus } = await $.spawnSafe('curl --version');
+      if (curlStatus === SpawnStatus.SUCCESS) {
+        await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused ${downloadLink.link} -o android-studio.tar.gz`, { cwd: temporaryDir });
+      } else {
+        await $.spawn(`wget -q --tries=5 --waitretry=3 -O android-studio.tar.gz ${downloadLink.link}`, { cwd: temporaryDir });
+      }
       await $.spawn(`tar -xzf android-studio.tar.gz`, { cwd: temporaryDir });
 
       // Remove existing install if present
