@@ -143,7 +143,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-android-'))
 
     try {
-      await $.spawn(`curl -fsSL ${downloadLink.link} -o android-studio.dmg`, { cwd: temporaryDir });
+      await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused ${downloadLink.link} -o android-studio.dmg`, { cwd: temporaryDir });
       const mountedDir = '/Volumes/android-studio'
 
       const { data } = await $.spawn('hdiutil attach android-studio.dmg -mountpoint "/Volumes/android-studio"', { cwd: temporaryDir });
@@ -189,7 +189,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-android-'))
 
     try {
-      await $.spawn(`curl -fsSL ${downloadLink.link} -o android-studio.tar.gz`, { cwd: temporaryDir });
+      await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused ${downloadLink.link} -o android-studio.tar.gz`, { cwd: temporaryDir });
       await $.spawn(`tar -xzf android-studio.tar.gz`, { cwd: temporaryDir });
 
       // Remove existing install if present
