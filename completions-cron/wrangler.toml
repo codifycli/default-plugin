@@ -10,6 +10,18 @@ head_sampling_rate = 1
 
 [vars]
 SUPABASE_URL = "https://kdctbvqvqjfquplxhqrm.supabase.co"
+PRERELEASE = "false"
 
 [triggers]
+crons = ["0 5 * * *"]
+
+# Beta environment — deploys as a separate worker: resource-completions-cron-beta
+[env.beta]
+name = "resource-completions-cron-beta"
+
+[env.beta.vars]
+SUPABASE_URL = "https://kdctbvqvqjfquplxhqrm.supabase.co"
+PRERELEASE = "true"
+
+[env.beta.triggers]
 crons = ["0 5 * * *"]

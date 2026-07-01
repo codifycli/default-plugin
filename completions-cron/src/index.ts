@@ -6,22 +6,25 @@ const BATCH_SIZE = 1000
 async function getResourceId(
   supabase: SupabaseClient,
   resourceType: string,
+  prerelease: boolean,
   cache: Map<string, string>
 ): Promise<string> {
-  if (cache.has(resourceType)) {
-    return cache.get(resourceType)!
+  const cacheKey = `${resourceType}:${prerelease}`
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey)!
   }
 
   const { data, error } = await supabase
     .from('registry_resources')
     .select('id')
     .eq('type', resourceType)
+    .eq('prerelease', prerelease)
 
   if (error || !data?.[0]?.id) {
-    throw new Error(`Resource type '${resourceType}' not found in registry_resources`)
+    throw new Error(`Resource type '${resourceType}' (prerelease=${prerelease}) not found in registry_resources`)
   }
 
-  cache.set(resourceType, data[0].id)
+  cache.set(cacheKey, data[0].id)
   return data[0].id
 }
 
@@ -30,6 +33,7 @@ async function processModule(
   resourceType: string,
   parameterPath: string,
   fetchFn: () => Promise<string[]>,
+  prerelease: boolean,
   resourceIdCache: Map<string, string>
 ): Promise<void> {
   console.log(`Processing ${resourceType}${parameterPath}...`)
@@ -37,7 +41,7 @@ async function processModule(
   const values = await fetchFn()
   console.log(`  [${resourceType}${parameterPath}] Fetched ${values.length} values`)
 
-  const resourceId = await getResourceId(supabase, resourceType, resourceIdCache)
+  const resourceId = await getResourceId(supabase, resourceType, prerelease, resourceIdCache)
 
   await supabase
     .from('resource_parameter_completions')
@@ -66,31 +70,44 @@ async function processModule(
   console.log(`  [${resourceType}${parameterPath}] Done: inserted ${values.length} completions`)
 }
 
+async function runCompletions(env: Env): Promise<void> {
+  const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+  const prerelease = env.PRERELEASE === 'true'
+  const resourceIdCache = new Map<string, string>()
+
+  const results = await Promise.allSettled(
+    completionModules.map(({ resourceType, parameterPath, fetch }: CompletionModule) =>
+      processModule(supabase, resourceType, parameterPath, fetch, prerelease, resourceIdCache)
+    )
+  )
+
+  for (const result of results) {
+    if (result.status === 'rejected') {
+      console.error('Completion module failed:', result.reason)
+    }
+  }
+
+  console.log('Successfully processed all resource completion tasks')
+}
+
 export default {
-  async fetch(req: Request) {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(req.url)
+
+    if (req.method === 'POST' && url.pathname === '/trigger') {
+      if (req.headers.get('Authorization') !== env.TRIGGER_SECRET) {
+        return new Response('Unauthorized', { status: 401 })
+      }
+      ctx.waitUntil(runCompletions(env))
+      return new Response('Triggered', { status: 202 })
+    }
+
     url.pathname = '/__scheduled'
     url.searchParams.append('cron', '* * * * *')
     return new Response(`To test the scheduled handler, ensure you have used the "--test-scheduled" then try running "curl ${url.href}".`)
   },
 
   async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext): Promise<void> {
-    console.log('hihi')
-    const supabase = createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
-    const resourceIdCache = new Map<string, string>()
-
-    const results = await Promise.allSettled(
-      completionModules.map(({ resourceType, parameterPath, fetch }: CompletionModule) =>
-        processModule(supabase, resourceType, parameterPath, fetch, resourceIdCache)
-      )
-    )
-
-    for (const result of results) {
-      if (result.status === 'rejected') {
-        console.error('Completion module failed:', result.reason)
-      }
-    }
-
-    console.log('Successfully processed all resource completion tasks')
+    await runCompletions(env)
   },
 } satisfies ExportedHandler<Env>
