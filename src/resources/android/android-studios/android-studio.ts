@@ -1,11 +1,11 @@
-import { CreatePlan, DestroyPlan, Resource, ResourceSettings, Utils, getPty, z } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, Resource, ResourceSettings, SpawnStatus, Utils, getPty, z } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import plist from 'plist';
 
-import { Utils as LocalUtils } from '../../utils/index.js';
+import { Utils as LocalUtils } from '../../../utils/index.js';
 import { AndroidStudioPlist, AndroidStudioVersionData } from './types.js';
 
 export const schema = z.object({
@@ -123,7 +123,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
 
     return {
       directory,
-      version: installedVersion,
+      ...(installedVersion ? { version: installedVersion } : {}),
     };
   }
 
@@ -143,7 +143,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-android-'))
 
     try {
-      await $.spawn(`curl -fsSL ${downloadLink.link} -o android-studio.dmg`, { cwd: temporaryDir });
+      await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused ${downloadLink.link} -o android-studio.dmg`, { cwd: temporaryDir });
       const mountedDir = '/Volumes/android-studio'
 
       const { data } = await $.spawn('hdiutil attach android-studio.dmg -mountpoint "/Volumes/android-studio"', { cwd: temporaryDir });
@@ -189,7 +189,12 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-android-'))
 
     try {
-      await $.spawn(`curl -fsSL ${downloadLink.link} -o android-studio.tar.gz`, { cwd: temporaryDir });
+      const { status: curlStatus } = await $.spawnSafe('curl --version');
+      if (curlStatus === SpawnStatus.SUCCESS) {
+        await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused ${downloadLink.link} -o android-studio.tar.gz`, { cwd: temporaryDir });
+      } else {
+        await $.spawn(`wget -q --tries=5 --waitretry=3 -O android-studio.tar.gz ${downloadLink.link}`, { cwd: temporaryDir });
+      }
       await $.spawn(`tar -xzf android-studio.tar.gz`, { cwd: temporaryDir });
 
       // Remove existing install if present
@@ -250,12 +255,17 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
         || parameters.version === plist.CFBundleShortVersionString
       )
 
-    return matched.length > 0
-      ? {
-        directory: path.dirname(matched[0].location),
-        version: matched[0].webInfo?.version ?? matched[0].plist.CFBundleShortVersionString
-      }
-      : null;
+    if (matched.length === 0) return null;
+
+    const best = matched[0];
+    const version = best.webInfo?.version
+      ?? this.allAndroidStudioVersions?.find((v) => v.build === best.plist.CFBundleVersion)?.version
+      ?? best.plist.CFBundleShortVersionString;
+
+    return {
+      directory: path.dirname(best.location),
+      version,
+    };
   }
 
   private getVersionData(

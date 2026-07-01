@@ -86,6 +86,9 @@ const versionRow = await client.from('registry_plugin_versions').upsert({
 await uploadResources(isBeta);
 
 if (isBeta) {
+  console.log('Deploying beta completions worker...')
+  cp.spawnSync('source ~/.zshrc; npm run build:completions && cd completions-cron && npx wrangler deploy --env beta', { shell: 'zsh', stdio: 'inherit' })
+
   // Generate embeddings for prerelease resources so the AI agent can find them via semantic search
   console.log('Triggering vector reindex for prerelease resources...')
   const reindexKey = process.env.REINDEX_API_KEY
@@ -126,6 +129,27 @@ if (!isBeta) {
       const body = await res.json() as { resources_processed: number; templates_processed: number }
       console.log(`Reindex complete — resources: ${body.resources_processed}, templates: ${body.templates_processed}`)
     }
+  }
+}
+
+// Trigger an immediate completions run so completions are populated right after deploy
+// (the daily cron keeps them updated over time)
+console.log('Triggering completions run...')
+const workerUrl = isBeta
+  ? process.env.COMPLETIONS_BETA_WORKER_URL
+  : process.env.COMPLETIONS_WORKER_URL
+const triggerSecret = process.env.COMPLETIONS_TRIGGER_SECRET
+if (!workerUrl || !triggerSecret) {
+  console.warn('COMPLETIONS_WORKER_URL / COMPLETIONS_BETA_WORKER_URL / COMPLETIONS_TRIGGER_SECRET not set — skipping completions trigger')
+} else {
+  const res = await fetch(`${workerUrl}/trigger`, {
+    method: 'POST',
+    headers: { Authorization: triggerSecret },
+  })
+  if (!res.ok) {
+    console.error(`Completions trigger failed: ${res.status} ${await res.text()}`)
+  } else {
+    console.log('Completions trigger accepted (running in background on worker)')
   }
 }
 

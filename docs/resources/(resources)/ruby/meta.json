@@ -1,4 +1,6 @@
 {
-  "title": "ruby",
-  "pages": ["rbenv"]
+  "title": "Ruby",
+  "pages": [
+    "rbenv"
+  ]
 }

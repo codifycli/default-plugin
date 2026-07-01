@@ -1,4 +1,7 @@
 {
-  "title": "editors & ides",
-  "pages": ["vscode", "cursor", "intellij-idea", "clion", "goland", "phpstorm", "pycharm", "rider", "rubymine", "rustrover", "webstorm", "android-studio"]
+  "title": "Editors & IDEs",
+  "pages": [
+    "[android-studio](/docs/resources/android/android-studio)",
+    "..."
+  ]
 }

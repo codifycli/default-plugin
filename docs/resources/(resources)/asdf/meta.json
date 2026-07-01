@@ -1,4 +1,8 @@
 {
-  "title": "asdf",
-  "pages": ["asdf", "asdf-install", "asdf-plugin"]
+  "title": "Asdf",
+  "pages": [
+    "asdf",
+    "asdf-install",
+    "asdf-plugin"
+  ]
 }

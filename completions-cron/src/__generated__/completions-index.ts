@@ -27,6 +27,9 @@ import mod22 from '../../../src/resources/cursor/completions/cursor.extensions.j
 import mod23 from '../../../src/resources/asdf/completions/asdf.plugins.js';
 import mod24 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
 import mod25 from '../../../src/resources/apt/completions/apt.install.js';
+import mod26 from '../../../src/resources/android/android-studios/completions/android-studio.version.js';
+import mod27 from '../../../src/resources/android/android-cli/completions/android-cli.sdkPackages.js';
+import mod28 from '../../../src/resources/android/android-cli/completions/android-cli.emulators.js';
 
 export interface CompletionModule {
   resourceType: string
@@ -61,4 +64,7 @@ export const completionModules: CompletionModule[] = [
   { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod23 },
   { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod24 },
   { resourceType: 'apt', parameterPath: '/install', fetch: mod25 },
+  { resourceType: 'android-studio', parameterPath: '/version', fetch: mod26 },
+  { resourceType: 'android-cli', parameterPath: '/sdkPackages', fetch: mod27 },
+  { resourceType: 'android-cli', parameterPath: '/emulators', fetch: mod28 },
 ]
