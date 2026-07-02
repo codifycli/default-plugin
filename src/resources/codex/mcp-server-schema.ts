@@ -4,7 +4,7 @@ const codexMcpStdioServerSchema = z.object({
   name: z.string().describe('Unique name for this MCP server'),
   type: z.literal('stdio'),
   command: z.string().describe('Executable or command used to launch the MCP server process'),
-  args: z.array(z.string()).optional().describe('Arguments passed to the command'),
+  args: z.array(z.string()).optional().describe('Arguments passed to the command. Shell variable expansion (e.g. $HOME) does not occur — use absolute paths instead.'),
   env: z.record(z.string(), z.string()).optional().describe('Static environment variables passed to the server process'),
   envVars: z.array(z.string()).optional().describe('Names of environment variables forwarded from the Codex process environment'),
   cwd: z.string().optional().describe('Working directory for the server process'),
