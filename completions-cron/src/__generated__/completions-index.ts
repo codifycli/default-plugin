@@ -24,12 +24,13 @@ import mod19 from '../../../src/resources/javascript/npm/completions/npm.install
 import mod20 from '../../../src/resources/homebrew/completions/homebrew.formulae.js';
 import mod21 from '../../../src/resources/homebrew/completions/homebrew.casks.js';
 import mod22 from '../../../src/resources/cursor/completions/cursor.extensions.js';
-import mod23 from '../../../src/resources/asdf/completions/asdf.plugins.js';
-import mod24 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
-import mod25 from '../../../src/resources/apt/completions/apt.install.js';
-import mod26 from '../../../src/resources/android/android-studios/completions/android-studio.version.js';
-import mod27 from '../../../src/resources/android/android-cli/completions/android-cli.sdkPackages.js';
-import mod28 from '../../../src/resources/android/android-cli/completions/android-cli.emulators.js';
+import mod23 from '../../../src/resources/codex/completions/codex.config.model.js';
+import mod24 from '../../../src/resources/asdf/completions/asdf.plugins.js';
+import mod25 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
+import mod26 from '../../../src/resources/apt/completions/apt.install.js';
+import mod27 from '../../../src/resources/android/android-studios/completions/android-studio.version.js';
+import mod28 from '../../../src/resources/android/android-cli/completions/android-cli.sdkPackages.js';
+import mod29 from '../../../src/resources/android/android-cli/completions/android-cli.emulators.js';
 
 export interface CompletionModule {
   resourceType: string
@@ -61,10 +62,11 @@ export const completionModules: CompletionModule[] = [
   { resourceType: 'homebrew', parameterPath: '/formulae', fetch: mod20 },
   { resourceType: 'homebrew', parameterPath: '/casks', fetch: mod21 },
   { resourceType: 'cursor', parameterPath: '/extensions', fetch: mod22 },
-  { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod23 },
-  { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod24 },
-  { resourceType: 'apt', parameterPath: '/install', fetch: mod25 },
-  { resourceType: 'android-studio', parameterPath: '/version', fetch: mod26 },
-  { resourceType: 'android-cli', parameterPath: '/sdkPackages', fetch: mod27 },
-  { resourceType: 'android-cli', parameterPath: '/emulators', fetch: mod28 },
+  { resourceType: 'codex', parameterPath: '/config/model', fetch: mod23 },
+  { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod24 },
+  { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod25 },
+  { resourceType: 'apt', parameterPath: '/install', fetch: mod26 },
+  { resourceType: 'android-studio', parameterPath: '/version', fetch: mod27 },
+  { resourceType: 'android-cli', parameterPath: '/sdkPackages', fetch: mod28 },
+  { resourceType: 'android-cli', parameterPath: '/emulators', fetch: mod29 },
 ]
