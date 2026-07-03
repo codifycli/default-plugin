@@ -10,7 +10,7 @@ describe('iOS Simulator tests', { skip: !Utils.isMacOS() }, async () => {
     await PluginTester.fullTest(pluginPath, [
       {
         type: 'ios-simulator',
-        name: 'codify-test-iphone',
+        simulatorName: 'codify-test-iphone',
         deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
         runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
         state: 'Shutdown',
@@ -28,7 +28,7 @@ describe('iOS Simulator tests', { skip: !Utils.isMacOS() }, async () => {
       testModify: {
         modifiedConfigs: [{
           type: 'ios-simulator',
-          name: 'codify-test-iphone',
+          simulatorName: 'codify-test-iphone',
           deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
           runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
           state: 'Booted',

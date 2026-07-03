@@ -13,7 +13,7 @@ resource deletes the simulator from the system. Xcode Command Line Tools must be
 
 ## Parameters:
 
-- **name** *(string, required)* — Human-readable name for the simulator instance (e.g. `"iPhone 15 Dev"`). Must be unique across your declared simulators.
+- **simulatorName** *(string, required)* — Human-readable name for the simulator instance (e.g. `"iPhone 15 Dev"`). Must be unique across your declared simulators.
 
 - **deviceType** *(string, required)* — CoreSimulator device type identifier. Use the format `com.apple.CoreSimulator.SimDeviceType.<Device>`. Run `xcrun simctl list devicetypes` to see identifiers available on your machine.
 
@@ -27,7 +27,7 @@ resource deletes the simulator from the system. Xcode Command Line Tools must be
 [
   {
     "type": "ios-simulator",
-    "name": "iPhone 15 Dev",
+    "simulatorName": "iPhone 15 Dev",
     "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-15",
     "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-0",
     "state": "Shutdown",
@@ -44,7 +44,7 @@ resource deletes the simulator from the system. Xcode Command Line Tools must be
   },
   {
     "type": "ios-simulator",
-    "name": "iPhone 15 Pro",
+    "simulatorName": "iPhone 15 Pro",
     "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro",
     "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-0",
     "state": "Shutdown",
@@ -52,7 +52,7 @@ resource deletes the simulator from the system. Xcode Command Line Tools must be
   },
   {
     "type": "ios-simulator",
-    "name": "iPad Pro 11-inch",
+    "simulatorName": "iPad Pro 11-inch",
     "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M4",
     "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-0",
     "state": "Shutdown",
