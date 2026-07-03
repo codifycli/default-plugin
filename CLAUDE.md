@@ -369,11 +369,18 @@ The Codify Editor supports auto-complete for certain resource parameters (e.g. H
 
 ### Adding completions for a parameter
 
-1. Create `src/resources/<category>/<resource>/completions/<type>.<param>.ts`
+1. Create `src/resources/<category>/<resource>/completions/<resource-type>.<jsonpath>.ts`
 2. Export a default async function returning `Promise<string[]>` — fetch the values, return them, nothing else
-3. The filename determines the Supabase metadata automatically:
-   - `homebrew.formulae.ts` → `resource_type=homebrew`, `parameter_path=/formulae`
-4. Run `npm run build:completions` to regenerate the index
+3. The filename encodes both the resource type and the JSONPath of the parameter:
+   - Everything **before the first dot** = `resource_type` (e.g. `homebrew`)
+   - Everything **after the first dot** = JSONPath expression (e.g. `$.formulae`)
+   - Examples:
+     - `homebrew.$.formulae.ts` → `resource_type=homebrew`, `parameter_path=$.formulae`
+     - `nvm.$.nodeVersions.ts` → `resource_type=nvm`, `parameter_path=$.nodeVersions`
+     - `codex.$.config.model.ts` → `resource_type=codex`, `parameter_path=$.config.model`
+4. For parameters **nested inside array items** (e.g. a property on each object in an array), use `[x]` in the filename to encode the `[*]` array wildcard — bundlers treat `[*]` as a glob pattern in import paths, so `[x]` is used as the safe filename equivalent and is translated to `[*]` by the codegen script:
+   - `ios-simulators.$.simulators[x].deviceType.ts` → `parameter_path=$.simulators[*].deviceType`
+5. Run `npm run build:completions` to regenerate the index
 
 ```bash
 npm run build:completions   # regenerate completions-cron/src/__generated__/completions-index.ts

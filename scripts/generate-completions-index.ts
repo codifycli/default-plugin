@@ -24,11 +24,12 @@ const modules = completionFiles.map((relPath, i) => {
   const dotIndex = filename.indexOf('.')
   if (dotIndex === -1) {
     throw new Error(
-      `Completion file must be named <resource-type>.<parameter-name>.ts, got: ${filename}`
+      `Completion file must be named <resource-type>.<jsonpath>.ts (e.g. homebrew.$.formulae.ts, ios-simulators.$.simulators[x].deviceType.ts), got: ${filename}`
     )
   }
   const resourceType = filename.substring(0, dotIndex)
-  const parameterPath = '/' + filename.substring(dotIndex + 1).replaceAll('.', '/')
+  // [x] in filenames encodes [*] (glob-safe); restore to proper JSONPath wildcard
+  const parameterPath = filename.substring(dotIndex + 1).replaceAll('[x]', '[*]')
 
   // Path from completions-cron/src/__generated__/ back to plugin src/resources/
   const importPath = '../../../src/' + relPath.replace(/\.ts$/, '.js')
@@ -59,5 +60,5 @@ fs.writeFileSync(outputFile, lines.join('\n'), 'utf-8')
 
 console.log(`Generated ${outputFile} with ${modules.length} completion module(s):`)
 for (const { resourceType, parameterPath } of modules) {
-  console.log(`  ${resourceType}${parameterPath}`)
+  console.log(`  ${resourceType} → ${parameterPath}`)
 }
