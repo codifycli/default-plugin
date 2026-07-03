@@ -16,10 +16,6 @@ const simulatorSchema = z.object({
   name: z.string().describe('Name for the simulator instance (e.g. "iPhone 15 Dev")'),
   deviceType: z.string().describe('Device type identifier (e.g. "com.apple.CoreSimulator.SimDeviceType.iPhone-15")'),
   runtime: z.string().describe('Runtime identifier (e.g. "com.apple.CoreSimulator.SimRuntime.iOS-18-0")'),
-  state: z
-    .enum(['Booted', 'Shutdown'])
-    .optional()
-    .describe('Desired runtime state. Defaults to Shutdown.'),
 });
 
 export type SimulatorDeclaration = z.infer<typeof simulatorSchema>;
@@ -53,13 +49,12 @@ const exampleBasic: ExampleConfig = {
   title: 'iPhone 15 simulator for development',
   description: 'Create an iPhone 15 simulator running iOS 18 for use in development and UI testing.',
   configs: [{
-    type: 'ios-simulator',
+    type: 'ios-simulators',
     simulators: [
       {
         name: 'iPhone 15 Dev',
         deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
         runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-        state: 'Shutdown',
       },
     ],
     os: ['macOS'],
@@ -72,19 +67,17 @@ const exampleMultiDevice: ExampleConfig = {
   configs: [
     { type: 'xcode-tools', os: ['macOS'] },
     {
-      type: 'ios-simulator',
+      type: 'ios-simulators',
       simulators: [
         {
           name: 'iPhone 15 Pro',
           deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro',
           runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-          state: 'Shutdown',
         },
         {
           name: 'iPad Pro 11-inch',
           deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M4',
           runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-          state: 'Shutdown',
         },
       ],
       os: ['macOS'],
@@ -95,7 +88,7 @@ const exampleMultiDevice: ExampleConfig = {
 export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   getSettings(): ResourceSettings<IosSimulatorConfig> {
     return {
-      id: 'ios-simulator',
+      id: 'ios-simulators',
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,
@@ -111,8 +104,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
           isElementEqual: (a, b) =>
             a.name === b.name &&
             a.deviceType === b.deviceType &&
-            a.runtime === b.runtime &&
-            a.state === b.state,
+            a.runtime === b.runtime,
           filterInStatelessMode: (desired, current) =>
             current.filter((c) => desired.some((d) => d.name === c.name)),
           canModify: true,
@@ -132,7 +124,6 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
           name: device.name,
           deviceType: device.deviceTypeIdentifier,
           runtime: runtimeId,
-          state: device.state === 'Booted' ? 'Booted' : 'Shutdown',
         });
       }
     }
@@ -144,13 +135,10 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     await this.assertSimctlAvailable();
     const $ = getPty();
     for (const sim of plan.desiredConfig.simulators ?? []) {
-      const { data: udid } = await $.spawn(
+      await $.spawn(
         `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${sim.runtime}"`,
         { interactive: true },
       );
-      if (sim.state === 'Booted') {
-        await $.spawn(`xcrun simctl boot "${udid.trim()}"`, { interactive: true });
-      }
     }
   }
 
@@ -171,38 +159,18 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     const previous: SimulatorDeclaration[] = pc.previousValue ?? [];
     const desired: SimulatorDeclaration[] = pc.newValue ?? [];
 
-    // Remove simulators no longer declared
     const toRemove = previous.filter((p) => !desired.some((d) => d.name === p.name));
     for (const sim of toRemove) {
       const udid = findUdid(sim.name);
       if (udid) await $.spawn(`xcrun simctl delete "${udid}"`, { interactive: true });
     }
 
-    // Add newly declared simulators
     const toAdd = desired.filter((d) => !previous.some((p) => p.name === d.name));
     for (const sim of toAdd) {
-      const { data: udid } = await $.spawn(
+      await $.spawn(
         `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${sim.runtime}"`,
         { interactive: true },
       );
-      if (sim.state === 'Booted') {
-        await $.spawn(`xcrun simctl boot "${udid.trim()}"`, { interactive: true });
-      }
-    }
-
-    // Update state for simulators that changed only their state
-    const stateChanged = desired.filter((d) => {
-      const prev = previous.find((p) => p.name === d.name);
-      return prev && prev.state !== d.state;
-    });
-    for (const sim of stateChanged) {
-      const udid = findUdid(sim.name);
-      if (!udid) continue;
-      if (sim.state === 'Booted') {
-        await $.spawn(`xcrun simctl boot "${udid}"`, { interactive: true });
-      } else {
-        await $.spawn(`xcrun simctl shutdown "${udid}"`, { interactive: true });
-      }
     }
   }
 
