@@ -1,19 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import * as path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { SpawnStatus, Utils } from '@codifycli/plugin-core';
 
-describe('iOS Simulator tests', { skip: !Utils.isMacOS() }, async () => {
+function isXcodeInstalled(): boolean {
+  const result = spawnSync('xcrun', ['simctl', 'help'], { stdio: 'ignore' });
+  return result.status === 0;
+}
+
+const skip = !Utils.isMacOS() || !isXcodeInstalled();
+
+describe('iOS Simulator tests', { skip }, async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
-  it('Can create, modify state, and destroy an iOS simulator', { timeout: 300000 }, async () => {
+  it('Can create, modify state, and destroy iOS simulators', { timeout: 300000 }, async () => {
     await PluginTester.fullTest(pluginPath, [
       {
         type: 'ios-simulator',
-        simulatorName: 'codify-test-iphone',
-        deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
-        runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-        state: 'Shutdown',
+        simulators: [
+          {
+            name: 'codify-test-iphone',
+            deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
+            runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
+            state: 'Shutdown',
+          },
+        ],
       },
     ], {
       validateApply: async () => {
@@ -28,10 +40,14 @@ describe('iOS Simulator tests', { skip: !Utils.isMacOS() }, async () => {
       testModify: {
         modifiedConfigs: [{
           type: 'ios-simulator',
-          simulatorName: 'codify-test-iphone',
-          deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
-          runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-          state: 'Booted',
+          simulators: [
+            {
+              name: 'codify-test-iphone',
+              deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
+              runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
+              state: 'Booted',
+            },
+          ],
         }],
         validateModify: async () => {
           const { data } = await testSpawn('xcrun simctl list devices --json');
