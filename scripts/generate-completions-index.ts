@@ -28,7 +28,7 @@ const modules = completionFiles.map((relPath, i) => {
     )
   }
   const resourceType = filename.substring(0, dotIndex)
-  const parameterPath = '/' + filename.substring(dotIndex + 1)
+  const parameterPath = '/' + filename.substring(dotIndex + 1).replaceAll('.', '/')
 
   // Path from completions-cron/src/__generated__/ back to plugin src/resources/
   const importPath = '../../../src/' + relPath.replace(/\.ts$/, '.js')
