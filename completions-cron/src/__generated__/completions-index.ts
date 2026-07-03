@@ -22,16 +22,18 @@ import mod17 from '../../../src/resources/jetbrains/clion/completions/clion.plug
 import mod18 from '../../../src/resources/javascript/pnpm/completions/pnpm.globalEnvNodeVersion.js';
 import mod19 from '../../../src/resources/javascript/nvm/completions/nvm.nodeVersions.js';
 import mod20 from '../../../src/resources/javascript/npm/completions/npm.install.js';
-import mod21 from '../../../src/resources/homebrew/completions/homebrew.formulae.js';
-import mod22 from '../../../src/resources/homebrew/completions/homebrew.casks.js';
-import mod23 from '../../../src/resources/cursor/completions/cursor.extensions.js';
-import mod24 from '../../../src/resources/codex/completions/codex.config.model.js';
-import mod25 from '../../../src/resources/asdf/completions/asdf.plugins.js';
-import mod26 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
-import mod27 from '../../../src/resources/apt/completions/apt.install.js';
-import mod28 from '../../../src/resources/android/android-studios/completions/android-studio.version.js';
-import mod29 from '../../../src/resources/android/android-cli/completions/android-cli.sdkPackages.js';
-import mod30 from '../../../src/resources/android/android-cli/completions/android-cli.emulators.js';
+import mod21 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.simulators.runtime.js';
+import mod22 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.simulators.deviceType.js';
+import mod23 from '../../../src/resources/homebrew/completions/homebrew.formulae.js';
+import mod24 from '../../../src/resources/homebrew/completions/homebrew.casks.js';
+import mod25 from '../../../src/resources/cursor/completions/cursor.extensions.js';
+import mod26 from '../../../src/resources/codex/completions/codex.config.model.js';
+import mod27 from '../../../src/resources/asdf/completions/asdf.plugins.js';
+import mod28 from '../../../src/resources/asdf/completions/asdf-plugin.plugin.js';
+import mod29 from '../../../src/resources/apt/completions/apt.install.js';
+import mod30 from '../../../src/resources/android/android-studios/completions/android-studio.version.js';
+import mod31 from '../../../src/resources/android/android-cli/completions/android-cli.sdkPackages.js';
+import mod32 from '../../../src/resources/android/android-cli/completions/android-cli.emulators.js';
 
 export interface CompletionModule {
   resourceType: string
@@ -61,14 +63,16 @@ export const completionModules: CompletionModule[] = [
   { resourceType: 'pnpm', parameterPath: '/globalEnvNodeVersion', fetch: mod18 },
   { resourceType: 'nvm', parameterPath: '/nodeVersions', fetch: mod19 },
   { resourceType: 'npm', parameterPath: '/install', fetch: mod20 },
-  { resourceType: 'homebrew', parameterPath: '/formulae', fetch: mod21 },
-  { resourceType: 'homebrew', parameterPath: '/casks', fetch: mod22 },
-  { resourceType: 'cursor', parameterPath: '/extensions', fetch: mod23 },
-  { resourceType: 'codex', parameterPath: '/config/model', fetch: mod24 },
-  { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod25 },
-  { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod26 },
-  { resourceType: 'apt', parameterPath: '/install', fetch: mod27 },
-  { resourceType: 'android-studio', parameterPath: '/version', fetch: mod28 },
-  { resourceType: 'android-cli', parameterPath: '/sdkPackages', fetch: mod29 },
-  { resourceType: 'android-cli', parameterPath: '/emulators', fetch: mod30 },
+  { resourceType: 'ios-simulators', parameterPath: '/simulators/runtime', fetch: mod21 },
+  { resourceType: 'ios-simulators', parameterPath: '/simulators/deviceType', fetch: mod22 },
+  { resourceType: 'homebrew', parameterPath: '/formulae', fetch: mod23 },
+  { resourceType: 'homebrew', parameterPath: '/casks', fetch: mod24 },
+  { resourceType: 'cursor', parameterPath: '/extensions', fetch: mod25 },
+  { resourceType: 'codex', parameterPath: '/config/model', fetch: mod26 },
+  { resourceType: 'asdf', parameterPath: '/plugins', fetch: mod27 },
+  { resourceType: 'asdf-plugin', parameterPath: '/plugin', fetch: mod28 },
+  { resourceType: 'apt', parameterPath: '/install', fetch: mod29 },
+  { resourceType: 'android-studio', parameterPath: '/version', fetch: mod30 },
+  { resourceType: 'android-cli', parameterPath: '/sdkPackages', fetch: mod31 },
+  { resourceType: 'android-cli', parameterPath: '/emulators', fetch: mod32 },
 ]
