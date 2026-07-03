@@ -380,7 +380,13 @@ The Codify Editor supports auto-complete for certain resource parameters (e.g. H
      - `codex.$.config.model.ts` → `resource_type=codex`, `parameter_path=$.config.model`
 4. For parameters **nested inside array items** (e.g. a property on each object in an array), use `[x]` in the filename to encode the `[*]` array wildcard — bundlers treat `[*]` as a glob pattern in import paths, so `[x]` is used as the safe filename equivalent and is translated to `[*]` by the codegen script:
    - `ios-simulators.$.simulators[x].deviceType.ts` → `parameter_path=$.simulators[*].deviceType`
-5. Run `npm run build:completions` to regenerate the index
+5. For **mirror completions** — where a parameter's suggestions should reflect the current value of a sibling parameter on the same resource — export a plain object instead of a fetch function:
+   ```typescript
+   // xcodes.$.selected.ts — offers whatever the user typed in xcodeVersions
+   export default { mirrorParameter: '$.xcodeVersions' } as const;
+   ```
+   The codegen script detects the export type at build time. The cron job writes a single metadata row to Supabase (with `mirror_parameter_path` set and no `value` rows). The dashboard reads this and serves completions client-side from the resource's current config — no DB query needed.
+6. Run `npm run build:completions` to regenerate the index
 
 ```bash
 npm run build:completions   # regenerate completions-cron/src/__generated__/completions-index.ts

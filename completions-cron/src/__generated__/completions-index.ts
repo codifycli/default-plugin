@@ -2,77 +2,169 @@
 // Re-run `npm run build:completions` to regenerate
 
 import mod0 from '../../../src/resources/xcodes/completions/xcodes.$.xcodeVersions.js';
-import mod1 from '../../../src/resources/webstorm/completions/webstorm.$.plugins.js';
-import mod2 from '../../../src/resources/vscode/completions/vscode.$.extensions.js';
-import mod3 from '../../../src/resources/snap/completions/snap.$.install.js';
-import mod4 from '../../../src/resources/ruby/rbenv/completions/rbenv.$.rubyVersions.js';
-import mod5 from '../../../src/resources/python/uv/completions/uv.$.tools.js';
-import mod6 from '../../../src/resources/python/uv/completions/uv.$.pythonVersions.js';
-import mod7 from '../../../src/resources/python/pyenv/completions/pyenv.$.pythonVersions.js';
-import mod8 from '../../../src/resources/python/pip/completions/pip.$.install.js';
-import mod9 from '../../../src/resources/ollama/completions/ollama.$.models.js';
-import mod10 from '../../../src/resources/jetbrains/rustrover/completions/rustrover.$.plugins.js';
-import mod11 from '../../../src/resources/jetbrains/rubymine/completions/rubymine.$.plugins.js';
-import mod12 from '../../../src/resources/jetbrains/rider/completions/rider.$.plugins.js';
-import mod13 from '../../../src/resources/jetbrains/pycharm/completions/pycharm.$.plugins.js';
-import mod14 from '../../../src/resources/jetbrains/phpstorm/completions/phpstorm.$.plugins.js';
-import mod15 from '../../../src/resources/jetbrains/intellij-idea/completions/intellij-idea.$.plugins.js';
-import mod16 from '../../../src/resources/jetbrains/goland/completions/goland.$.plugins.js';
-import mod17 from '../../../src/resources/jetbrains/clion/completions/clion.$.plugins.js';
-import mod18 from '../../../src/resources/javascript/pnpm/completions/pnpm.$.globalEnvNodeVersion.js';
-import mod19 from '../../../src/resources/javascript/nvm/completions/nvm.$.nodeVersions.js';
-import mod20 from '../../../src/resources/javascript/npm/completions/npm.$.install.js';
-import mod21 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.$.simulators[x].runtime.js';
-import mod22 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.$.simulators[x].deviceType.js';
-import mod23 from '../../../src/resources/homebrew/completions/homebrew.$.formulae.js';
-import mod24 from '../../../src/resources/homebrew/completions/homebrew.$.casks.js';
-import mod25 from '../../../src/resources/cursor/completions/cursor.$.extensions.js';
-import mod26 from '../../../src/resources/codex/completions/codex.$.config.model.js';
-import mod27 from '../../../src/resources/asdf/completions/asdf.$.plugins.js';
-import mod28 from '../../../src/resources/asdf/completions/asdf-plugin.$.plugin.js';
-import mod29 from '../../../src/resources/apt/completions/apt.$.install.js';
-import mod30 from '../../../src/resources/android/android-studios/completions/android-studio.$.version.js';
-import mod31 from '../../../src/resources/android/android-cli/completions/android-cli.$.sdkPackages.js';
-import mod32 from '../../../src/resources/android/android-cli/completions/android-cli.$.emulators.js';
+import mod1 from '../../../src/resources/xcodes/completions/xcodes.$.selected.js';
+import mod2 from '../../../src/resources/webstorm/completions/webstorm.$.plugins.js';
+import mod3 from '../../../src/resources/vscode/completions/vscode.$.extensions.js';
+import mod4 from '../../../src/resources/snap/completions/snap.$.install.js';
+import mod5 from '../../../src/resources/ruby/rbenv/completions/rbenv.$.rubyVersions.js';
+import mod6 from '../../../src/resources/ruby/rbenv/completions/rbenv.$.global.js';
+import mod7 from '../../../src/resources/python/uv/completions/uv.$.tools.js';
+import mod8 from '../../../src/resources/python/uv/completions/uv.$.pythonVersions.js';
+import mod9 from '../../../src/resources/python/pyenv/completions/pyenv.$.pythonVersions.js';
+import mod10 from '../../../src/resources/python/pyenv/completions/pyenv.$.global.js';
+import mod11 from '../../../src/resources/python/pip/completions/pip.$.install.js';
+import mod12 from '../../../src/resources/ollama/completions/ollama.$.models.js';
+import mod13 from '../../../src/resources/jetbrains/rustrover/completions/rustrover.$.plugins.js';
+import mod14 from '../../../src/resources/jetbrains/rubymine/completions/rubymine.$.plugins.js';
+import mod15 from '../../../src/resources/jetbrains/rider/completions/rider.$.plugins.js';
+import mod16 from '../../../src/resources/jetbrains/pycharm/completions/pycharm.$.plugins.js';
+import mod17 from '../../../src/resources/jetbrains/phpstorm/completions/phpstorm.$.plugins.js';
+import mod18 from '../../../src/resources/jetbrains/intellij-idea/completions/intellij-idea.$.plugins.js';
+import mod19 from '../../../src/resources/jetbrains/goland/completions/goland.$.plugins.js';
+import mod20 from '../../../src/resources/jetbrains/clion/completions/clion.$.plugins.js';
+import mod21 from '../../../src/resources/javascript/pnpm/completions/pnpm.$.globalEnvNodeVersion.js';
+import mod22 from '../../../src/resources/javascript/nvm/completions/nvm.$.nodeVersions.js';
+import mod23 from '../../../src/resources/javascript/nvm/completions/nvm.$.global.js';
+import mod24 from '../../../src/resources/javascript/npm/completions/npm.$.install.js';
+import mod25 from '../../../src/resources/javascript/fast-node-manager/completions/fast-node-manager.$.defaultVersion.js';
+import mod26 from '../../../src/resources/java/jenv/completions/jenv.$.global.js';
+import mod27 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.$.simulators[x].runtime.js';
+import mod28 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.$.simulators[x].deviceType.js';
+import mod29 from '../../../src/resources/homebrew/completions/homebrew.$.formulae.js';
+import mod30 from '../../../src/resources/homebrew/completions/homebrew.$.casks.js';
+import mod31 from '../../../src/resources/go/goenv/completions/goenv.$.global.js';
+import mod32 from '../../../src/resources/cursor/completions/cursor.$.extensions.js';
+import mod33 from '../../../src/resources/codex/completions/codex.$.config.model.js';
+import mod34 from '../../../src/resources/asdf/completions/asdf.$.plugins.js';
+import mod35 from '../../../src/resources/asdf/completions/asdf-plugin.$.plugin.js';
+import mod36 from '../../../src/resources/apt/completions/apt.$.install.js';
+import mod37 from '../../../src/resources/android/android-studios/completions/android-studio.$.version.js';
+import mod38 from '../../../src/resources/android/android-cli/completions/android-cli.$.sdkPackages.js';
+import mod39 from '../../../src/resources/android/android-cli/completions/android-cli.$.emulators.js';
 
-export interface CompletionModule {
-  resourceType: string
-  parameterPath: string
-  fetch: () => Promise<string[]>
-}
+export type CompletionModule =
+  | { kind: 'fetch'; resourceType: string; parameterPath: string; fetch: () => Promise<string[]> }
+  | { kind: 'mirror'; resourceType: string; parameterPath: string; mirrorParameter: string }
 
 export const completionModules: CompletionModule[] = [
-  { resourceType: 'xcodes', parameterPath: '$.xcodeVersions', fetch: mod0 },
-  { resourceType: 'webstorm', parameterPath: '$.plugins', fetch: mod1 },
-  { resourceType: 'vscode', parameterPath: '$.extensions', fetch: mod2 },
-  { resourceType: 'snap', parameterPath: '$.install', fetch: mod3 },
-  { resourceType: 'rbenv', parameterPath: '$.rubyVersions', fetch: mod4 },
-  { resourceType: 'uv', parameterPath: '$.tools', fetch: mod5 },
-  { resourceType: 'uv', parameterPath: '$.pythonVersions', fetch: mod6 },
-  { resourceType: 'pyenv', parameterPath: '$.pythonVersions', fetch: mod7 },
-  { resourceType: 'pip', parameterPath: '$.install', fetch: mod8 },
-  { resourceType: 'ollama', parameterPath: '$.models', fetch: mod9 },
-  { resourceType: 'rustrover', parameterPath: '$.plugins', fetch: mod10 },
-  { resourceType: 'rubymine', parameterPath: '$.plugins', fetch: mod11 },
-  { resourceType: 'rider', parameterPath: '$.plugins', fetch: mod12 },
-  { resourceType: 'pycharm', parameterPath: '$.plugins', fetch: mod13 },
-  { resourceType: 'phpstorm', parameterPath: '$.plugins', fetch: mod14 },
-  { resourceType: 'intellij-idea', parameterPath: '$.plugins', fetch: mod15 },
-  { resourceType: 'goland', parameterPath: '$.plugins', fetch: mod16 },
-  { resourceType: 'clion', parameterPath: '$.plugins', fetch: mod17 },
-  { resourceType: 'pnpm', parameterPath: '$.globalEnvNodeVersion', fetch: mod18 },
-  { resourceType: 'nvm', parameterPath: '$.nodeVersions', fetch: mod19 },
-  { resourceType: 'npm', parameterPath: '$.install', fetch: mod20 },
-  { resourceType: 'ios-simulators', parameterPath: '$.simulators[*].runtime', fetch: mod21 },
-  { resourceType: 'ios-simulators', parameterPath: '$.simulators[*].deviceType', fetch: mod22 },
-  { resourceType: 'homebrew', parameterPath: '$.formulae', fetch: mod23 },
-  { resourceType: 'homebrew', parameterPath: '$.casks', fetch: mod24 },
-  { resourceType: 'cursor', parameterPath: '$.extensions', fetch: mod25 },
-  { resourceType: 'codex', parameterPath: '$.config.model', fetch: mod26 },
-  { resourceType: 'asdf', parameterPath: '$.plugins', fetch: mod27 },
-  { resourceType: 'asdf-plugin', parameterPath: '$.plugin', fetch: mod28 },
-  { resourceType: 'apt', parameterPath: '$.install', fetch: mod29 },
-  { resourceType: 'android-studio', parameterPath: '$.version', fetch: mod30 },
-  { resourceType: 'android-cli', parameterPath: '$.sdkPackages', fetch: mod31 },
-  { resourceType: 'android-cli', parameterPath: '$.emulators', fetch: mod32 },
+  typeof mod0 === 'function'
+    ? { kind: 'fetch', resourceType: 'xcodes', parameterPath: '$.xcodeVersions', fetch: mod0 }
+    : { kind: 'mirror', resourceType: 'xcodes', parameterPath: '$.xcodeVersions', mirrorParameter: (mod0 as any).mirrorParameter },
+  typeof mod1 === 'function'
+    ? { kind: 'fetch', resourceType: 'xcodes', parameterPath: '$.selected', fetch: mod1 }
+    : { kind: 'mirror', resourceType: 'xcodes', parameterPath: '$.selected', mirrorParameter: (mod1 as any).mirrorParameter },
+  typeof mod2 === 'function'
+    ? { kind: 'fetch', resourceType: 'webstorm', parameterPath: '$.plugins', fetch: mod2 }
+    : { kind: 'mirror', resourceType: 'webstorm', parameterPath: '$.plugins', mirrorParameter: (mod2 as any).mirrorParameter },
+  typeof mod3 === 'function'
+    ? { kind: 'fetch', resourceType: 'vscode', parameterPath: '$.extensions', fetch: mod3 }
+    : { kind: 'mirror', resourceType: 'vscode', parameterPath: '$.extensions', mirrorParameter: (mod3 as any).mirrorParameter },
+  typeof mod4 === 'function'
+    ? { kind: 'fetch', resourceType: 'snap', parameterPath: '$.install', fetch: mod4 }
+    : { kind: 'mirror', resourceType: 'snap', parameterPath: '$.install', mirrorParameter: (mod4 as any).mirrorParameter },
+  typeof mod5 === 'function'
+    ? { kind: 'fetch', resourceType: 'rbenv', parameterPath: '$.rubyVersions', fetch: mod5 }
+    : { kind: 'mirror', resourceType: 'rbenv', parameterPath: '$.rubyVersions', mirrorParameter: (mod5 as any).mirrorParameter },
+  typeof mod6 === 'function'
+    ? { kind: 'fetch', resourceType: 'rbenv', parameterPath: '$.global', fetch: mod6 }
+    : { kind: 'mirror', resourceType: 'rbenv', parameterPath: '$.global', mirrorParameter: (mod6 as any).mirrorParameter },
+  typeof mod7 === 'function'
+    ? { kind: 'fetch', resourceType: 'uv', parameterPath: '$.tools', fetch: mod7 }
+    : { kind: 'mirror', resourceType: 'uv', parameterPath: '$.tools', mirrorParameter: (mod7 as any).mirrorParameter },
+  typeof mod8 === 'function'
+    ? { kind: 'fetch', resourceType: 'uv', parameterPath: '$.pythonVersions', fetch: mod8 }
+    : { kind: 'mirror', resourceType: 'uv', parameterPath: '$.pythonVersions', mirrorParameter: (mod8 as any).mirrorParameter },
+  typeof mod9 === 'function'
+    ? { kind: 'fetch', resourceType: 'pyenv', parameterPath: '$.pythonVersions', fetch: mod9 }
+    : { kind: 'mirror', resourceType: 'pyenv', parameterPath: '$.pythonVersions', mirrorParameter: (mod9 as any).mirrorParameter },
+  typeof mod10 === 'function'
+    ? { kind: 'fetch', resourceType: 'pyenv', parameterPath: '$.global', fetch: mod10 }
+    : { kind: 'mirror', resourceType: 'pyenv', parameterPath: '$.global', mirrorParameter: (mod10 as any).mirrorParameter },
+  typeof mod11 === 'function'
+    ? { kind: 'fetch', resourceType: 'pip', parameterPath: '$.install', fetch: mod11 }
+    : { kind: 'mirror', resourceType: 'pip', parameterPath: '$.install', mirrorParameter: (mod11 as any).mirrorParameter },
+  typeof mod12 === 'function'
+    ? { kind: 'fetch', resourceType: 'ollama', parameterPath: '$.models', fetch: mod12 }
+    : { kind: 'mirror', resourceType: 'ollama', parameterPath: '$.models', mirrorParameter: (mod12 as any).mirrorParameter },
+  typeof mod13 === 'function'
+    ? { kind: 'fetch', resourceType: 'rustrover', parameterPath: '$.plugins', fetch: mod13 }
+    : { kind: 'mirror', resourceType: 'rustrover', parameterPath: '$.plugins', mirrorParameter: (mod13 as any).mirrorParameter },
+  typeof mod14 === 'function'
+    ? { kind: 'fetch', resourceType: 'rubymine', parameterPath: '$.plugins', fetch: mod14 }
+    : { kind: 'mirror', resourceType: 'rubymine', parameterPath: '$.plugins', mirrorParameter: (mod14 as any).mirrorParameter },
+  typeof mod15 === 'function'
+    ? { kind: 'fetch', resourceType: 'rider', parameterPath: '$.plugins', fetch: mod15 }
+    : { kind: 'mirror', resourceType: 'rider', parameterPath: '$.plugins', mirrorParameter: (mod15 as any).mirrorParameter },
+  typeof mod16 === 'function'
+    ? { kind: 'fetch', resourceType: 'pycharm', parameterPath: '$.plugins', fetch: mod16 }
+    : { kind: 'mirror', resourceType: 'pycharm', parameterPath: '$.plugins', mirrorParameter: (mod16 as any).mirrorParameter },
+  typeof mod17 === 'function'
+    ? { kind: 'fetch', resourceType: 'phpstorm', parameterPath: '$.plugins', fetch: mod17 }
+    : { kind: 'mirror', resourceType: 'phpstorm', parameterPath: '$.plugins', mirrorParameter: (mod17 as any).mirrorParameter },
+  typeof mod18 === 'function'
+    ? { kind: 'fetch', resourceType: 'intellij-idea', parameterPath: '$.plugins', fetch: mod18 }
+    : { kind: 'mirror', resourceType: 'intellij-idea', parameterPath: '$.plugins', mirrorParameter: (mod18 as any).mirrorParameter },
+  typeof mod19 === 'function'
+    ? { kind: 'fetch', resourceType: 'goland', parameterPath: '$.plugins', fetch: mod19 }
+    : { kind: 'mirror', resourceType: 'goland', parameterPath: '$.plugins', mirrorParameter: (mod19 as any).mirrorParameter },
+  typeof mod20 === 'function'
+    ? { kind: 'fetch', resourceType: 'clion', parameterPath: '$.plugins', fetch: mod20 }
+    : { kind: 'mirror', resourceType: 'clion', parameterPath: '$.plugins', mirrorParameter: (mod20 as any).mirrorParameter },
+  typeof mod21 === 'function'
+    ? { kind: 'fetch', resourceType: 'pnpm', parameterPath: '$.globalEnvNodeVersion', fetch: mod21 }
+    : { kind: 'mirror', resourceType: 'pnpm', parameterPath: '$.globalEnvNodeVersion', mirrorParameter: (mod21 as any).mirrorParameter },
+  typeof mod22 === 'function'
+    ? { kind: 'fetch', resourceType: 'nvm', parameterPath: '$.nodeVersions', fetch: mod22 }
+    : { kind: 'mirror', resourceType: 'nvm', parameterPath: '$.nodeVersions', mirrorParameter: (mod22 as any).mirrorParameter },
+  typeof mod23 === 'function'
+    ? { kind: 'fetch', resourceType: 'nvm', parameterPath: '$.global', fetch: mod23 }
+    : { kind: 'mirror', resourceType: 'nvm', parameterPath: '$.global', mirrorParameter: (mod23 as any).mirrorParameter },
+  typeof mod24 === 'function'
+    ? { kind: 'fetch', resourceType: 'npm', parameterPath: '$.install', fetch: mod24 }
+    : { kind: 'mirror', resourceType: 'npm', parameterPath: '$.install', mirrorParameter: (mod24 as any).mirrorParameter },
+  typeof mod25 === 'function'
+    ? { kind: 'fetch', resourceType: 'fast-node-manager', parameterPath: '$.defaultVersion', fetch: mod25 }
+    : { kind: 'mirror', resourceType: 'fast-node-manager', parameterPath: '$.defaultVersion', mirrorParameter: (mod25 as any).mirrorParameter },
+  typeof mod26 === 'function'
+    ? { kind: 'fetch', resourceType: 'jenv', parameterPath: '$.global', fetch: mod26 }
+    : { kind: 'mirror', resourceType: 'jenv', parameterPath: '$.global', mirrorParameter: (mod26 as any).mirrorParameter },
+  typeof mod27 === 'function'
+    ? { kind: 'fetch', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].runtime', fetch: mod27 }
+    : { kind: 'mirror', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].runtime', mirrorParameter: (mod27 as any).mirrorParameter },
+  typeof mod28 === 'function'
+    ? { kind: 'fetch', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].deviceType', fetch: mod28 }
+    : { kind: 'mirror', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].deviceType', mirrorParameter: (mod28 as any).mirrorParameter },
+  typeof mod29 === 'function'
+    ? { kind: 'fetch', resourceType: 'homebrew', parameterPath: '$.formulae', fetch: mod29 }
+    : { kind: 'mirror', resourceType: 'homebrew', parameterPath: '$.formulae', mirrorParameter: (mod29 as any).mirrorParameter },
+  typeof mod30 === 'function'
+    ? { kind: 'fetch', resourceType: 'homebrew', parameterPath: '$.casks', fetch: mod30 }
+    : { kind: 'mirror', resourceType: 'homebrew', parameterPath: '$.casks', mirrorParameter: (mod30 as any).mirrorParameter },
+  typeof mod31 === 'function'
+    ? { kind: 'fetch', resourceType: 'goenv', parameterPath: '$.global', fetch: mod31 }
+    : { kind: 'mirror', resourceType: 'goenv', parameterPath: '$.global', mirrorParameter: (mod31 as any).mirrorParameter },
+  typeof mod32 === 'function'
+    ? { kind: 'fetch', resourceType: 'cursor', parameterPath: '$.extensions', fetch: mod32 }
+    : { kind: 'mirror', resourceType: 'cursor', parameterPath: '$.extensions', mirrorParameter: (mod32 as any).mirrorParameter },
+  typeof mod33 === 'function'
+    ? { kind: 'fetch', resourceType: 'codex', parameterPath: '$.config.model', fetch: mod33 }
+    : { kind: 'mirror', resourceType: 'codex', parameterPath: '$.config.model', mirrorParameter: (mod33 as any).mirrorParameter },
+  typeof mod34 === 'function'
+    ? { kind: 'fetch', resourceType: 'asdf', parameterPath: '$.plugins', fetch: mod34 }
+    : { kind: 'mirror', resourceType: 'asdf', parameterPath: '$.plugins', mirrorParameter: (mod34 as any).mirrorParameter },
+  typeof mod35 === 'function'
+    ? { kind: 'fetch', resourceType: 'asdf-plugin', parameterPath: '$.plugin', fetch: mod35 }
+    : { kind: 'mirror', resourceType: 'asdf-plugin', parameterPath: '$.plugin', mirrorParameter: (mod35 as any).mirrorParameter },
+  typeof mod36 === 'function'
+    ? { kind: 'fetch', resourceType: 'apt', parameterPath: '$.install', fetch: mod36 }
+    : { kind: 'mirror', resourceType: 'apt', parameterPath: '$.install', mirrorParameter: (mod36 as any).mirrorParameter },
+  typeof mod37 === 'function'
+    ? { kind: 'fetch', resourceType: 'android-studio', parameterPath: '$.version', fetch: mod37 }
+    : { kind: 'mirror', resourceType: 'android-studio', parameterPath: '$.version', mirrorParameter: (mod37 as any).mirrorParameter },
+  typeof mod38 === 'function'
+    ? { kind: 'fetch', resourceType: 'android-cli', parameterPath: '$.sdkPackages', fetch: mod38 }
+    : { kind: 'mirror', resourceType: 'android-cli', parameterPath: '$.sdkPackages', mirrorParameter: (mod38 as any).mirrorParameter },
+  typeof mod39 === 'function'
+    ? { kind: 'fetch', resourceType: 'android-cli', parameterPath: '$.emulators', fetch: mod39 }
+    : { kind: 'mirror', resourceType: 'android-cli', parameterPath: '$.emulators', mirrorParameter: (mod39 as any).mirrorParameter },
 ]

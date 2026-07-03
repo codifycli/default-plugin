@@ -43,15 +43,16 @@ for (const { importName, importPath } of modules) {
 }
 
 lines.push('')
-lines.push('export interface CompletionModule {')
-lines.push('  resourceType: string')
-lines.push('  parameterPath: string')
-lines.push('  fetch: () => Promise<string[]>')
-lines.push('}')
+lines.push('export type CompletionModule =')
+lines.push('  | { kind: \'fetch\'; resourceType: string; parameterPath: string; fetch: () => Promise<string[]> }')
+lines.push('  | { kind: \'mirror\'; resourceType: string; parameterPath: string; mirrorParameter: string }')
 lines.push('')
 lines.push('export const completionModules: CompletionModule[] = [')
 for (const { importName, resourceType, parameterPath } of modules) {
-  lines.push(`  { resourceType: '${resourceType}', parameterPath: '${parameterPath}', fetch: ${importName} },`)
+  // A mirror module exports { mirrorParameter: '...' }, a fetch module exports a function.
+  lines.push(`  typeof ${importName} === 'function'`)
+  lines.push(`    ? { kind: 'fetch', resourceType: '${resourceType}', parameterPath: '${parameterPath}', fetch: ${importName} }`)
+  lines.push(`    : { kind: 'mirror', resourceType: '${resourceType}', parameterPath: '${parameterPath}', mirrorParameter: (${importName} as any).mirrorParameter },`)
 }
 lines.push(']')
 lines.push('')
