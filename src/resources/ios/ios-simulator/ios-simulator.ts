@@ -12,20 +12,23 @@ import {
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 
-const schema = z.object({
-  simulatorName: z
-    .string()
-    .describe('Name for the iOS simulator instance (e.g. "iPhone 15 Dev")'),
-  deviceType: z
-    .string()
-    .describe('Device type identifier (e.g. "com.apple.CoreSimulator.SimDeviceType.iPhone-15")'),
-  runtime: z
-    .string()
-    .describe('Runtime identifier (e.g. "com.apple.CoreSimulator.SimRuntime.iOS-18-0")'),
+const simulatorSchema = z.object({
+  name: z.string().describe('Name for the simulator instance (e.g. "iPhone 15 Dev")'),
+  deviceType: z.string().describe('Device type identifier (e.g. "com.apple.CoreSimulator.SimDeviceType.iPhone-15")'),
+  runtime: z.string().describe('Runtime identifier (e.g. "com.apple.CoreSimulator.SimRuntime.iOS-18-0")'),
   state: z
     .enum(['Booted', 'Shutdown'])
     .optional()
-    .describe('Desired runtime state of the simulator. Defaults to Shutdown.'),
+    .describe('Desired runtime state. Defaults to Shutdown.'),
+});
+
+export type SimulatorDeclaration = z.infer<typeof simulatorSchema>;
+
+const schema = z.object({
+  simulators: z
+    .array(simulatorSchema)
+    .optional()
+    .describe('List of iOS simulators to create and manage.'),
 });
 
 export type IosSimulatorConfig = z.infer<typeof schema>;
@@ -42,10 +45,7 @@ interface SimctlDevicesOutput {
 }
 
 const defaultConfig: Partial<IosSimulatorConfig> & { os: any } = {
-  simulatorName: '<Replace me here!>',
-  deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
-  runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-  state: 'Shutdown',
+  simulators: [],
   os: ['macOS'],
 };
 
@@ -54,10 +54,14 @@ const exampleBasic: ExampleConfig = {
   description: 'Create an iPhone 15 simulator running iOS 18 for use in development and UI testing.',
   configs: [{
     type: 'ios-simulator',
-    simulatorName: 'iPhone 15 Dev',
-    deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
-    runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-    state: 'Shutdown',
+    simulators: [
+      {
+        name: 'iPhone 15 Dev',
+        deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
+        runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
+        state: 'Shutdown',
+      },
+    ],
     os: ['macOS'],
   }],
 };
@@ -69,18 +73,20 @@ const exampleMultiDevice: ExampleConfig = {
     { type: 'xcode-tools', os: ['macOS'] },
     {
       type: 'ios-simulator',
-      simulatorName: 'iPhone 15 Pro',
-      deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro',
-      runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-      state: 'Shutdown',
-      os: ['macOS'],
-    },
-    {
-      type: 'ios-simulator',
-      simulatorName: 'iPad Pro 11-inch',
-      deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M4',
-      runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
-      state: 'Shutdown',
+      simulators: [
+        {
+          name: 'iPhone 15 Pro',
+          deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro',
+          runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
+          state: 'Shutdown',
+        },
+        {
+          name: 'iPad Pro 11-inch',
+          deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M4',
+          runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
+          state: 'Shutdown',
+        },
+      ],
       os: ['macOS'],
     },
   ],
@@ -99,98 +105,143 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
       dependencies: ['xcode-tools'],
       schema,
       parameterSettings: {
-        state: { type: 'string', canModify: true },
-      },
-      allowMultiple: {
-        identifyingParameters: ['simulatorName'],
+        simulators: {
+          type: 'array',
+          itemType: 'object',
+          isElementEqual: (a, b) =>
+            a.name === b.name &&
+            a.deviceType === b.deviceType &&
+            a.runtime === b.runtime &&
+            a.state === b.state,
+          filterInStatelessMode: (desired, current) =>
+            current.filter((c) => desired.some((d) => d.name === c.name)),
+          canModify: true,
+        },
       },
     };
   }
 
-  async refresh(parameters: Partial<IosSimulatorConfig>): Promise<Partial<IosSimulatorConfig> | null> {
-    const $ = getPty();
+  async refresh(): Promise<Partial<IosSimulatorConfig> | null> {
+    const allDevices = await this.listAllDevices();
+    if (!allDevices) return null;
 
-    const { status, data } = await $.spawnSafe('xcrun simctl list devices --json');
-    if (status !== SpawnStatus.SUCCESS) {
-      return null;
-    }
-
-    let parsed: SimctlDevicesOutput;
-    try {
-      parsed = JSON.parse(data);
-    } catch {
-      return null;
-    }
-
-    for (const [runtimeId, devices] of Object.entries(parsed.devices)) {
-      const match = devices.find((d) => d.name === parameters.simulatorName);
-      if (match) {
-        return {
-          simulatorName: match.name,
-          deviceType: match.deviceTypeIdentifier,
+    const simulators: SimulatorDeclaration[] = [];
+    for (const [runtimeId, devices] of Object.entries(allDevices)) {
+      for (const device of devices) {
+        simulators.push({
+          name: device.name,
+          deviceType: device.deviceTypeIdentifier,
           runtime: runtimeId,
-          state: match.state === 'Booted' ? 'Booted' : 'Shutdown',
-        };
+          state: device.state === 'Booted' ? 'Booted' : 'Shutdown',
+        });
       }
     }
 
-    return null;
+    return simulators.length > 0 ? { simulators } : null;
   }
 
   async create(plan: CreatePlan<IosSimulatorConfig>): Promise<void> {
+    await this.assertSimctlAvailable();
     const $ = getPty();
-    const { simulatorName, deviceType, runtime, state } = plan.desiredConfig;
-
-    // xcrun simctl create prints the new simulator's UDID to stdout
-    const { data: udid } = await $.spawn(
-      `xcrun simctl create "${simulatorName}" "${deviceType}" "${runtime}"`,
-      { interactive: true }
-    );
-
-    if (state === 'Booted') {
-      await $.spawn(`xcrun simctl boot "${udid.trim()}"`, { interactive: true });
+    for (const sim of plan.desiredConfig.simulators ?? []) {
+      const { data: udid } = await $.spawn(
+        `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${sim.runtime}"`,
+        { interactive: true },
+      );
+      if (sim.state === 'Booted') {
+        await $.spawn(`xcrun simctl boot "${udid.trim()}"`, { interactive: true });
+      }
     }
   }
 
-  async modify(pc: ParameterChange<IosSimulatorConfig>, plan: ModifyPlan<IosSimulatorConfig>): Promise<void> {
-    if (pc.name !== 'state') return;
+  async modify(pc: ParameterChange<IosSimulatorConfig>, _plan: ModifyPlan<IosSimulatorConfig>): Promise<void> {
+    if (pc.name !== 'simulators') return;
 
     const $ = getPty();
-    const udid = await this.getUdidByName(plan.desiredConfig.simulatorName);
-    if (!udid) return;
+    const allDevices = await this.listAllDevices();
+    if (!allDevices) return;
 
-    if (plan.desiredConfig.state === 'Booted') {
-      await $.spawn(`xcrun simctl boot "${udid}"`, { interactive: true });
-    } else {
-      await $.spawn(`xcrun simctl shutdown "${udid}"`, { interactive: true });
+    const findUdid = (name: string): string | undefined => {
+      for (const devices of Object.values(allDevices)) {
+        const match = devices.find((d) => d.name === name);
+        if (match) return match.udid;
+      }
+    };
+
+    const previous: SimulatorDeclaration[] = pc.previousValue ?? [];
+    const desired: SimulatorDeclaration[] = pc.newValue ?? [];
+
+    // Remove simulators no longer declared
+    const toRemove = previous.filter((p) => !desired.some((d) => d.name === p.name));
+    for (const sim of toRemove) {
+      const udid = findUdid(sim.name);
+      if (udid) await $.spawn(`xcrun simctl delete "${udid}"`, { interactive: true });
+    }
+
+    // Add newly declared simulators
+    const toAdd = desired.filter((d) => !previous.some((p) => p.name === d.name));
+    for (const sim of toAdd) {
+      const { data: udid } = await $.spawn(
+        `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${sim.runtime}"`,
+        { interactive: true },
+      );
+      if (sim.state === 'Booted') {
+        await $.spawn(`xcrun simctl boot "${udid.trim()}"`, { interactive: true });
+      }
+    }
+
+    // Update state for simulators that changed only their state
+    const stateChanged = desired.filter((d) => {
+      const prev = previous.find((p) => p.name === d.name);
+      return prev && prev.state !== d.state;
+    });
+    for (const sim of stateChanged) {
+      const udid = findUdid(sim.name);
+      if (!udid) continue;
+      if (sim.state === 'Booted') {
+        await $.spawn(`xcrun simctl boot "${udid}"`, { interactive: true });
+      } else {
+        await $.spawn(`xcrun simctl shutdown "${udid}"`, { interactive: true });
+      }
     }
   }
 
   async destroy(plan: DestroyPlan<IosSimulatorConfig>): Promise<void> {
     const $ = getPty();
-    const udid = await this.getUdidByName(plan.currentConfig.simulatorName);
-    if (!udid) return;
+    const allDevices = await this.listAllDevices();
+    if (!allDevices) return;
 
-    await $.spawn(`xcrun simctl delete "${udid}"`, { interactive: true });
+    for (const sim of plan.currentConfig.simulators ?? []) {
+      for (const devices of Object.values(allDevices)) {
+        const match = devices.find((d) => d.name === sim.name);
+        if (match) {
+          await $.spawn(`xcrun simctl delete "${match.udid}"`, { interactive: true });
+          break;
+        }
+      }
+    }
   }
 
-  private async getUdidByName(name: string | undefined): Promise<string | null> {
-    if (!name) return null;
+  private async assertSimctlAvailable(): Promise<void> {
+    const $ = getPty();
+    const { status } = await $.spawnSafe('xcrun simctl help');
+    if (status !== SpawnStatus.SUCCESS) {
+      throw new Error(
+        'xcrun simctl is not available. Xcode must be installed to manage iOS simulators. ' +
+        'Install it manually from the Mac App Store or use the xcodes resource to manage Xcode versions.',
+      );
+    }
+  }
 
+  private async listAllDevices(): Promise<Record<string, SimDevice[]> | null> {
     const $ = getPty();
     const { status, data } = await $.spawnSafe('xcrun simctl list devices --json');
     if (status !== SpawnStatus.SUCCESS) return null;
-
     try {
       const parsed: SimctlDevicesOutput = JSON.parse(data);
-      for (const devices of Object.values(parsed.devices)) {
-        const match = devices.find((d) => d.name === name);
-        if (match) return match.udid;
-      }
+      return parsed.devices;
     } catch {
-      // ignore parse errors
+      return null;
     }
-
-    return null;
   }
 }
