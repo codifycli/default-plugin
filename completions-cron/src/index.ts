@@ -28,7 +28,7 @@ async function getResourceId(
   return data[0].id
 }
 
-async function processModule(
+async function processFetchModule(
   supabase: SupabaseClient,
   resourceType: string,
   parameterPath: string,
@@ -36,10 +36,10 @@ async function processModule(
   prerelease: boolean,
   resourceIdCache: Map<string, string>
 ): Promise<void> {
-  console.log(`Processing ${resourceType}${parameterPath}...`)
+  console.log(`Processing ${resourceType} → ${parameterPath}...`)
 
   const values = await fetchFn()
-  console.log(`  [${resourceType}${parameterPath}] Fetched ${values.length} values`)
+  console.log(`  [${resourceType} → ${parameterPath}] Fetched ${values.length} values`)
 
   const resourceId = await getResourceId(supabase, resourceType, prerelease, resourceIdCache)
 
@@ -63,11 +63,47 @@ async function processModule(
       .insert(rows.slice(i, i + BATCH_SIZE))
 
     if (error) {
-      throw new Error(`Insert failed for ${resourceType}${parameterPath}: ${error.message}`)
+      throw new Error(`Insert failed for ${resourceType} → ${parameterPath}: ${error.message}`)
     }
   }
 
-  console.log(`  [${resourceType}${parameterPath}] Done: inserted ${values.length} completions`)
+  console.log(`  [${resourceType} → ${parameterPath}] Done: inserted ${values.length} completions`)
+}
+
+async function processMirrorModule(
+  supabase: SupabaseClient,
+  resourceType: string,
+  parameterPath: string,
+  mirrorParameter: string,
+  prerelease: boolean,
+  resourceIdCache: Map<string, string>
+): Promise<void> {
+  console.log(`Processing mirror ${resourceType} → ${parameterPath} (mirrors ${mirrorParameter})...`)
+
+  const resourceId = await getResourceId(supabase, resourceType, prerelease, resourceIdCache)
+
+  // Delete any existing metadata row for this path (value IS NULL for mirror rows)
+  await supabase
+    .from('resource_parameter_completions')
+    .delete()
+    .eq('resource_type', resourceType)
+    .eq('resource_id', resourceId)
+    .eq('parameter_path', parameterPath)
+
+  const { error } = await supabase
+    .from('resource_parameter_completions')
+    .insert({
+      resource_type: resourceType,
+      resource_id: resourceId,
+      parameter_path: parameterPath,
+      mirror_parameter_path: mirrorParameter,
+    })
+
+  if (error) {
+    throw new Error(`Mirror insert failed for ${resourceType} → ${parameterPath}: ${error.message}`)
+  }
+
+  console.log(`  [${resourceType} → ${parameterPath}] Done: mirror metadata row written`)
 }
 
 async function runCompletions(env: Env): Promise<void> {
@@ -76,8 +112,10 @@ async function runCompletions(env: Env): Promise<void> {
   const resourceIdCache = new Map<string, string>()
 
   const results = await Promise.allSettled(
-    completionModules.map(({ resourceType, parameterPath, fetch }: CompletionModule) =>
-      processModule(supabase, resourceType, parameterPath, fetch, prerelease, resourceIdCache)
+    completionModules.map((mod: CompletionModule) =>
+      mod.kind === 'fetch'
+        ? processFetchModule(supabase, mod.resourceType, mod.parameterPath, mod.fetch, prerelease, resourceIdCache)
+        : processMirrorModule(supabase, mod.resourceType, mod.parameterPath, mod.mirrorParameter, prerelease, resourceIdCache)
     )
   )
 
