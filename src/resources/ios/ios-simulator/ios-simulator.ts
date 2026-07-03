@@ -13,7 +13,7 @@ import {
 import { OS } from '@codifycli/schemas';
 
 const schema = z.object({
-  name: z
+  simulatorName: z
     .string()
     .describe('Name for the iOS simulator instance (e.g. "iPhone 15 Dev")'),
   deviceType: z
@@ -42,7 +42,7 @@ interface SimctlDevicesOutput {
 }
 
 const defaultConfig: Partial<IosSimulatorConfig> & { os: any } = {
-  name: '<Replace me here!>',
+  simulatorName: '<Replace me here!>',
   deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
   runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
   state: 'Shutdown',
@@ -54,7 +54,7 @@ const exampleBasic: ExampleConfig = {
   description: 'Create an iPhone 15 simulator running iOS 18 for use in development and UI testing.',
   configs: [{
     type: 'ios-simulator',
-    name: 'iPhone 15 Dev',
+    simulatorName: 'iPhone 15 Dev',
     deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
     runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
     state: 'Shutdown',
@@ -69,7 +69,7 @@ const exampleMultiDevice: ExampleConfig = {
     { type: 'xcode-tools', os: ['macOS'] },
     {
       type: 'ios-simulator',
-      name: 'iPhone 15 Pro',
+      simulatorName: 'iPhone 15 Pro',
       deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro',
       runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
       state: 'Shutdown',
@@ -77,7 +77,7 @@ const exampleMultiDevice: ExampleConfig = {
     },
     {
       type: 'ios-simulator',
-      name: 'iPad Pro 11-inch',
+      simulatorName: 'iPad Pro 11-inch',
       deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M4',
       runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
       state: 'Shutdown',
@@ -102,7 +102,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
         state: { type: 'string', canModify: true },
       },
       allowMultiple: {
-        identifyingParameters: ['name'],
+        identifyingParameters: ['simulatorName'],
       },
     };
   }
@@ -123,10 +123,10 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     }
 
     for (const [runtimeId, devices] of Object.entries(parsed.devices)) {
-      const match = devices.find((d) => d.name === parameters.name);
+      const match = devices.find((d) => d.name === parameters.simulatorName);
       if (match) {
         return {
-          name: match.name,
+          simulatorName: match.name,
           deviceType: match.deviceTypeIdentifier,
           runtime: runtimeId,
           state: match.state === 'Booted' ? 'Booted' : 'Shutdown',
@@ -139,11 +139,11 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
 
   async create(plan: CreatePlan<IosSimulatorConfig>): Promise<void> {
     const $ = getPty();
-    const { name, deviceType, runtime, state } = plan.desiredConfig;
+    const { simulatorName, deviceType, runtime, state } = plan.desiredConfig;
 
     // xcrun simctl create prints the new simulator's UDID to stdout
     const { data: udid } = await $.spawn(
-      `xcrun simctl create "${name}" "${deviceType}" "${runtime}"`,
+      `xcrun simctl create "${simulatorName}" "${deviceType}" "${runtime}"`,
       { interactive: true }
     );
 
@@ -156,7 +156,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     if (pc.name !== 'state') return;
 
     const $ = getPty();
-    const udid = await this.getUdidByName(plan.desiredConfig.name);
+    const udid = await this.getUdidByName(plan.desiredConfig.simulatorName);
     if (!udid) return;
 
     if (plan.desiredConfig.state === 'Booted') {
@@ -168,7 +168,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
 
   async destroy(plan: DestroyPlan<IosSimulatorConfig>): Promise<void> {
     const $ = getPty();
-    const udid = await this.getUdidByName(plan.currentConfig.name);
+    const udid = await this.getUdidByName(plan.currentConfig.simulatorName);
     if (!udid) return;
 
     await $.spawn(`xcrun simctl delete "${udid}"`, { interactive: true });
