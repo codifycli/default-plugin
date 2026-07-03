@@ -1,0 +1,85 @@
+---
+title: fastlane-project
+description: A reference page for the fastlane-project resource
+---
+
+The fastlane-project resource manages **per-project** fastlane initialization — the equivalent of
+running `fastlane init` in a project directory. It writes `fastlane/Appfile` (app identifier,
+credentials, and team info) and `fastlane/Fastfile` (your lane definitions) under the target
+directory. Use it alongside the [`fastlane`](/docs/resources/fastlane/fastlane) resource, which
+handles installing the fastlane CLI itself.
+
+## Parameters
+
+- **directory**: *(string, required)* Path to the project directory. Configuration is written to:
+  - `<directory>/fastlane/Appfile`
+  - `<directory>/fastlane/Fastfile`
+
+- **appIdentifier**: *(string, optional)* iOS bundle identifier or Android package name, written as
+  `app_identifier` in the Appfile.
+
+- **appleId**: *(string, optional)* Apple ID email used to authenticate with App Store Connect,
+  written as `apple_id` in the Appfile.
+
+- **teamId**: *(string, optional)* Apple Developer Portal team ID, written as `team_id` in the
+  Appfile.
+
+- **itcTeamId**: *(string, optional)* App Store Connect team ID, only needed if it differs from
+  `teamId`. Written as `itc_team_id` in the Appfile.
+
+- **jsonKeyFile**: *(string, optional)* Path to the Google Play service account JSON key file,
+  written as `json_key_file` in the Appfile.
+
+- **fastfile**: *(string, optional)* Raw Ruby content for `fastlane/Fastfile` — defines your lanes
+  (e.g. lanes calling `build_app`, `upload_to_app_store`, `gradle`, `upload_to_play_store`). Defaults
+  to a minimal starter lane if not provided.
+
+## Example usage
+
+### iOS App Store release lane
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "fastlane-project",
+    "directory": "~/projects/my-ios-app",
+    "appIdentifier": "com.company.myiosapp",
+    "appleId": "developer@company.com",
+    "teamId": "ABCDE12345",
+    "fastfile": "default_platform(:ios)\n\nplatform :ios do\n  lane :release do\n    build_app(scheme: \"MyApp\")\n    upload_to_app_store(\n      api_key_path: \"fastlane/api_key.json\",\n      skip_metadata: true,\n      skip_screenshots: true,\n      submit_for_review: false\n    )\n  end\nend\n",
+    "os": ["macOS"]
+  }
+]
+```
+
+### Android Play Store release setup
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "fastlane"
+  },
+  {
+    "type": "fastlane-project",
+    "directory": "~/projects/my-android-app",
+    "appIdentifier": "com.company.myandroidapp",
+    "jsonKeyFile": "~/projects/my-android-app/play-store-key.json",
+    "fastfile": "default_platform(:android)\n\nplatform :android do\n  lane :deploy do\n    gradle(task: \"bundle\", build_type: \"Release\")\n    upload_to_play_store(track: \"production\")\n  end\nend\n",
+    "dependsOn": ["fastlane"]
+  }
+]
+```
+
+## Notes
+
+- The `fastlane` resource must be applied before `fastlane-project` (it declares a dependency
+  automatically).
+- Multiple `fastlane-project` entries can coexist — each unique `directory` is a separate resource
+  instance, useful for monorepos with several apps.
+- Rather than driving the interactive `fastlane init` wizard (which is known to be unreliable in
+  non-interactive/CI environments), this resource writes the `Appfile` and `Fastfile` directly,
+  giving full declarative control over their contents.
+- Destroying a `fastlane-project` resource removes the entire `<directory>/fastlane` folder,
+  including any metadata or screenshots fastlane itself may have added there.
+- The `fastfile` parameter manages the entire file — treat it as the single source of truth for your
+  lanes rather than editing it by hand.

@@ -7,6 +7,8 @@ import { AsdfPluginResource } from './resources/asdf/asdf-plugin.js';
 import { AwsCliResource } from './resources/aws-cli/cli/aws-cli.js';
 import { AwsProfileResource } from './resources/aws-cli/profile/aws-profile.js';
 import { DnfResource } from './resources/dnf/dnf.js';
+import { FastlaneResource } from './resources/fastlane/fastlane.js';
+import { FastlaneProjectResource } from './resources/fastlane/fastlane-project.js';
 import { GoenvResource } from './resources/go/goenv/goenv.js';
 import { DockerResource } from './resources/docker/docker.js';
 import { EnvFileResource } from './resources/file/env-file/env-file-resource.js';
@@ -159,6 +161,8 @@ runPlugin(Plugin.create(
     new SyncthingDeviceResource(),
     new SyncthingFolderResource(),
     new RbenvResource(),
+    new FastlaneResource(),
+    new FastlaneProjectResource(),
     new OpenClawResource(),
     new RustResource(),
     new GithubCliResource(),
