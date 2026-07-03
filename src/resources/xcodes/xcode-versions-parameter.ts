@@ -1,4 +1,4 @@
-import { ArrayStatefulParameter, getPty } from '@codifycli/plugin-core';
+import { ArrayStatefulParameter, Plan, getPty } from '@codifycli/plugin-core';
 
 import { XcodesConfig } from './xcodes-resource.js';
 
@@ -9,9 +9,19 @@ export class XcodeVersionsParameter extends ArrayStatefulParameter<XcodesConfig,
     return parseInstalledVersions(data);
   }
 
-  override async addItem(version: string): Promise<void> {
+  override async addItem(version: string, plan: Plan<XcodesConfig>): Promise<void> {
     const $ = getPty();
-    await $.spawn(`xcodes install "${version}"`, { interactive: true, stdin: true });
+    const { appleId, appleIdPassword } = plan.desiredConfig ?? {};
+
+    const env: Record<string, string> = {};
+    if (appleId) env['XCODES_USERNAME'] = appleId;
+    if (appleIdPassword) env['XCODES_PASSWORD'] = appleIdPassword;
+
+    await $.spawn(`xcodes install "${version}"`, {
+      interactive: true,
+      stdin: true,
+      ...(Object.keys(env).length > 0 ? { env } : {}),
+    });
   }
 
   override async removeItem(version: string): Promise<void> {

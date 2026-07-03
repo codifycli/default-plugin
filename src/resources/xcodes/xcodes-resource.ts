@@ -17,11 +17,7 @@ const schema = z
   .object({
     xcodeVersions: z
       .array(z.string())
-      .describe(
-        'List of Xcode versions to install via xcodes (e.g. ["15.2", "14.3.1"]). ' +
-        'Installing Xcode requires Apple ID credentials — xcodes will prompt interactively or use ' +
-        'the XCODES_USERNAME and XCODES_PASSWORD environment variables for non-interactive installs.'
-      )
+      .describe('List of Xcode versions to install via xcodes (e.g. ["15.2", "14.3.1"]).')
       .optional(),
     selected: z
       .string()
@@ -30,6 +26,19 @@ const schema = z
         'Must be one of the installed xcodeVersions. Equivalent to running xcodes select.'
       )
       .optional(),
+    appleId: z
+      .string()
+      .optional()
+      .describe(
+        'Apple ID email used to authenticate with Apple servers when downloading Xcode. ' +
+        'If omitted, xcodes will prompt interactively on first install.'
+      ),
+    appleIdPassword: z
+      .string()
+      .optional()
+      .describe(
+        'Apple ID password. Required alongside appleId for non-interactive installs.'
+      ),
   })
   .describe('xcodes resource — install and manage multiple Xcode versions via the xcodes CLI');
 
@@ -75,6 +84,8 @@ export class XcodesResource extends Resource<XcodesConfig> {
       parameterSettings: {
         xcodeVersions: { type: 'stateful', definition: new XcodeVersionsParameter(), order: 1 },
         selected: { type: 'stateful', definition: new XcodesSelectedParameter(), order: 2 },
+        appleId: { type: 'string', setting: true },
+        appleIdPassword: { type: 'string', setting: true },
       },
     };
   }
