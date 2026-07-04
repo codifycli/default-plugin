@@ -143,7 +143,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
     const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-android-'))
 
     try {
-      await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused ${downloadLink.link} -o android-studio.dmg`, { cwd: temporaryDir });
+      await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused --retry-all-errors ${downloadLink.link} -o android-studio.dmg`, { cwd: temporaryDir });
       const mountedDir = '/Volumes/android-studio'
 
       const { data } = await $.spawn('hdiutil attach android-studio.dmg -mountpoint "/Volumes/android-studio"', { cwd: temporaryDir });
@@ -191,7 +191,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
     try {
       const { status: curlStatus } = await $.spawnSafe('curl --version');
       if (curlStatus === SpawnStatus.SUCCESS) {
-        await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused ${downloadLink.link} -o android-studio.tar.gz`, { cwd: temporaryDir });
+        await $.spawn(`curl -fsSL --retry 5 --retry-delay 3 --retry-connrefused --retry-all-errors ${downloadLink.link} -o android-studio.tar.gz`, { cwd: temporaryDir });
       } else {
         await $.spawn(`wget -q --tries=5 --waitretry=3 -O android-studio.tar.gz ${downloadLink.link}`, { cwd: temporaryDir });
       }
