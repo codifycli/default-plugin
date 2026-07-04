@@ -163,7 +163,7 @@ export class CodexResource extends Resource<CodexConfig> {
     const $ = getPty();
 
     await $.spawn(
-      'bash -c "curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh"',
+      'bash -c "curl -fsSL --retry 5 --retry-delay 3 --retry-all-errors https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh"',
       { interactive: true },
     );
 
