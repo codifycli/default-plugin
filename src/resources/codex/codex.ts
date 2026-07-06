@@ -4,6 +4,7 @@ import {
   ExampleConfig,
   Resource,
   ResourceSettings,
+  SpawnStatus,
   getPty,
   z,
 } from '@codifycli/plugin-core';
@@ -162,10 +163,25 @@ export class CodexResource extends Resource<CodexConfig> {
   async create(_plan: CreatePlan<CodexConfig>): Promise<void> {
     const $ = getPty();
 
-    await $.spawn(
-      'bash -c "curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh"',
-      { interactive: true },
-    );
+    const installCmd = 'bash -c "curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh"';
+
+    // The official installer resolves the release version and verifies checksums via
+    // unauthenticated GitHub API calls, which can transiently 403 under shared-IP rate
+    // limiting (common on CI runners). Retry with a backoff long enough for the rate
+    // limit window to clear.
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const result = await $.spawnSafe(installCmd, { interactive: true });
+      if (result.status === SpawnStatus.SUCCESS) {
+        break;
+      }
+
+      if (attempt === maxAttempts) {
+        throw new Error(`Failed to install Codex after ${maxAttempts} attempts: ${result.data}`);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 60_000));
+    }
 
     // Ensure PATH is updated so subsequent lifecycle methods can call `codex`
     const localBin = path.join(os.homedir(), '.local', 'bin');
