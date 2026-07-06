@@ -25,6 +25,13 @@ const schema = z.object({
     .array(simulatorSchema)
     .optional()
     .describe('List of iOS simulators to create and manage.'),
+  acceptLicense: z
+    .boolean()
+    .optional()
+    .describe(
+      'Automatically accept the Xcode license agreement if it has not been accepted yet. ' +
+      'Runs `sudo xcodebuild -license accept`. Defaults to true.'
+    ),
 });
 
 export type IosSimulatorConfig = z.infer<typeof schema>;
@@ -38,6 +45,16 @@ interface SimDevice {
 
 interface SimctlDevicesOutput {
   devices: Record<string, SimDevice[]>;
+}
+
+interface SimctlRuntime {
+  identifier: string;
+  isAvailable: boolean;
+  name: string;
+}
+
+interface SimctlRuntimesOutput {
+  runtimes: SimctlRuntime[];
 }
 
 const defaultConfig: Partial<IosSimulatorConfig> & { os: any } = {
@@ -85,6 +102,12 @@ const exampleMultiDevice: ExampleConfig = {
   ],
 };
 
+// com.apple.CoreSimulator.SimRuntime.iOS-18-0 → "iOS"
+function runtimeToXcodebuildPlatform(runtimeId: string): string {
+  const match = runtimeId.match(/SimRuntime\.([a-zA-Z]+)/);
+  return match ? match[1] : runtimeId;
+}
+
 export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   getSettings(): ResourceSettings<IosSimulatorConfig> {
     return {
@@ -109,6 +132,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
             current.filter((c) => desired.some((d) => d.name === c.name)),
           canModify: true,
         },
+        acceptLicense: { type: 'boolean', setting: true, default: true },
       },
     };
   }
@@ -132,7 +156,11 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   }
 
   async create(plan: CreatePlan<IosSimulatorConfig>): Promise<void> {
+    if (plan.desiredConfig.acceptLicense !== false) {
+      await this.acceptLicenseIfNeeded();
+    }
     await this.assertSimctlAvailable();
+    await this.assertRuntimesAvailable(plan.desiredConfig.simulators ?? []);
     const $ = getPty();
     for (const sim of plan.desiredConfig.simulators ?? []) {
       await $.spawn(
@@ -192,13 +220,50 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
 
   private async assertSimctlAvailable(): Promise<void> {
     const $ = getPty();
-    const { status } = await $.spawnSafe('xcrun simctl help');
+    // Use `xcrun -f simctl` to locate the binary without invoking it — avoids triggering the license prompt
+    const { status } = await $.spawnSafe('xcrun -f simctl');
     if (status !== SpawnStatus.SUCCESS) {
       throw new Error(
         'xcrun simctl is not available. Xcode must be installed to manage iOS simulators. ' +
         'Install it manually from the Mac App Store or use the xcodes resource to manage Xcode versions.',
       );
     }
+  }
+
+  private async assertRuntimesAvailable(simulators: SimulatorDeclaration[]): Promise<void> {
+    const $ = getPty();
+    const { status, data } = await $.spawnSafe('xcrun simctl list runtimes --json');
+    if (status !== SpawnStatus.SUCCESS) return; // can't verify, let simctl fail with its own message
+
+    let availableRuntimes: Set<string>;
+    try {
+      const parsed: SimctlRuntimesOutput = JSON.parse(data);
+      availableRuntimes = new Set(
+        parsed.runtimes.filter((r) => r.isAvailable).map((r) => r.identifier),
+      );
+    } catch {
+      return;
+    }
+
+    const missing = [...new Set(simulators.map((s) => s.runtime))].filter(
+      (r) => !availableRuntimes.has(r),
+    );
+
+    if (missing.length > 0) {
+      throw new Error(
+        `The following simulator runtime${missing.length > 1 ? 's are' : ' is'} not installed:\n` +
+        missing.map((r) => `  ${r}`).join('\n') + '\n' +
+        'Download runtimes in Xcode → Settings → Platforms, or via:\n' +
+        missing.map((r) => `  xcodebuild -downloadPlatform ${runtimeToXcodebuildPlatform(r)}`).join('\n'),
+      );
+    }
+  }
+
+  private async acceptLicenseIfNeeded(): Promise<void> {
+    const $ = getPty();
+    const { status } = await $.spawnSafe('xcodebuild -license status');
+    if (status === SpawnStatus.SUCCESS) return;
+    await $.spawn('xcodebuild -license accept', { requiresRoot: true });
   }
 
   private async listAllDevices(): Promise<Record<string, SimDevice[]> | null> {
