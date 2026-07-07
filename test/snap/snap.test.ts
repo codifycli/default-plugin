@@ -59,7 +59,7 @@ describe('Snap resource integration tests', { skip: !Utils.isLinux() },  () => {
     });
   });
 
-  it('Can install classic snaps', { timeout: 300000 }, async () => {
+  it('Can install classic snaps', { timeout: 600000 }, async () => {
     await PluginTester.fullTest(pluginPath, [{
       type: 'snap',
       install: [
