@@ -3,7 +3,7 @@ title: codex
 description: A reference page for the codex resource
 ---
 
-The codex resource installs the [Codex CLI](https://developers.openai.com/codex) — OpenAI's terminal-based coding agent — and manages its global configuration. It handles installation via the official installer script and gives you declarative control over `~/.codex/config.toml` settings and global MCP servers.
+The codex resource installs the [Codex CLI](https://developers.openai.com/codex) — OpenAI's terminal-based coding agent — and manages its global configuration. It handles installation via OpenAI's official `@openai/codex` npm package and gives you declarative control over `~/.codex/config.toml` settings and global MCP servers.
 
 ## Parameters
 
@@ -79,8 +79,7 @@ The codex resource installs the [Codex CLI](https://developers.openai.com/codex)
 
 ## Notes
 
-- Codex is installed via the official installer (`curl -fsSL https://chatgpt.com/codex/install.sh | sh`) on both macOS and Linux. The binary is placed at `~/.local/bin/codex`.
-- The installer adds `~/.local/bin` to your PATH. This entry remains after destroy — remove it manually if you no longer want it.
+- Codex is installed via `npm install --global @openai/codex` on both macOS and Linux, matching OpenAI's officially published npm distribution.
 - The `config` parameter merges only the declared top-level keys of `~/.codex/config.toml`. Existing keys not in your Codify config (including `mcp_servers`) are left untouched.
 - MCP servers are stored under `[mcp_servers.<name>]` in `~/.codex/config.toml`. Removing an MCP server from your config removes its table; other servers are untouched.
 - For per-project configuration (AGENTS.md, project-scoped settings and MCP servers), see [`codex-project`](/docs/resources/codex/codex-project). For the Codex desktop app, see [`codex-app`](/docs/resources/codex/codex-app).

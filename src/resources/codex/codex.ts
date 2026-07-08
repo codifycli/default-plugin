@@ -4,6 +4,7 @@ import {
   ExampleConfig,
   Resource,
   ResourceSettings,
+  SpawnStatus,
   getPty,
   z,
 } from '@codifycli/plugin-core';
@@ -149,31 +150,25 @@ export class CodexResource extends Resource<CodexConfig> {
   }
 
   async refresh(): Promise<Partial<CodexConfig> | null> {
-    const codexBin = path.join(os.homedir(), '.local', 'bin', 'codex');
-    try {
-      await fs.access(codexBin);
-    } catch {
-      return null;
-    }
-
-    return {};
+    const $ = getPty();
+    const { status } = await $.spawnSafe('which codex');
+    return status === SpawnStatus.SUCCESS ? {} : null;
   }
 
   async create(_plan: CreatePlan<CodexConfig>): Promise<void> {
     const $ = getPty();
 
-    await $.spawn(
-      'bash -c "curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh"',
-      { interactive: true },
-    );
-
-    // Ensure PATH is updated so subsequent lifecycle methods can call `codex`
-    const localBin = path.join(os.homedir(), '.local', 'bin');
-    process.env['PATH'] = `${localBin}:${process.env['PATH'] ?? ''}`;
+    // Installed via npm (OpenAI's official @openai/codex package) rather than the
+    // curl | sh installer: the installer's version resolution hits api.github.com
+    // unauthenticated, which shared CI runner IPs frequently exhaust.
+    await $.spawn('npm install --global @openai/codex', { interactive: true });
   }
 
   async destroy(_plan: DestroyPlan<CodexConfig>): Promise<void> {
-    // Native uninstall: remove the binary and standalone release artifacts
+    const $ = getPty();
+    await $.spawnSafe('npm uninstall --global @openai/codex', { interactive: true });
+
+    // Best-effort cleanup of artifacts left by the legacy curl | sh installer
     await fs.rm(path.join(os.homedir(), '.local', 'bin', 'codex'), { force: true });
     await fs.rm(path.join(os.homedir(), '.codex', 'packages', 'standalone'), { recursive: true, force: true });
   }

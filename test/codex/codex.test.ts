@@ -11,15 +11,14 @@ describe('codex resource integration tests', async () => {
   const pluginPath = path.resolve('./src/index.ts');
 
   it('Can install codex', { timeout: 300_000 }, async () => {
-    const codexBin = path.join(os.homedir(), '.local', 'bin', 'codex');
     await PluginTester.fullTest(
       pluginPath,
       [{ type: 'codex' }],
       {
         skipUninstall: true,
         validateApply: async () => {
-          const exists = await fs.access(codexBin).then(() => true).catch(() => false);
-          expect(exists).toBe(true);
+          const { data } = await testSpawn('which codex');
+          expect(data.trim().length).toBeGreaterThan(0);
         },
       },
     );
@@ -102,6 +101,7 @@ describe('codex resource integration tests', async () => {
 
   afterAll(async () => {
     // Best-effort cleanup in case tests left codex installed
+    await testSpawn('npm uninstall --global @openai/codex');
     await testSpawn('rm -f ~/.local/bin/codex');
     await testSpawn('rm -rf ~/.codex/packages/standalone');
   }, 60_000);
