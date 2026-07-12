@@ -32,6 +32,20 @@ const schema = z.object({
       'Automatically accept the Xcode license agreement if it has not been accepted yet. ' +
       'Runs `sudo xcodebuild -license accept`. Defaults to true.'
     ),
+  downloadRuntimes: z
+    .boolean()
+    .optional()
+    .describe(
+      'Automatically download missing simulator runtimes via `xcodebuild -downloadPlatform`. ' +
+      'Defaults to true. Set to false if you manage runtimes manually through Xcode.'
+    ),
+  destroyRuntimes: z
+    .boolean()
+    .optional()
+    .describe(
+      'Delete simulator runtimes that are no longer used by any simulator when this resource is destroyed. ' +
+      'Defaults to false. Enable with caution — runtimes are several GB and take time to re-download.'
+    ),
 });
 
 export type IosSimulatorConfig = z.infer<typeof schema>;
@@ -133,6 +147,8 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
           canModify: true,
         },
         acceptLicense: { type: 'boolean', setting: true, default: true },
+        downloadRuntimes: { type: 'boolean', setting: true, default: true },
+        destroyRuntimes: { type: 'boolean', setting: true, default: false },
       },
     };
   }
@@ -160,17 +176,32 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
       await this.acceptLicenseIfNeeded();
     }
     await this.assertSimctlAvailable();
-    await this.assertRuntimesAvailable(plan.desiredConfig.simulators ?? []);
+    const simulators = plan.desiredConfig.simulators ?? [];
+    if (plan.desiredConfig.downloadRuntimes !== false) {
+      await this.downloadMissingRuntimes(simulators);
+    } else {
+      await this.assertRuntimesAvailable(simulators);
+    }
     const $ = getPty();
-    for (const sim of plan.desiredConfig.simulators ?? []) {
-      await $.spawn(
+    for (const sim of simulators) {
+      const { status, data } = await $.spawnSafe(
         `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${sim.runtime}"`,
         { interactive: true },
       );
+      if (status !== SpawnStatus.SUCCESS) {
+        if (data.includes('Invalid runtime')) {
+          throw new Error(
+            `Runtime "${sim.runtime}" is not installed or not available.\n` +
+            'Download it in Xcode → Settings → Platforms, or via:\n' +
+            `  xcodebuild -downloadPlatform ${runtimeToXcodebuildPlatform(sim.runtime)}`,
+          );
+        }
+        throw new Error(`Failed to create simulator "${sim.name}": ${data}`);
+      }
     }
   }
 
-  async modify(pc: ParameterChange<IosSimulatorConfig>, _plan: ModifyPlan<IosSimulatorConfig>): Promise<void> {
+  async modify(pc: ParameterChange<IosSimulatorConfig>, plan: ModifyPlan<IosSimulatorConfig>): Promise<void> {
     if (pc.name !== 'simulators') return;
 
     const $ = getPty();
@@ -194,6 +225,11 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     }
 
     const toAdd = desired.filter((d) => !previous.some((p) => p.name === d.name));
+    if (toAdd.length > 0 && plan.desiredConfig.downloadRuntimes !== false) {
+      await this.downloadMissingRuntimes(toAdd);
+    } else if (toAdd.length > 0) {
+      await this.assertRuntimesAvailable(toAdd);
+    }
     for (const sim of toAdd) {
       await $.spawn(
         `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${sim.runtime}"`,
@@ -207,7 +243,10 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     const allDevices = await this.listAllDevices();
     if (!allDevices) return;
 
-    for (const sim of plan.currentConfig.simulators ?? []) {
+    const simulatorsToDestroy = plan.currentConfig.simulators ?? [];
+    const runtimesInUse = new Set(simulatorsToDestroy.map((s) => s.runtime));
+
+    for (const sim of simulatorsToDestroy) {
       for (const devices of Object.values(allDevices)) {
         const match = devices.find((d) => d.name === sim.name);
         if (match) {
@@ -215,6 +254,10 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
           break;
         }
       }
+    }
+
+    if (plan.currentConfig.destroyRuntimes) {
+      await this.deleteOrphanedRuntimes(runtimesInUse);
     }
   }
 
@@ -230,33 +273,65 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     }
   }
 
-  private async assertRuntimesAvailable(simulators: SimulatorDeclaration[]): Promise<void> {
+  private async deleteOrphanedRuntimes(candidateRuntimes: Set<string>): Promise<void> {
+    if (candidateRuntimes.size === 0) return;
+
+    const allDevices = await this.listAllDevices();
+    const stillInUse = new Set<string>();
+    if (allDevices) {
+      for (const [runtimeId, devices] of Object.entries(allDevices)) {
+        if (devices.length > 0) stillInUse.add(runtimeId);
+      }
+    }
+
+    const $ = getPty();
+    for (const runtimeId of candidateRuntimes) {
+      if (!stillInUse.has(runtimeId)) {
+        await $.spawnSafe(`xcrun simctl runtime delete "${runtimeId}"`);
+      }
+    }
+  }
+
+  private async getMissingRuntimes(simulators: SimulatorDeclaration[]): Promise<string[]> {
     const $ = getPty();
     const { status, data } = await $.spawnSafe('xcrun simctl list runtimes --json');
-    if (status !== SpawnStatus.SUCCESS) return; // can't verify, let simctl fail with its own message
+    if (status !== SpawnStatus.SUCCESS) return [];
 
-    let availableRuntimes: Set<string>;
+    let allRuntimes: SimctlRuntime[];
     try {
       const parsed: SimctlRuntimesOutput = JSON.parse(data);
-      availableRuntimes = new Set(
-        parsed.runtimes.filter((r) => r.isAvailable).map((r) => r.identifier),
-      );
+      allRuntimes = parsed.runtimes;
     } catch {
-      return;
+      return [];
     }
 
-    const missing = [...new Set(simulators.map((s) => s.runtime))].filter(
-      (r) => !availableRuntimes.has(r),
-    );
+    const availableIds = new Set(allRuntimes.filter((r) => r.isAvailable).map((r) => r.identifier));
+    const requiredRuntimes = [...new Set(simulators.map((s) => s.runtime))];
+    return requiredRuntimes.filter((r) => !availableIds.has(r));
+  }
 
-    if (missing.length > 0) {
-      throw new Error(
-        `The following simulator runtime${missing.length > 1 ? 's are' : ' is'} not installed:\n` +
-        missing.map((r) => `  ${r}`).join('\n') + '\n' +
-        'Download runtimes in Xcode → Settings → Platforms, or via:\n' +
-        missing.map((r) => `  xcodebuild -downloadPlatform ${runtimeToXcodebuildPlatform(r)}`).join('\n'),
-      );
+  private async downloadMissingRuntimes(simulators: SimulatorDeclaration[]): Promise<void> {
+    const missing = await this.getMissingRuntimes(simulators);
+    if (missing.length === 0) return;
+
+    const $ = getPty();
+    const platforms = [...new Set(missing.map(runtimeToXcodebuildPlatform))];
+    for (const platform of platforms) {
+      await $.spawn(`xcodebuild -downloadPlatform ${platform}`, { stdin: true });
     }
+  }
+
+  private async assertRuntimesAvailable(simulators: SimulatorDeclaration[]): Promise<void> {
+    const missing = await this.getMissingRuntimes(simulators);
+    if (missing.length === 0) return;
+
+    const lines: string[] = [
+      `The following simulator runtime${missing.length > 1 ? 's are' : ' is'} not installed or not available:`,
+      ...missing.map((r) => `  ${r}`),
+      'Download runtimes in Xcode → Settings → Platforms, or via:',
+      ...missing.map((r) => `  xcodebuild -downloadPlatform ${runtimeToXcodebuildPlatform(r)}`),
+    ];
+    throw new Error(lines.join('\n'));
   }
 
   private async acceptLicenseIfNeeded(): Promise<void> {
