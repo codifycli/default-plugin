@@ -4,6 +4,7 @@ import {
   ExampleConfig,
   ModifyPlan,
   ParameterChange,
+  RefreshContext,
   Resource,
   ResourceSettings,
   SpawnStatus,
@@ -169,8 +170,36 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     };
   }
 
-  async refresh(): Promise<Partial<IosSimulatorConfig> | null> {
-    return null;
+  async refresh(_parameters: IosSimulatorConfig, context: RefreshContext<IosSimulatorConfig>): Promise<Partial<IosSimulatorConfig> | null> {
+    const allDevices = await this.listAllDevices();
+    if (!allDevices) return null;
+
+    const simulators: SimulatorDeclaration[] = [];
+    for (const [runtimeId, devices] of Object.entries(allDevices)) {
+      for (const device of devices) {
+        // Deleted simulators can leave behind a stale, unavailable entry with the same
+        // name under `simctl list devices`. Skip these so refresh reflects only devices
+        // that actually exist, otherwise a deleted simulator can appear to still be present.
+        if (!device.isAvailable) continue;
+        simulators.push({
+          name: device.name,
+          deviceType: device.deviceTypeIdentifier,
+          runtime: runtimeId,
+        });
+      }
+    }
+
+    // The system always has pre-existing simulators (e.g. Apple TV, Apple Vision Pro) that
+    // aren't managed by this resource, so refresh() will rarely return an empty list. During
+    // apply validation, treat the resource as absent once none of the returned simulators
+    // match what was originally declared, so destroys validate correctly.
+    if (context.commandType === 'validationPlan'
+      && !simulators.some((s) => context.originalDesiredConfig?.simulators?.some((d) => d.name === s.name))
+    ) {
+      return null;
+    }
+
+    return simulators.length > 0 ? { simulators } : null;
   }
 
   async create(plan: CreatePlan<IosSimulatorConfig>): Promise<void> {
@@ -187,7 +216,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     const available = await this.listAvailableRuntimes();
     const existingDevices = await this.listAllDevices() ?? {};
     const existingNames = new Set(
-      Object.values(existingDevices).flat().map((d) => d.name),
+      Object.values(existingDevices).flat().filter((d) => d.isAvailable).map((d) => d.name),
     );
     const $ = getPty();
     for (const sim of simulators) {
