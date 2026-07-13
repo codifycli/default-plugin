@@ -54,6 +54,7 @@ interface SimDevice {
   udid: string;
   name: string;
   state: string;
+  isAvailable: boolean;
   deviceTypeIdentifier: string;
 }
 
@@ -70,6 +71,7 @@ interface SimctlRuntime {
 interface SimctlRuntimesOutput {
   runtimes: SimctlRuntime[];
 }
+
 
 const defaultConfig: Partial<IosSimulatorConfig> & { os: any } = {
   simulators: [],
@@ -122,6 +124,20 @@ function runtimeToXcodebuildPlatform(runtimeId: string): string {
   return match ? match[1] : runtimeId;
 }
 
+// com.apple.CoreSimulator.SimRuntime.iOS-26-0 → "com.apple.CoreSimulator.SimRuntime.iOS-26"
+function runtimeMajorPrefix(runtimeId: string): string {
+  // Strip the patch version component (last -N segment) to get a major-match prefix.
+  // iOS-26-0 and iOS-26-3 both share prefix "...iOS-26".
+  return runtimeId.replace(/-\d+$/, '');
+}
+
+// Two runtime IDs match if they are equal or share the same major-version prefix.
+// Allows iOS-26-0 (declared) to match iOS-26-3 (installed).
+function runtimesMatch(a: string, b: string): boolean {
+  if (a === b) return true;
+  return runtimeMajorPrefix(a) === runtimeMajorPrefix(b);
+}
+
 export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   getSettings(): ResourceSettings<IosSimulatorConfig> {
     return {
@@ -141,7 +157,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
           isElementEqual: (a, b) =>
             a.name === b.name &&
             a.deviceType === b.deviceType &&
-            a.runtime === b.runtime,
+            runtimesMatch(a.runtime, b.runtime),
           filterInStatelessMode: (desired, current) =>
             current.filter((c) => desired.some((d) => d.name === c.name)),
           canModify: true,
@@ -154,21 +170,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   }
 
   async refresh(): Promise<Partial<IosSimulatorConfig> | null> {
-    const allDevices = await this.listAllDevices();
-    if (!allDevices) return null;
-
-    const simulators: SimulatorDeclaration[] = [];
-    for (const [runtimeId, devices] of Object.entries(allDevices)) {
-      for (const device of devices) {
-        simulators.push({
-          name: device.name,
-          deviceType: device.deviceTypeIdentifier,
-          runtime: runtimeId,
-        });
-      }
-    }
-
-    return simulators.length > 0 ? { simulators } : null;
+    return null;
   }
 
   async create(plan: CreatePlan<IosSimulatorConfig>): Promise<void> {
@@ -182,10 +184,17 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     } else {
       await this.assertRuntimesAvailable(simulators);
     }
+    const available = await this.listAvailableRuntimes();
+    const existingDevices = await this.listAllDevices() ?? {};
+    const existingNames = new Set(
+      Object.values(existingDevices).flat().map((d) => d.name),
+    );
     const $ = getPty();
     for (const sim of simulators) {
+      if (existingNames.has(sim.name)) continue;
+      const runtimeId = this.resolveRuntimeId(sim.runtime, available);
       const { status, data } = await $.spawnSafe(
-        `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${sim.runtime}"`,
+        `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${runtimeId}"`,
         { interactive: true },
       );
       if (status !== SpawnStatus.SUCCESS) {
@@ -230,9 +239,11 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     } else if (toAdd.length > 0) {
       await this.assertRuntimesAvailable(toAdd);
     }
+    const available = await this.listAvailableRuntimes();
     for (const sim of toAdd) {
+      const runtimeId = this.resolveRuntimeId(sim.runtime, available);
       await $.spawn(
-        `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${sim.runtime}"`,
+        `xcrun simctl create "${sim.name}" "${sim.deviceType}" "${runtimeId}"`,
         { interactive: true },
       );
     }
@@ -273,41 +284,44 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     }
   }
 
-  private async deleteOrphanedRuntimes(candidateRuntimes: Set<string>): Promise<void> {
-    if (candidateRuntimes.size === 0) return;
-
-    const allDevices = await this.listAllDevices();
-    const stillInUse = new Set<string>();
-    if (allDevices) {
-      for (const [runtimeId, devices] of Object.entries(allDevices)) {
-        if (devices.length > 0) stillInUse.add(runtimeId);
-      }
-    }
-
-    const $ = getPty();
-    for (const runtimeId of candidateRuntimes) {
-      if (!stillInUse.has(runtimeId)) {
-        await $.spawnSafe(`xcrun simctl runtime delete "${runtimeId}"`);
-      }
-    }
-  }
-
-  private async getMissingRuntimes(simulators: SimulatorDeclaration[]): Promise<string[]> {
+  private async listAvailableRuntimes(): Promise<SimctlRuntime[]> {
     const $ = getPty();
     const { status, data } = await $.spawnSafe('xcrun simctl list runtimes --json');
     if (status !== SpawnStatus.SUCCESS) return [];
-
-    let allRuntimes: SimctlRuntime[];
     try {
       const parsed: SimctlRuntimesOutput = JSON.parse(data);
-      allRuntimes = parsed.runtimes;
+      return parsed.runtimes.filter((r) => r.isAvailable);
     } catch {
       return [];
     }
+  }
 
-    const availableIds = new Set(allRuntimes.filter((r) => r.isAvailable).map((r) => r.identifier));
+  // Resolve a declared runtime ID to the actual available one.
+  // If the exact ID is available, return it unchanged.
+  // Otherwise fall back to the highest-versioned available runtime sharing the same major prefix
+  // (e.g. iOS-26-0 → iOS-26-3 when only iOS 26.3 is installed).
+  private resolveRuntimeId(declared: string, available: SimctlRuntime[]): string {
+    if (available.some((r) => r.identifier === declared)) return declared;
+
+    const prefix = runtimeMajorPrefix(declared);
+    const candidates = available.filter((r) => r.identifier.startsWith(prefix));
+    if (candidates.length === 0) return declared;
+
+    // Pick the lexicographically highest patch version
+    candidates.sort((a, b) => b.identifier.localeCompare(a.identifier));
+    return candidates[0].identifier;
+  }
+
+  private async getMissingRuntimes(simulators: SimulatorDeclaration[]): Promise<string[]> {
+    const available = await this.listAvailableRuntimes();
+    const availableIds = new Set(available.map((r) => r.identifier));
     const requiredRuntimes = [...new Set(simulators.map((s) => s.runtime))];
-    return requiredRuntimes.filter((r) => !availableIds.has(r));
+    return requiredRuntimes.filter((declared) => {
+      if (availableIds.has(declared)) return false;
+      // Also consider it present if a same-major-version runtime is available
+      const prefix = runtimeMajorPrefix(declared);
+      return !available.some((r) => r.identifier.startsWith(prefix));
+    });
   }
 
   private async downloadMissingRuntimes(simulators: SimulatorDeclaration[]): Promise<void> {
@@ -332,6 +346,25 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
       ...missing.map((r) => `  xcodebuild -downloadPlatform ${runtimeToXcodebuildPlatform(r)}`),
     ];
     throw new Error(lines.join('\n'));
+  }
+
+  private async deleteOrphanedRuntimes(candidateRuntimes: Set<string>): Promise<void> {
+    if (candidateRuntimes.size === 0) return;
+
+    const allDevices = await this.listAllDevices();
+    const stillInUse = new Set<string>();
+    if (allDevices) {
+      for (const [runtimeId, devices] of Object.entries(allDevices)) {
+        if (devices.length > 0) stillInUse.add(runtimeId);
+      }
+    }
+
+    const $ = getPty();
+    for (const runtimeId of candidateRuntimes) {
+      if (!stillInUse.has(runtimeId)) {
+        await $.spawnSafe(`xcrun simctl runtime delete "${runtimeId}"`);
+      }
+    }
   }
 
   private async acceptLicenseIfNeeded(): Promise<void> {
