@@ -4,6 +4,7 @@ import {
   ExampleConfig,
   ModifyPlan,
   ParameterChange,
+  RefreshContext,
   Resource,
   ResourceSettings,
   SpawnStatus,
@@ -169,8 +170,36 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     };
   }
 
-  async refresh(): Promise<Partial<IosSimulatorConfig> | null> {
-    return null;
+  async refresh(parameters: Partial<IosSimulatorConfig>, context: RefreshContext<IosSimulatorConfig>): Promise<Partial<IosSimulatorConfig> | null> {
+    const allDevices = await this.listAllDevices();
+    if (!allDevices) return null;
+
+    const simulators: SimulatorDeclaration[] = [];
+    for (const [runtimeId, devices] of Object.entries(allDevices)) {
+      for (const device of devices) {
+        // Deleted devices can briefly linger in `simctl list` output as unavailable ghost entries;
+        // exclude them so a just-deleted simulator isn't reported as still existing.
+        if (!device.isAvailable) continue;
+        simulators.push({
+          name: device.name,
+          deviceType: device.deviceTypeIdentifier,
+          runtime: runtimeId,
+        });
+      }
+    }
+
+    // The system may have simulators unrelated to this config (e.g. Xcode's default devices).
+    // When validating a plan, only treat the resource as present if it actually contains something
+    // that was declared — otherwise unrelated simulators would make an empty/destroyed declaration
+    // look like it still needs changes.
+    if (context.commandType === 'validationPlan'
+      && simulators.filter((s) =>
+        context.originalDesiredConfig?.simulators?.some((d) => d.name === s.name)).length === 0
+    ) {
+      return null;
+    }
+
+    return simulators.length > 0 ? { simulators } : null;
   }
 
   async create(plan: CreatePlan<IosSimulatorConfig>): Promise<void> {
