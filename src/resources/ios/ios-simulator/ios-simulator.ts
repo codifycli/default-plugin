@@ -174,10 +174,10 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   }
 
   async create(plan: CreatePlan<IosSimulatorConfig>): Promise<void> {
+    await this.assertSimctlAvailable();
     if (plan.desiredConfig.acceptLicense !== false) {
       await this.acceptLicenseIfNeeded();
     }
-    await this.assertSimctlAvailable();
     const simulators = plan.desiredConfig.simulators ?? [];
     if (plan.desiredConfig.downloadRuntimes !== false) {
       await this.downloadMissingRuntimes(simulators);
@@ -201,8 +201,10 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
         if (data.includes('Invalid runtime')) {
           throw new Error(
             `Runtime "${sim.runtime}" is not installed or not available.\n` +
-            'Download it in Xcode → Settings → Platforms, or via:\n' +
-            `  xcodebuild -downloadPlatform ${runtimeToXcodebuildPlatform(sim.runtime)}`,
+            'If this is the latest runtime for your Xcode version, download it via:\n' +
+            `  xcodebuild -downloadPlatform ${runtimeToXcodebuildPlatform(sim.runtime)}\n` +
+            'Older runtimes cannot be fetched this way — install them from Xcode → Settings → ' +
+            'Platforms, or via `xcodes runtimes install "<version>"`.',
           );
         }
         throw new Error(`Failed to create simulator "${sim.name}": ${data}`);
@@ -333,6 +335,13 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     for (const platform of platforms) {
       await $.spawn(`xcodebuild -downloadPlatform ${platform}`, { stdin: true });
     }
+
+    // `xcodebuild -downloadPlatform` only ever fetches the single latest runtime for a
+    // platform (tied to the active Xcode version) — it cannot target an older/specific
+    // version. If the declared runtime is still missing after the download, it's an
+    // older version that isn't downloadable this way, so fail with actionable guidance
+    // instead of letting the caller hit a generic "Invalid runtime" error later.
+    await this.assertRuntimesAvailable(simulators);
   }
 
   private async assertRuntimesAvailable(simulators: SimulatorDeclaration[]): Promise<void> {
@@ -342,8 +351,10 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     const lines: string[] = [
       `The following simulator runtime${missing.length > 1 ? 's are' : ' is'} not installed or not available:`,
       ...missing.map((r) => `  ${r}`),
-      'Download runtimes in Xcode → Settings → Platforms, or via:',
-      ...missing.map((r) => `  xcodebuild -downloadPlatform ${runtimeToXcodebuildPlatform(r)}`),
+      '`xcodebuild -downloadPlatform` only fetches the latest runtime for the currently ' +
+      'installed Xcode version — it cannot download older/specific versions.',
+      'To install an older runtime, either pick it from Xcode → Settings → Platforms, ' +
+      'or use a tool like `xcodes runtimes install "<version>"` (https://github.com/XcodesOrg/xcodes).',
     ];
     throw new Error(lines.join('\n'));
   }

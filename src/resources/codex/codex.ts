@@ -162,10 +162,24 @@ export class CodexResource extends Resource<CodexConfig> {
   async create(_plan: CreatePlan<CodexConfig>): Promise<void> {
     const $ = getPty();
 
-    await $.spawn(
-      'bash -c "curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh"',
-      { interactive: true },
-    );
+    const maxAttempts = 3;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        await $.spawn(
+          'bash -c "curl -fsSL https://chatgpt.com/codex/install.sh | CODEX_NON_INTERACTIVE=1 sh"',
+          { interactive: true },
+        );
+        break;
+      } catch (error) {
+        if (attempt === maxAttempts) {
+          throw error;
+        }
+
+        // install.sh queries the GitHub release API internally, which can transiently
+        // 403 under rate-limiting. Retry the whole install rather than just the outer curl.
+        await new Promise((resolve) => setTimeout(resolve, 5_000 * attempt));
+      }
+    }
 
     // Ensure PATH is updated so subsequent lifecycle methods can call `codex`
     const localBin = path.join(os.homedir(), '.local', 'bin');
