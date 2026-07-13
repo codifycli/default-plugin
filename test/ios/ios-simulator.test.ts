@@ -22,7 +22,7 @@ describe('iOS Simulator tests', { skip }, async () => {
           {
             name: 'codify-test-iphone',
             deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
-            runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
+            runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-26-0',
           },
         ],
       },
@@ -41,12 +41,12 @@ describe('iOS Simulator tests', { skip }, async () => {
             {
               name: 'codify-test-iphone',
               deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPhone-15',
-              runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
+              runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-26-0',
             },
             {
               name: 'codify-test-ipad',
               deviceType: 'com.apple.CoreSimulator.SimDeviceType.iPad-mini-6th-generation',
-              runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-18-0',
+              runtime: 'com.apple.CoreSimulator.SimRuntime.iOS-26-0',
             },
           ],
         }],
