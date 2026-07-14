@@ -74,14 +74,14 @@ export class GitLfsResource extends Resource<GitLfsConfig> {
     const gitLfsStatus = await $.spawn('git lfs env', { cwd: os.homedir(), interactive: true, disableWrapping: true });
     const lines = gitLfsStatus.data.split('\n');
 
-    // When git lfs exists but git lfs install hasn't been called then git lfs env returns:
-    // git config filter.lfs.process = ""
-    // git config filter.lfs.smudge = ""
-    // git config filter.lfs.clean = ""
-    const emptyLfsLines = lines.filter((l) => l.includes('git config filter.lfs'))
-      .map((l) => l.split('=')[1].trim())
-      .includes('""');
+    // When git lfs exists but git lfs install hasn't been called (or has been undone by
+    // `git lfs uninstall`, which removes the whole [filter "lfs"] section), `git lfs env` prints
+    // either empty values (`git config filter.lfs.process = ""`) or no filter.lfs lines at all —
+    // both mean "not initialized", not just the empty-string case.
+    const filterLfsLines = lines.filter((l) => l.includes('git config filter.lfs'));
+    const hasConfiguredFilter = filterLfsLines.length > 0
+      && filterLfsLines.every((l) => l.split('=')[1].trim() !== '""');
 
-    return !emptyLfsLines;
+    return hasConfiguredFilter;
   }
 }
