@@ -170,7 +170,22 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   }
 
   async refresh(): Promise<Partial<IosSimulatorConfig> | null> {
-    return null;
+    const allDevices = await this.listAllDevices();
+    if (!allDevices) return null;
+
+    const simulators: SimulatorDeclaration[] = [];
+    for (const [runtimeId, devices] of Object.entries(allDevices)) {
+      for (const device of devices) {
+        if (!device.isAvailable) continue;
+        simulators.push({
+          name: device.name,
+          deviceType: device.deviceTypeIdentifier,
+          runtime: runtimeId,
+        });
+      }
+    }
+
+    return simulators.length > 0 ? { simulators } : null;
   }
 
   async create(plan: CreatePlan<IosSimulatorConfig>): Promise<void> {
