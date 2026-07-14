@@ -4,6 +4,7 @@ import {
   ExampleConfig,
   ModifyPlan,
   ParameterChange,
+  RefreshContext,
   Resource,
   ResourceSettings,
   SpawnStatus,
@@ -169,7 +170,10 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
     };
   }
 
-  async refresh(): Promise<Partial<IosSimulatorConfig> | null> {
+  async refresh(
+    parameters: Partial<IosSimulatorConfig>,
+    context: RefreshContext<IosSimulatorConfig>,
+  ): Promise<Partial<IosSimulatorConfig> | null> {
     const allDevices = await this.listAllDevices();
     if (!allDevices) return null;
 
@@ -183,6 +187,17 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
           runtime: runtimeId,
         });
       }
+    }
+
+    // The system always has other simulators unrelated to this config (e.g. Xcode's own
+    // default devices). After a destroy, the post-apply validation plan must not mistake
+    // those for evidence that this resource still exists, or it will report a spurious
+    // "additional changes needed" error forever. Only match against what was actually declared.
+    if (context.commandType === 'validationPlan'
+      && simulators.filter((s) =>
+        context.originalDesiredConfig?.simulators?.some((d) => d.name === s.name)).length === 0
+    ) {
+      return null;
     }
 
     return simulators.length > 0 ? { simulators } : null;
