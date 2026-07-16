@@ -8,20 +8,22 @@ This is a **Codify plugin** that provides 50+ declarative system configuration r
 
 ## Build and Test Commands
 
+**NEVER run integration tests on the local machine — not `npm test`, `npm run test:integration`, `npm run test:integration:dev`, nor `vitest` against anything under `test/**`.** Integration tests install and uninstall real tools/binaries (Homebrew formulae, CLIs, etc.) via the actual system package managers, and can mangle the user's local dev setup. The user runs these manually themselves inside a VM. If integration test coverage is needed, tell the user what to run and let them run it — do not run it yourself under any circumstance, even if asked to "verify" or "confirm" a fix. Unit tests (`npm run test:unit`, or `vitest` against `src/**/*.test.ts`) are safe and fine to run.
+
 ```bash
 # Build the plugin (compiles TypeScript, bundles with Rollup, generates schemas.json)
 npm run build
 
-# Run all tests (unit + integration)
+# Run all tests (unit + integration) — DO NOT RUN LOCALLY, see warning above
 npm test
 
-# Run unit tests only (fast - tests in src/**/*.test.ts)
+# Run unit tests only (fast - tests in src/**/*.test.ts) — safe to run locally
 npm run test:unit
 
-# Run integration tests only (slow - full lifecycle tests in test/**/*.test.ts)
+# Run integration tests only (slow - full lifecycle tests in test/**/*.test.ts) — DO NOT RUN LOCALLY, user runs this in a VM
 npm run test:integration
 
-# Run integration tests in development mode
+# Run integration tests in development mode — DO NOT RUN LOCALLY, user runs this in a VM
 npm run test:integration:dev
 
 # Deploy to Cloudflare R2
@@ -199,6 +201,7 @@ Zod is preferred because types are automatically inferred from the schema, preve
 - Tests create → modify → destroy flow
 - Includes validation callbacks
 - **Always use `testSpawn` from `@codifycli/plugin-test` for shell commands in validation callbacks.** `testSpawn` sources the user's shell RC (`.zshrc`, `.bashrc`) before running the command, so PATH and shell aliases are available — just like a real terminal session. Never use `execSync` in integration tests.
+- **Claude must never execute these locally.** They install/uninstall real system packages and can corrupt the user's dev environment. The user runs these themselves in a disposable VM — Claude should only write/edit the tests and let the user run them.
 
 **Integration Test Pattern:**
 ```typescript

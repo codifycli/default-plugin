@@ -161,18 +161,20 @@ ${JSON.stringify(releaseInfo, null, 2)}
   override async destroy(): Promise<void> {
     const $ = getPty();
     const installLocationQuery = await $.spawnSafe('which terraform', { interactive: true });
-    console.log('Right after which terraform', installLocationQuery.data);
     if (installLocationQuery.status === SpawnStatus.ERROR) {
       return;
     }
 
-    if (installLocationQuery.data.includes('homebrew')) {
+    const installLocation = installLocationQuery.data.trim();
+
+    if (installLocation.includes('homebrew')) {
       await Utils.uninstallViaPkgMgr('terraform', undefined, PackageManager.BREW);
       return;
     }
 
-    await $.spawn(`rm ${installLocationQuery.data}`, { requiresRoot: true });
-    await FileUtils.removeLineFromShellRc(`export PATH=$PATH:${installLocationQuery.data}`);
+    await $.spawn(`rm ${installLocation}`, { requiresRoot: true });
+    const directory = installLocation.slice(0, Math.max(0, installLocation.lastIndexOf('/')));
+    await FileUtils.removeLineFromShellRc(`export PATH=$PATH:${directory}`);
   }
 
   private async getLatestTerraformInfo(): Promise<HashicorpReleaseInfo> {
