@@ -1,4 +1,5 @@
 import {
+  CreatePlan,
   ExampleConfig,
   Resource,
   ResourceSettings,
@@ -38,6 +39,13 @@ const schema = z
       .optional()
       .describe(
         'Apple ID password. Required alongside appleId for non-interactive installs.'
+      ),
+    acceptLicense: z
+      .boolean()
+      .optional()
+      .describe(
+        'Automatically accept the Xcode license agreement after installation. ' +
+        'Runs `sudo xcodebuild -license accept`. Defaults to true.'
       ),
   })
   .describe('xcodes resource — install and manage multiple Xcode versions via the xcodes CLI');
@@ -86,6 +94,7 @@ export class XcodesResource extends Resource<XcodesConfig> {
         selected: { type: 'stateful', definition: new XcodesSelectedParameter(), order: 2 },
         appleId: { type: 'string', setting: true },
         appleIdPassword: { type: 'string', setting: true },
+        acceptLicense: { type: 'boolean', setting: true, default: true },
       },
     };
   }
@@ -96,11 +105,21 @@ export class XcodesResource extends Resource<XcodesConfig> {
     return status === SpawnStatus.SUCCESS ? {} : null;
   }
 
-  override async create(): Promise<void> {
+  override async create(plan: CreatePlan<XcodesConfig>): Promise<void> {
     await Utils.installViaPkgMgr('xcodes', undefined, PackageManager.BREW);
+    if (plan.desiredConfig.acceptLicense !== false) {
+      await this.acceptLicenseIfNeeded();
+    }
   }
 
   override async destroy(): Promise<void> {
     await Utils.uninstallViaPkgMgr('xcodes', undefined, PackageManager.BREW);
+  }
+
+  private async acceptLicenseIfNeeded(): Promise<void> {
+    const $ = getPty();
+    const { status } = await $.spawnSafe('xcodebuild -license status');
+    if (status === SpawnStatus.SUCCESS) return;
+    await $.spawn('xcodebuild -license accept', { requiresRoot: true });
   }
 }

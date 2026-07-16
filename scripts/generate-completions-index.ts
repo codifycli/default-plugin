@@ -24,11 +24,12 @@ const modules = completionFiles.map((relPath, i) => {
   const dotIndex = filename.indexOf('.')
   if (dotIndex === -1) {
     throw new Error(
-      `Completion file must be named <resource-type>.<parameter-name>.ts, got: ${filename}`
+      `Completion file must be named <resource-type>.<jsonpath>.ts (e.g. homebrew.$.formulae.ts, ios-simulators.$.simulators[x].deviceType.ts), got: ${filename}`
     )
   }
   const resourceType = filename.substring(0, dotIndex)
-  const parameterPath = '/' + filename.substring(dotIndex + 1).replaceAll('.', '/')
+  // [x] in filenames encodes [*] (glob-safe); restore to proper JSONPath wildcard
+  const parameterPath = filename.substring(dotIndex + 1).replaceAll('[x]', '[*]')
 
   // Path from completions-cron/src/__generated__/ back to plugin src/resources/
   const importPath = '../../../src/' + relPath.replace(/\.ts$/, '.js')
@@ -42,15 +43,16 @@ for (const { importName, importPath } of modules) {
 }
 
 lines.push('')
-lines.push('export interface CompletionModule {')
-lines.push('  resourceType: string')
-lines.push('  parameterPath: string')
-lines.push('  fetch: () => Promise<string[]>')
-lines.push('}')
+lines.push('export type CompletionModule =')
+lines.push('  | { kind: \'fetch\'; resourceType: string; parameterPath: string; fetch: () => Promise<string[]> }')
+lines.push('  | { kind: \'mirror\'; resourceType: string; parameterPath: string; mirrorParameter: string }')
 lines.push('')
 lines.push('export const completionModules: CompletionModule[] = [')
 for (const { importName, resourceType, parameterPath } of modules) {
-  lines.push(`  { resourceType: '${resourceType}', parameterPath: '${parameterPath}', fetch: ${importName} },`)
+  // A mirror module exports { mirrorParameter: '...' }, a fetch module exports a function.
+  lines.push(`  typeof ${importName} === 'function'`)
+  lines.push(`    ? { kind: 'fetch', resourceType: '${resourceType}', parameterPath: '${parameterPath}', fetch: ${importName} }`)
+  lines.push(`    : { kind: 'mirror', resourceType: '${resourceType}', parameterPath: '${parameterPath}', mirrorParameter: (${importName} as any).mirrorParameter },`)
 }
 lines.push(']')
 lines.push('')
@@ -59,5 +61,5 @@ fs.writeFileSync(outputFile, lines.join('\n'), 'utf-8')
 
 console.log(`Generated ${outputFile} with ${modules.length} completion module(s):`)
 for (const { resourceType, parameterPath } of modules) {
-  console.log(`  ${resourceType}${parameterPath}`)
+  console.log(`  ${resourceType} → ${parameterPath}`)
 }

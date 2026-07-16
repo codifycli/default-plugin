@@ -67,6 +67,7 @@ import { TerraformResource } from './resources/terraform/terraform.js';
 import { CursorResource } from './resources/cursor/cursor.js';
 import { VscodeResource } from './resources/vscode/vscode.js';
 import { WebStormResource } from './resources/webstorm/webstorm.js';
+import { IosSimulatorResource } from './resources/ios/ios-simulator/ios-simulator.js';
 import { XcodeToolsResource } from './resources/xcode-tools/xcode-tools.js';
 import { XcodesResource } from './resources/xcodes/xcodes-resource.js';
 import { YumResource } from './resources/yum/yum.js';
@@ -87,6 +88,7 @@ runPlugin(Plugin.create(
   [
     new GitResource(),
     new XcodeToolsResource(),
+    new IosSimulatorResource(),
     new XcodesResource(),
     new PathResource(),
     new AliasResource(),

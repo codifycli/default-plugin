@@ -8,20 +8,22 @@ This is a **Codify plugin** that provides 50+ declarative system configuration r
 
 ## Build and Test Commands
 
+**NEVER run integration tests on the local machine — not `npm test`, `npm run test:integration`, `npm run test:integration:dev`, nor `vitest` against anything under `test/**`.** Integration tests install and uninstall real tools/binaries (Homebrew formulae, CLIs, etc.) via the actual system package managers, and can mangle the user's local dev setup. The user runs these manually themselves inside a VM. If integration test coverage is needed, tell the user what to run and let them run it — do not run it yourself under any circumstance, even if asked to "verify" or "confirm" a fix. Unit tests (`npm run test:unit`, or `vitest` against `src/**/*.test.ts`) are safe and fine to run.
+
 ```bash
 # Build the plugin (compiles TypeScript, bundles with Rollup, generates schemas.json)
 npm run build
 
-# Run all tests (unit + integration)
+# Run all tests (unit + integration) — DO NOT RUN LOCALLY, see warning above
 npm test
 
-# Run unit tests only (fast - tests in src/**/*.test.ts)
+# Run unit tests only (fast - tests in src/**/*.test.ts) — safe to run locally
 npm run test:unit
 
-# Run integration tests only (slow - full lifecycle tests in test/**/*.test.ts)
+# Run integration tests only (slow - full lifecycle tests in test/**/*.test.ts) — DO NOT RUN LOCALLY, user runs this in a VM
 npm run test:integration
 
-# Run integration tests in development mode
+# Run integration tests in development mode — DO NOT RUN LOCALLY, user runs this in a VM
 npm run test:integration:dev
 
 # Deploy to Cloudflare R2
@@ -199,6 +201,7 @@ Zod is preferred because types are automatically inferred from the schema, preve
 - Tests create → modify → destroy flow
 - Includes validation callbacks
 - **Always use `testSpawn` from `@codifycli/plugin-test` for shell commands in validation callbacks.** `testSpawn` sources the user's shell RC (`.zshrc`, `.bashrc`) before running the command, so PATH and shell aliases are available — just like a real terminal session. Never use `execSync` in integration tests.
+- **Claude must never execute these locally.** They install/uninstall real system packages and can corrupt the user's dev environment. The user runs these themselves in a disposable VM — Claude should only write/edit the tests and let the user run them.
 
 **Integration Test Pattern:**
 ```typescript
@@ -369,11 +372,24 @@ The Codify Editor supports auto-complete for certain resource parameters (e.g. H
 
 ### Adding completions for a parameter
 
-1. Create `src/resources/<category>/<resource>/completions/<type>.<param>.ts`
+1. Create `src/resources/<category>/<resource>/completions/<resource-type>.<jsonpath>.ts`
 2. Export a default async function returning `Promise<string[]>` — fetch the values, return them, nothing else
-3. The filename determines the Supabase metadata automatically:
-   - `homebrew.formulae.ts` → `resource_type=homebrew`, `parameter_path=/formulae`
-4. Run `npm run build:completions` to regenerate the index
+3. The filename encodes both the resource type and the JSONPath of the parameter:
+   - Everything **before the first dot** = `resource_type` (e.g. `homebrew`)
+   - Everything **after the first dot** = JSONPath expression (e.g. `$.formulae`)
+   - Examples:
+     - `homebrew.$.formulae.ts` → `resource_type=homebrew`, `parameter_path=$.formulae`
+     - `nvm.$.nodeVersions.ts` → `resource_type=nvm`, `parameter_path=$.nodeVersions`
+     - `codex.$.config.model.ts` → `resource_type=codex`, `parameter_path=$.config.model`
+4. For parameters **nested inside array items** (e.g. a property on each object in an array), use `[x]` in the filename to encode the `[*]` array wildcard — bundlers treat `[*]` as a glob pattern in import paths, so `[x]` is used as the safe filename equivalent and is translated to `[*]` by the codegen script:
+   - `ios-simulators.$.simulators[x].deviceType.ts` → `parameter_path=$.simulators[*].deviceType`
+5. For **mirror completions** — where a parameter's suggestions should reflect the current value of a sibling parameter on the same resource — export a plain object instead of a fetch function:
+   ```typescript
+   // xcodes.$.selected.ts — offers whatever the user typed in xcodeVersions
+   export default { mirrorParameter: '$.xcodeVersions' } as const;
+   ```
+   The codegen script detects the export type at build time. The cron job writes a single metadata row to Supabase (with `mirror_parameter_path` set and no `value` rows). The dashboard reads this and serves completions client-side from the resource's current config — no DB query needed.
+6. Run `npm run build:completions` to regenerate the index
 
 ```bash
 npm run build:completions   # regenerate completions-cron/src/__generated__/completions-index.ts

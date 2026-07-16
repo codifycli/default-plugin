@@ -1,0 +1,64 @@
+---
+title: ios-simulator
+description: A reference page for the ios-simulator resource
+---
+
+The ios-simulator resource manages iOS (and iPadOS/watchOS/tvOS/visionOS) simulator instances on macOS
+using `xcrun simctl`. A single resource declaration manages a list of simulators, making it easy to
+define a full testing matrix across device types and OS versions in one place. Simulators are created with the specified device type and runtime. Removing the resource deletes all
+declared simulators from the system. Xcode Command Line Tools must be installed — add an
+`xcode-tools` resource as a dependency if you are not sure they are present.
+
+## Parameters:
+
+- **simulators** *(object[], optional)* — List of simulators to create and manage. Each entry has:
+  - **name** *(string, required)* — Human-readable name for the simulator instance (e.g. `"iPhone 15 Dev"`). Must be unique across your declared simulators.
+  - **deviceType** *(string, required)* — CoreSimulator device type identifier. Use the format `com.apple.CoreSimulator.SimDeviceType.<Device>`. Run `xcrun simctl list devicetypes` to see identifiers available on your machine.
+  - **runtime** *(string, required)* — CoreSimulator runtime identifier. Use the format `com.apple.CoreSimulator.SimRuntime.<Platform>-<Version>`. Run `xcrun simctl list runtimes` to see installed runtimes.
+
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "ios-simulators",
+    "simulators": [
+      {
+        "name": "iPhone 15 Dev",
+        "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-15",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-0",
+
+      }
+    ],
+    "os": ["macOS"]
+  }
+]
+```
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "xcode-tools",
+    "os": ["macOS"]
+  },
+  {
+    "type": "ios-simulators",
+    "simulators": [
+      {
+        "name": "iPhone 15 Pro",
+        "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPhone-15-Pro",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-0",
+
+      },
+      {
+        "name": "iPad Pro 11-inch",
+        "deviceType": "com.apple.CoreSimulator.SimDeviceType.iPad-Pro-11-inch-M4",
+        "runtime": "com.apple.CoreSimulator.SimRuntime.iOS-18-0",
+
+      }
+    ],
+    "os": ["macOS"]
+  }
+]
+```
