@@ -135,7 +135,14 @@ export class SymlinksResource extends Resource<SymlinksConfig> {
     const previous = (pc.previousValue as SymlinkEntry[]) ?? [];
     const next = (pc.newValue as SymlinkEntry[]) ?? [];
 
-    const toRemove = previous.filter((p) => !next.some((n) => this.resolve(n.path) === this.resolve(p.path)));
+    // In stateless mode, symlinks whose path is dropped from the declared list are simply no
+    // longer managed (matches aliases/paths resources) rather than deleted from disk. Only a
+    // stateful plan (previous is the resource's full tracked state) can safely detect true removals.
+    const toRemove = plan.isStateful
+      ? previous.filter((p) => !next.some((n) => this.resolve(n.path) === this.resolve(p.path)))
+      : previous.filter((p) => next.some((n) =>
+        this.resolve(n.path) === this.resolve(p.path) && this.resolve(n.target) !== this.resolve(p.target)));
+
     const toAdd = next.filter((n) => {
       const prev = previous.find((p) => this.resolve(p.path) === this.resolve(n.path));
       return !prev || this.resolve(prev.target) !== this.resolve(n.target);

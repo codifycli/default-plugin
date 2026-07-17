@@ -49,7 +49,10 @@ describe('Symlinks resource integration tests', async () => {
 
           expect(await fs.readlink(link1)).to.eq(target1);
           expect(await fs.readlink(link3)).to.eq(target3);
-          await expect(fs.lstat(link2)).rejects.toThrow();
+
+          // link2 was dropped from the declared config, not removed - Codify only manages
+          // explicitly declared symlinks in stateless mode, matching aliases/paths resources.
+          expect(await fs.readlink(link2)).to.eq(target2);
         }
       },
       validateDestroy: async () => {
