@@ -1,5 +1,4 @@
 import {
-  CreatePlan,
   ExampleConfig,
   Resource,
   ResourceSettings,
@@ -105,21 +104,11 @@ export class XcodesResource extends Resource<XcodesConfig> {
     return status === SpawnStatus.SUCCESS ? {} : null;
   }
 
-  override async create(plan: CreatePlan<XcodesConfig>): Promise<void> {
+  override async create(): Promise<void> {
     await Utils.installViaPkgMgr('xcodes', undefined, PackageManager.BREW);
-    if (plan.desiredConfig.acceptLicense !== false) {
-      await this.acceptLicenseIfNeeded();
-    }
   }
 
   override async destroy(): Promise<void> {
     await Utils.uninstallViaPkgMgr('xcodes', undefined, PackageManager.BREW);
-  }
-
-  private async acceptLicenseIfNeeded(): Promise<void> {
-    const $ = getPty();
-    const { status } = await $.spawnSafe('xcodebuild -license status');
-    if (status === SpawnStatus.SUCCESS) return;
-    await $.spawn('xcodebuild -license accept', { requiresRoot: true });
   }
 }

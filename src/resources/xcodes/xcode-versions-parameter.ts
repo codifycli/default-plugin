@@ -1,4 +1,4 @@
-import { ArrayStatefulParameter, Plan, getPty } from '@codifycli/plugin-core';
+import { ArrayStatefulParameter, Plan, SpawnStatus, getPty } from '@codifycli/plugin-core';
 
 import { XcodesConfig } from './xcodes-resource.js';
 
@@ -11,7 +11,7 @@ export class XcodeVersionsParameter extends ArrayStatefulParameter<XcodesConfig,
 
   override async addItem(version: string, plan: Plan<XcodesConfig>): Promise<void> {
     const $ = getPty();
-    const { appleId, appleIdPassword } = plan.desiredConfig ?? {};
+    const { appleId, appleIdPassword, acceptLicense } = plan.desiredConfig ?? {};
 
     const env: Record<string, string> = {};
     if (appleId) env['XCODES_USERNAME'] = appleId;
@@ -22,6 +22,25 @@ export class XcodeVersionsParameter extends ArrayStatefulParameter<XcodesConfig,
       stdin: true,
       ...(Object.keys(env).length > 0 ? { env } : {}),
     });
+
+    if (acceptLicense !== false) {
+      await this.acceptLicenseIfNeeded(version);
+    }
+  }
+
+  private async acceptLicenseIfNeeded(version: string): Promise<void> {
+    const $ = getPty();
+
+    // xcodebuild resolves against whatever xcode-select currently points at. If it's
+    // still pointing at a CommandLineTools-only instance (e.g. installed before xcodes
+    // ran), `xcodebuild -license accept` fails with "requires Xcode" even though a full
+    // Xcode was just installed above. Explicitly select the version we just installed
+    // first so xcode-select points at the full Xcode.
+    await $.spawn(`xcodes select "${version}"`, { interactive: true, stdin: true });
+
+    const { status } = await $.spawnSafe('xcodebuild -license status');
+    if (status === SpawnStatus.SUCCESS) return;
+    await $.spawn('xcodebuild -license accept', { requiresRoot: true });
   }
 
   override async removeItem(version: string): Promise<void> {
