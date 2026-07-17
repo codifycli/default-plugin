@@ -19,5 +19,7 @@ function toXcodesVersionString(release: XcodeRelease): string {
 export default async function loadXcodeVersions(): Promise<string[]> {
   const response = await fetch(XCODE_RELEASES_URL);
   const releases = await response.json() as XcodeRelease[];
-  return releases.map(toXcodesVersionString);
+  // "latest" is a hardcoded sentinel supported by the xcodes resource
+  // (maps to `xcodes install --latest`), not a real xcodereleases.com entry.
+  return ['latest', ...releases.map(toXcodesVersionString)];
 }

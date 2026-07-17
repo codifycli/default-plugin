@@ -17,7 +17,10 @@ const schema = z
   .object({
     xcodeVersions: z
       .array(z.string())
-      .describe('List of Xcode versions to install via xcodes (e.g. ["15.2", "14.3.1"]).')
+      .describe(
+        'List of Xcode versions to install via xcodes (e.g. ["15.2", "14.3.1"]). ' +
+        'Use "latest" to install the newest available Xcode release (runs `xcodes install --latest`).'
+      )
       .optional(),
     selected: z
       .string()
