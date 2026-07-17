@@ -54,6 +54,8 @@ import { AliasesResource } from './resources/shell/aliases/aliases-resource.js';
 import { EnvVarResource } from './resources/shell/env-var/env-var-resource.js';
 import { EnvVarsResource } from './resources/shell/env-vars/env-vars-resource.js';
 import { PathResource } from './resources/shell/path/path-resource.js';
+import { SymlinkResource } from './resources/shell/symlink/symlink-resource.js';
+import { SymlinksResource } from './resources/shell/symlinks/symlinks-resource.js';
 import { SnapResource } from './resources/snap/snap.js';
 import { SyncthingResource } from './resources/syncthing/syncthing.js';
 import { SyncthingDeviceResource } from './resources/syncthing/syncthing-device.js';
@@ -95,6 +97,8 @@ runPlugin(Plugin.create(
     new AliasesResource(),
     new EnvVarResource(),
     new EnvVarsResource(),
+    new SymlinkResource(),
+    new SymlinksResource(),
     new HomebrewResource(),
     new PyenvResource(),
     new UvResource(),

@@ -1,0 +1,57 @@
+---
+title: symlink
+description: A reference page for the symlink resource
+---
+
+The symlink resource reference. This resource creates and manages a single symbolic link on
+disk, pointing `path` at `target`. Symlinks are a built-in OS concept on both macOS and Linux
+— nothing needs to be installed.
+
+```sh title="Equivalent shell command"
+ln -s TARGET PATH
+```
+
+## Parameters:
+
+- **path**: *(string, required)* The location where the symlink should be created.
+
+- **target**: *(string, required, modifiable)* The file or directory the symlink should point
+  to. The target does not need to already exist — Codify will still create the link.
+
+## Example usage:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "symlink",
+    "path": "~/.vimrc",
+    "target": "~/dotfiles/vimrc"
+  }
+]
+```
+
+Symlinking an application into `/Applications`:
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "symlink",
+    "path": "/Applications/MyApp.app",
+    "target": "~/Applications/MyApp.app"
+  }
+]
+```
+
+## Notes:
+
+- Changing `target` re-links the resource in place (unlink + re-create) rather than
+  recreating the whole resource.
+- If a real file or directory (not a symlink) already exists at `path`, Codify will raise an
+  error instead of overwriting it — remove it manually first if you want Codify to manage
+  that location.
+- Destroying this resource only removes the symlink itself; the file or directory it points
+  to is left untouched.
+- Missing parent directories of `path` are created automatically.
+- See [symlinks](/docs/resources/symlinks) for managing several symlinks in one resource.
+  When running `codify import`/`codify init`, the `symlinks` resource is used instead of
+  `symlink` for any discovered links.
