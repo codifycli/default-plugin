@@ -1,4 +1,6 @@
 import {
+  ApplyNotes,
+  CodifyCliSender,
   CreatePlan,
   DestroyPlan,
   ExampleConfig,
@@ -96,7 +98,7 @@ export class AliasResource extends Resource<AliasConfig> {
     }
 
     const name = aliasMatch[1].trim();
-    const value = aliasMatch[2].trim();
+    const value = this.unescapeAliasValue(aliasMatch[2].trim());
 
     return {
       alias: name,
@@ -115,6 +117,8 @@ export class AliasResource extends Resource<AliasConfig> {
     const aliasString = this.aliasString(alias, value);
 
     await FileUtils.addToStartupFile(aliasString);
+
+    CodifyCliSender.sendApplyNote(ApplyNotes.NEW_SHELL_REQUIRED);
   }
 
   async modify(pc: ParameterChange<AliasConfig>, plan: ModifyPlan<AliasConfig>): Promise<void> {
@@ -143,6 +147,8 @@ export class AliasResource extends Resource<AliasConfig> {
     lines.splice(aliasLineNum, 1, newAlias);
     
     await fs.writeFile(aliasInfo.path, lines.join('\n'), 'utf8');
+
+    CodifyCliSender.sendApplyNote(ApplyNotes.NEW_SHELL_REQUIRED);
   }
 
   async destroy(plan: DestroyPlan<AliasConfig>): Promise<void> {
@@ -157,6 +163,8 @@ export class AliasResource extends Resource<AliasConfig> {
     
     await FileUtils.removeLineFromFile(aliasInfo.path, aliasString);
     await FileUtils.removeLineFromFile(aliasInfo.path, aliasStringShort);
+
+    CodifyCliSender.sendApplyNote(ApplyNotes.NEW_SHELL_REQUIRED);
   }
 
   private async findAlias(alias: string, value: string): Promise<{ path: string; contents: string; } | null> {
@@ -182,10 +190,21 @@ export class AliasResource extends Resource<AliasConfig> {
   }
 
   private aliasString(alias: string, value: string): string {
-    return `alias ${alias}='${value}'`
+    return `alias ${alias}='${this.escapeAliasValue(value)}'`
   }
 
   private aliasStringShort(alias: string, value: string): string {
     return `alias ${alias}=${value}`
+  }
+
+  // Escapes single quotes for embedding inside a single-quoted shell string:
+  // close the quote, insert an escaped quote, reopen the quote (POSIX ' -> '\'')
+  private escapeAliasValue(value: string): string {
+    return value.replace(/'/g, `'\\''`);
+  }
+
+  // Reverses escapeAliasValue when parsing alias output the shell echoes back
+  private unescapeAliasValue(value: string): string {
+    return value.replace(/'\\''/g, `'`);
   }
 }
