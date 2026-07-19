@@ -1,12 +1,24 @@
-import { ArrayStatefulParameter, Plan, getPty } from '@codifycli/plugin-core';
+import { ArrayParameterSetting, ArrayStatefulParameter, Plan, getPty } from '@codifycli/plugin-core';
 
 import { XcodesConfig } from './xcodes-resource.js';
+import { LATEST_VERSION_KEYWORD, parseInstalledVersions, resolveInstalledVersion } from './xcodes-utils.js';
 
 export class XcodeVersionsParameter extends ArrayStatefulParameter<XcodesConfig, string> {
-  override async refresh(_desired: string[] | null): Promise<string[] | null> {
+  getSettings(): ArrayParameterSetting {
+    return {
+      type: 'array',
+      // "latest" never matches a real version string returned by refresh() on its own;
+      // refresh() below re-normalizes whichever installed version fulfilled "latest"
+      // back into the literal string "latest" so the framework treats them as equal.
+      isElementEqual: (desired, current) => desired === current,
+    };
+  }
+
+  override async refresh(desired: string[] | null): Promise<string[] | null> {
     const $ = getPty();
     const { data } = await $.spawnSafe('xcodes installed');
-    return parseInstalledVersions(data);
+    const installed = parseInstalledVersions(data);
+    return normalizeLatestKeyword(installed, desired ?? []);
   }
 
   override async addItem(version: string, plan: Plan<XcodesConfig>): Promise<void> {
@@ -17,7 +29,8 @@ export class XcodeVersionsParameter extends ArrayStatefulParameter<XcodesConfig,
     if (appleId) env['XCODES_USERNAME'] = appleId;
     if (appleIdPassword) env['XCODES_PASSWORD'] = appleIdPassword;
 
-    await $.spawn(`xcodes install "${version}"`, {
+    const installArg = version === LATEST_VERSION_KEYWORD ? '--latest' : `"${version}"`;
+    await $.spawn(`xcodes install ${installArg}`, {
       interactive: true,
       stdin: true,
       ...(Object.keys(env).length > 0 ? { env } : {}),
@@ -26,18 +39,25 @@ export class XcodeVersionsParameter extends ArrayStatefulParameter<XcodesConfig,
 
   override async removeItem(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`xcodes uninstall "${version}"`, { interactive: true });
+    const installedVersion = await resolveInstalledVersion(version);
+    if (!installedVersion) return;
+    await $.spawn(`xcodes uninstall "${installedVersion}"`, { interactive: true });
   }
 }
 
-function parseInstalledVersions(output: string): string[] {
-  return output
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const match = line.match(/^(.+?)\s+\([^)]+\)/);
-      return match ? match[1].trim() : null;
-    })
-    .filter((v): v is string => v !== null);
+/**
+ * Replaces whichever installed version fulfills the "latest" sentinel with the
+ * literal string "latest" so the framework's equality check (desired === current)
+ * treats them as converged, instead of endlessly re-adding/removing.
+ */
+function normalizeLatestKeyword(installed: string[], desired: string[]): string[] {
+  if (!desired.includes(LATEST_VERSION_KEYWORD)) return installed;
+
+  const unclaimed = installed.filter((v) => !desired.includes(v));
+  if (unclaimed.length === 0) return installed;
+
+  // xcodes installed lists oldest-to-newest; the newest unclaimed version is
+  // the one that satisfies "latest".
+  const latestMatch = unclaimed.at(-1)!;
+  return installed.map((v) => (v === latestMatch ? LATEST_VERSION_KEYWORD : v));
 }

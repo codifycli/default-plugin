@@ -501,6 +501,46 @@ parameterSettings: {
 }
 ```
 
+### "latest" Keyword for Version-List Parameters
+
+When a resource manages a list of installed versions (e.g. `nvm`'s Node versions, `pyenv`'s Python versions, `xcodes`' Xcode versions), always support a symbolic `'latest'` entry in that array alongside explicit version strings. This lets users write `versions: ['latest']` instead of having to know/hardcode the current newest release.
+
+**Requirements for `'latest'`:**
+- It must resolve to a real, concrete version at `addItem`/install time (e.g. by passing whatever "install latest" flag the underlying CLI supports — `xcodes install --latest`, `nvm install --lts`/`node`, `pyenv install` + `pyenv latest -k <major>`, etc. — or by resolving the latest version yourself before installing if the CLI has no such flag).
+- It must **not** show up as a perpetual diff in the plan. Once resolved, `refresh()` should normalize the real installed version back to the literal string `'latest'` in the array it returns whenever that installed version is the one which satisfies the `'latest'` entry in desired — so the framework's equality check treats them as converged instead of proposing an add/remove on every plan.
+- `removeItem` (and any other lifecycle method that receives an individual array element) must resolve `'latest'` back to the real installed version before acting — never pass the literal string `'latest'` to an uninstall/select command.
+
+**Reference implementation:** `src/resources/xcodes/xcode-versions-parameter.ts` (`LATEST_VERSION_KEYWORD`, `normalizeLatestKeyword`, `resolveInstalledVersion`). The pattern:
+
+```typescript
+export const LATEST_VERSION_KEYWORD = 'latest';
+
+export class MyVersionsParameter extends ArrayStatefulParameter<MyConfig, string> {
+  getSettings(): ArrayParameterSetting {
+    return { type: 'array', isElementEqual: (desired, current) => desired === current };
+  }
+
+  override async refresh(desired: string[] | null): Promise<string[] | null> {
+    const installed = await getInstalledVersions();
+    return normalizeLatestKeyword(installed, desired ?? []); // maps the newest unclaimed installed version back to 'latest'
+  }
+
+  override async addItem(version: string): Promise<void> {
+    const installArg = version === LATEST_VERSION_KEYWORD ? '--latest' : version;
+    await install(installArg);
+  }
+
+  override async removeItem(version: string): Promise<void> {
+    const resolved = version === LATEST_VERSION_KEYWORD ? await resolveNewestInstalled() : version;
+    if (resolved) await uninstall(resolved);
+  }
+}
+```
+
+Also add `'latest'` as a hardcoded first entry in that parameter's completions file (`completions/<resource>.$.<param>.ts`) so it surfaces as a suggestion in the editor alongside real fetched version numbers.
+
+Do **not** extend this convention to a resource's singular "selected/active version" parameter (e.g. `xcodes`' `selected`) unless the underlying CLI's select/activate command itself supports a latest-equivalent flag — most select commands only operate on already-installed exact versions.
+
 ### defaultConfig and exampleConfigs
 
 Every resource should have a `defaultConfig` and `exampleConfigs`. These are surfaced in the Codify Editor to help users get started quickly.

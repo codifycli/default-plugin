@@ -33,7 +33,11 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
     if (caskQuery.status === SpawnStatus.SUCCESS && caskQuery.data !== null && caskQuery.data !== undefined) {
       const installedCasks = caskQuery.data
         .split('\n')
+        .map((line) => line.trim())
         .filter(Boolean)
+        // Some taps emit Ruby deprecation warnings to stderr, which the PTY interleaves
+        // into this output. Real cask names never contain whitespace.
+        .filter((line) => !line.includes(' '))
 
       const notInstalledCasks = desired?.filter((c) => !installedCasks.includes(c));
       if (!notInstalledCasks || notInstalledCasks.length === 0) {

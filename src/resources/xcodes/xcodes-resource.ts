@@ -1,5 +1,4 @@
 import {
-  CreatePlan,
   ExampleConfig,
   Resource,
   ResourceSettings,
@@ -18,13 +17,17 @@ const schema = z
   .object({
     xcodeVersions: z
       .array(z.string())
-      .describe('List of Xcode versions to install via xcodes (e.g. ["15.2", "14.3.1"]).')
+      .describe(
+        'List of Xcode versions to install via xcodes (e.g. ["15.2", "14.3.1"]). ' +
+        'Use "latest" to install the newest available Xcode release (runs `xcodes install --latest`).'
+      )
       .optional(),
     selected: z
       .string()
       .describe(
         'The active Xcode version to select (e.g. "15.2"). ' +
-        'Must be one of the installed xcodeVersions. Equivalent to running xcodes select.'
+        'Must be one of the installed xcodeVersions. Equivalent to running xcodes select. ' +
+        'Use "latest" to select the newest installed Xcode version.'
       )
       .optional(),
     appleId: z
@@ -44,8 +47,8 @@ const schema = z
       .boolean()
       .optional()
       .describe(
-        'Automatically accept the Xcode license agreement after installation. ' +
-        'Runs `sudo xcodebuild -license accept`. Defaults to true.'
+        'Automatically accept the Xcode license agreement after selecting an Xcode version. ' +
+        'Runs `sudo xcodebuild -license accept`. Only applies when `selected` is set. Defaults to true.'
       ),
   })
   .describe('xcodes resource — install and manage multiple Xcode versions via the xcodes CLI');
@@ -105,21 +108,11 @@ export class XcodesResource extends Resource<XcodesConfig> {
     return status === SpawnStatus.SUCCESS ? {} : null;
   }
 
-  override async create(plan: CreatePlan<XcodesConfig>): Promise<void> {
+  override async create(): Promise<void> {
     await Utils.installViaPkgMgr('xcodes', undefined, PackageManager.BREW);
-    if (plan.desiredConfig.acceptLicense !== false) {
-      await this.acceptLicenseIfNeeded();
-    }
   }
 
   override async destroy(): Promise<void> {
     await Utils.uninstallViaPkgMgr('xcodes', undefined, PackageManager.BREW);
-  }
-
-  private async acceptLicenseIfNeeded(): Promise<void> {
-    const $ = getPty();
-    const { status } = await $.spawnSafe('xcodebuild -license status');
-    if (status === SpawnStatus.SUCCESS) return;
-    await $.spawn('xcodebuild -license accept', { requiresRoot: true });
   }
 }
