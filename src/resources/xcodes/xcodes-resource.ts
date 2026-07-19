@@ -26,7 +26,8 @@ const schema = z
       .string()
       .describe(
         'The active Xcode version to select (e.g. "15.2"). ' +
-        'Must be one of the installed xcodeVersions. Equivalent to running xcodes select.'
+        'Must be one of the installed xcodeVersions. Equivalent to running xcodes select. ' +
+        'Use "latest" to select the newest installed Xcode version.'
       )
       .optional(),
     appleId: z
@@ -46,8 +47,8 @@ const schema = z
       .boolean()
       .optional()
       .describe(
-        'Automatically accept the Xcode license agreement after installation. ' +
-        'Runs `sudo xcodebuild -license accept`. Defaults to true.'
+        'Automatically accept the Xcode license agreement after selecting an Xcode version. ' +
+        'Runs `sudo xcodebuild -license accept`. Only applies when `selected` is set. Defaults to true.'
       ),
   })
   .describe('xcodes resource — install and manage multiple Xcode versions via the xcodes CLI');
