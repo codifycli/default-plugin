@@ -17,8 +17,12 @@ export class TapsParameter extends StatefulParameter<HomebrewConfig, string[]> {
     if (tapsQuery.status === SpawnStatus.SUCCESS && tapsQuery.data !== null && tapsQuery.data !== undefined) {
       return tapsQuery.data
         .split('\n')
+        .map((line) => line.trim())
         .filter((t) => t !== 'homebrew/bundle' && t !== 'homebrew/services')
         .filter(Boolean)
+        // Some taps emit Ruby deprecation warnings to stderr, which the PTY interleaves
+        // into this output. Real tap names are always `owner/repo`, with no whitespace.
+        .filter((t) => !t.includes(' '))
     }
 
     return null;

@@ -31,7 +31,12 @@ export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[
     if (formulaeQuery.status === SpawnStatus.SUCCESS && formulaeQuery.data !== null && formulaeQuery.data !== undefined) {
       return formulaeQuery.data
         .split('\n')
-        .filter(Boolean);
+        .map((line) => line.trim())
+        .filter(Boolean)
+        // Some taps emit Ruby deprecation warnings (e.g. `depends_on :macos`) to stderr,
+        // which the PTY interleaves into this output. Real formula names never contain
+        // whitespace, so any line with a space is noise, not a formula.
+        .filter((line) => !line.includes(' '));
     }
 
     return null;
