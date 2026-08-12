@@ -1,0 +1,59 @@
+---
+title: fastlane
+description: A reference page for the fastlane resource
+---
+
+The fastlane resource installs [fastlane](https://docs.fastlane.tools/) — the open-source automation
+tool for building, signing, testing, and releasing iOS and Android apps. It handles installation via
+Homebrew on macOS and RubyGems on Linux. Use it alongside the
+[`fastlane-project`](/docs/resources/fastlane/fastlane-project) resource, which configures fastlane
+within a specific project directory.
+
+## Parameters
+
+- **version**: *(string, optional)* Specific fastlane version to install (e.g. `"2.223.1"`). On Linux
+  this pins the gem version installed via `gem install`. On macOS, Homebrew always installs its
+  latest available formula version, so this field is informational only there.
+
+## Example usage
+
+### Install a pinned fastlane version
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "fastlane",
+    "version": "2.223.1"
+  }
+]
+```
+
+### Install fastlane and initialize a project
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "fastlane"
+  },
+  {
+    "type": "fastlane-project",
+    "directory": "~/projects/my-app",
+    "appIdentifier": "com.company.myapp",
+    "dependsOn": ["fastlane"]
+  }
+]
+```
+
+## Notes
+
+- **Ruby prerequisite**: fastlane requires Ruby 3.0 or newer (fastlane recommends 3.3+). Before
+  installing, this resource checks for `ruby -v` on the system. If Ruby is missing or older than
+  3.0, apply fails with an error recommending the [`rbenv`](/docs/resources/ruby/rbenv) resource in
+  this plugin to install and manage a compatible Ruby version. fastlane's own docs discourage using
+  the macOS system Ruby, so a user-managed Ruby (via rbenv or similar) is the expected setup.
+- **macOS**: installed via Homebrew (`brew install fastlane`), which bundles its own Ruby dependency.
+- **Linux**: no apt/dnf package exists for fastlane, so it is installed via `gem install fastlane`
+  against whatever Ruby is on the PATH. `build-essential` is installed first since some fastlane
+  dependencies (e.g. nokogiri) compile native extensions.
+- Uninstalling this resource removes the fastlane binary/gem but leaves any per-project
+  `fastlane-project` configuration untouched.
