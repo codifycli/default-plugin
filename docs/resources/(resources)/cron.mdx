@@ -1,0 +1,62 @@
+---
+title: cron
+description: A reference page for the cron resource
+---
+
+The cron resource manages scheduled jobs in the current user's crontab using the built-in `crontab` command. It works the same way on macOS and Linux.
+
+Each managed job is written to the crontab as a comment marker followed by the schedule and command:
+
+```sh title="crontab -l"
+# Codify managed: <name>
+<schedule> <command>
+```
+
+The marker comment is how Codify identifies, updates, and removes jobs without disturbing any other entries already in your crontab.
+
+## Parameters
+
+- **jobs**: *(array[object], optional)* An array of cron job definitions. Each job object contains:
+  - **name**: *(string, required)* A unique name identifying this cron job. Used to track the job across runs.
+  - **schedule**: *(string, required)* A cron schedule expression (e.g. `"0 5 * * *"`) or a special schedule string (`@reboot`, `@yearly`, `@monthly`, `@weekly`, `@daily`, `@hourly`).
+  - **command**: *(string, required)* The command to run on the configured schedule.
+
+- **declarationsOnly**: *(boolean, optional)* Controls whether the resource operates in declarative or stateful mode. Defaults to `true`.
+  - `true` (default): Declarative mode — only manages the jobs explicitly listed in the configuration. Other Codify-managed jobs in the crontab (e.g. ones declared elsewhere) are left untouched.
+  - `false`: Stateful mode — Codify tracks and manages all Codify-managed jobs found in the crontab.
+
+## Example usage
+
+### Nightly backup job
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "cron",
+    "jobs": [
+      { "name": "nightly-backup", "schedule": "30 2 * * *", "command": "/usr/local/bin/backup.sh" }
+    ]
+  }
+]
+```
+
+### Multiple maintenance jobs
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "cron",
+    "jobs": [
+      { "name": "health-check", "schedule": "*/5 * * * *", "command": "curl -fsS https://example.com/health" },
+      { "name": "weekly-cleanup", "schedule": "0 3 * * 0", "command": "rm -rf /tmp/myapp-cache/*" }
+    ]
+  }
+]
+```
+
+## Notes
+
+- No installation is required — `cron`/`crontab` ships with both macOS and Linux.
+- This resource manages the **current user's** crontab (`crontab -l` / `crontab <file>`), not system-wide crontabs (e.g. `/etc/crontab` or `/etc/cron.d`).
+- Only entries with the `# Codify managed: <name>` marker are considered — manually added crontab entries are never modified or removed.
+- When a job's `schedule` or `command` changes, Codify removes the old entry and writes a new one in its place.
