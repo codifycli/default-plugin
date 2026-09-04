@@ -15,6 +15,11 @@ export interface PyenvConfig extends ResourceConfig {
   // TODO: Add option here to use homebrew to install instead. Default to true. Maybe add option to set default values to resource config.
 }
 
+// pyenv is a real binary on PATH (unlike nvm, which is a sourced shell function), so every
+// command that invokes it must set up PATH inline rather than assuming a prior interactive
+// shell already sourced the rc lines added by addPyenvInitialization().
+export const PYENV_INIT_INLINE = 'export PYENV_ROOT="$HOME/.pyenv"; [ -d "$PYENV_ROOT/bin" ] && export PATH="$PYENV_ROOT/bin:$PATH"; eval "$(pyenv init -)" 2>/dev/null;';
+
 const defaultConfig: Partial<PyenvConfig> = {
   pythonVersions: [],
 }
@@ -60,7 +65,7 @@ export class PyenvResource extends Resource<PyenvConfig> {
   override async refresh(): Promise<Partial<PyenvConfig> | null> {
     const $ = getPty();
 
-    const pyenvVersion = await $.spawnSafe('pyenv --version')
+    const pyenvVersion = await $.spawnSafe(`${PYENV_INIT_INLINE} pyenv --version`, { interactive: true })
     if (pyenvVersion.status === SpawnStatus.ERROR) {
       return null
     }
@@ -101,7 +106,7 @@ export class PyenvResource extends Resource<PyenvConfig> {
   override async destroy(): Promise<void> {
     const $ = getPty();
 
-    await $.spawn('rm -rf $(pyenv root)', { interactive: true });
+    await $.spawn(`${PYENV_INIT_INLINE} rm -rf $(pyenv root)`, { interactive: true });
     await $.spawn('rm -rf $HOME/.pyenv');
 
     await FileUtils.removeLineFromStartupFile('export PYENV_ROOT="$HOME/.pyenv"')
@@ -120,7 +125,7 @@ export class PyenvResource extends Resource<PyenvConfig> {
   // TODO: Need to support bash in addition to zsh here
   private async isValidInstall(): Promise<boolean> {
     const $ = getPty();
-    const { data: doctor } = await $.spawnSafe('pyenv doctor', { interactive: true })
+    const { data: doctor } = await $.spawnSafe(`${PYENV_INIT_INLINE} pyenv doctor`, { interactive: true })
     return doctor.includes('Congratulations! You are ready to build pythons!');
   }
 }

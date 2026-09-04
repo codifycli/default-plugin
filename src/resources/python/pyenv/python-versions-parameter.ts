@@ -1,12 +1,12 @@
 import { ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 
-import { PyenvConfig } from './pyenv.js';
+import { PYENV_INIT_INLINE, PyenvConfig } from './pyenv.js';
 
 export class PythonVersionsParameter extends ArrayStatefulParameter<PyenvConfig, string> {
   override async refresh(desired: string[]): Promise<string[] | null> {
     const $ = getPty();
 
-    const { data } = await $.spawnSafe('pyenv versions --bare --skip-aliases --skip-envs')
+    const { data } = await $.spawnSafe(`${PYENV_INIT_INLINE} pyenv versions --bare --skip-aliases --skip-envs`, { interactive: true })
 
     const versions = data.split(/\n/)
       .map((l) => l.trim())
@@ -16,7 +16,7 @@ export class PythonVersionsParameter extends ArrayStatefulParameter<PyenvConfig,
     // reason behind this is that pyenv does special version processing during installs. For ex: specifying
     // pyenv install 3 will install the latest version 3.12.2
     for (const desiredVersion of desired ?? []) {
-      const { status, data } = await $.spawnSafe(`pyenv latest ${desiredVersion}`);
+      const { status, data } = await $.spawnSafe(`${PYENV_INIT_INLINE} pyenv latest ${desiredVersion}`, { interactive: true });
 
       if (status !== SpawnStatus.SUCCESS) {
         continue;
@@ -35,11 +35,11 @@ export class PythonVersionsParameter extends ArrayStatefulParameter<PyenvConfig,
 
   override async addItem(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`pyenv install ${version} -s`, { interactive: true });
+    await $.spawn(`${PYENV_INIT_INLINE} pyenv install ${version} -s`, { interactive: true });
   }
 
   override async removeItem(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`pyenv uninstall ${version} -f`, { interactive: true });
+    await $.spawn(`${PYENV_INIT_INLINE} pyenv uninstall ${version} -f`, { interactive: true });
   }
 }
