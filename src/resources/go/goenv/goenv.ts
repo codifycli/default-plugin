@@ -131,6 +131,8 @@ async function installOnLinux(): Promise<void> {
 async function uninstallOnMacOS(): Promise<void> {
   const $ = getPty();
   await Utils.uninstallViaPkgMgr('goenv', undefined, PackageManager.BREW);
+  await $.spawnSafe(`rm -rf ${GOENV_ROOT}`);
+
   await removeGoenvFromShellRc([GOENV_INIT]);
 }
 
