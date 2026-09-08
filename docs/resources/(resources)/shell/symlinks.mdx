@@ -1,0 +1,74 @@
+---
+title: symlinks
+description: A reference page for the symlinks resource
+---
+
+The symlinks resource reference. This resource manages multiple symbolic links in a single
+resource configuration. Unlike the singular [symlink](/docs/resources/symlink) resource which
+creates one link per resource instance, the `symlinks` resource allows you to define and
+manage multiple links together as an array.
+
+```sh title="Equivalent shell command (per entry)"
+ln -s TARGET PATH
+```
+
+## Parameters:
+
+- **symlinks**: *(array[object], optional)* An array of symlink definitions. Each entry
+  contains:
+  - **path**: *(string, required)* The location where the symlink should be created.
+  - **target**: *(string, required)* The file or directory the symlink should point to.
+
+## Example usage:
+
+### Managing multiple symlinks in one resource
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "symlinks",
+    "symlinks": [
+      { "path": "~/.vimrc", "target": "~/dotfiles/vimrc" },
+      { "path": "~/.zshrc", "target": "~/dotfiles/zshrc" },
+      { "path": "~/.gitconfig", "target": "~/dotfiles/gitconfig" }
+    ]
+  }
+]
+```
+
+### Symlinking config directories and applications
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "symlinks",
+    "symlinks": [
+      { "path": "~/.config/nvim", "target": "~/dotfiles/nvim" },
+      { "path": "/Applications/MyApp.app", "target": "~/Applications/MyApp.app" }
+    ]
+  }
+]
+```
+
+## Comparison: symlinks vs symlink
+
+**Use `symlinks` when:**
+- You want to manage multiple symlinks in a single resource
+- You prefer a more compact configuration for a dotfiles-style setup
+- This is the resource `codify import`/`codify init` will use when discovering existing links
+
+**Use `symlink` when:**
+- You want fine-grained control over an individual link
+- You want to use Codify's resource dependency features for a specific link
+- You prefer to distribute link definitions across your configuration
+
+## Notes:
+
+- Adding an entry creates that link; removing an entry from the array only removes that
+  link (the file/directory it pointed to is untouched); changing an entry's `target`
+  re-links it in place.
+- If a real file or directory (not a symlink) already exists at one of the declared `path`
+  values, Codify will raise an error instead of overwriting it.
+- Missing parent directories of each `path` are created automatically.
+- Both `symlink` and `symlinks` resources can be used in the same configuration without
+  conflicts.

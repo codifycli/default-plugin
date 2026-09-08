@@ -96,9 +96,10 @@ export class FileResource extends Resource<FileConfig> {
   }
 
   async create(plan: CreatePlan<FileConfig>): Promise<void> {
-    const { contents, path } = plan.desiredConfig;
+    const { contents, path: filePath } = plan.desiredConfig;
 
-    await fs.writeFile(path, contents, 'utf8');
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, contents, 'utf8');
   }
 
   async modify(pc: ParameterChange<FileConfig>, plan: ModifyPlan<FileConfig>): Promise<void> {
