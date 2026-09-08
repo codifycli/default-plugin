@@ -30,8 +30,28 @@ const docUrlMap = buildDocUrlMap(DOCS_DIR, '/docs/resources');
 
 const require = createRequire(import.meta.url);
 
+/**
+ * Runs a shell command and aborts the deploy if it fails.
+ *
+ * spawnSync does not throw on a non-zero exit, so every step here used to continue after a
+ * failure. That let a failed bundle upload still publish a registry row pointing at a bundle
+ * that was never uploaded — the CLI then downloaded R2's HTML 404 page as index.js and died
+ * with "SyntaxError: Unexpected token '<'".
+ */
+function run(cmd: string): void {
+  const { status, error } = cp.spawnSync(cmd, { shell: 'zsh', stdio: 'inherit' });
+
+  if (error) {
+    throw error;
+  }
+
+  if (status !== 0) {
+    throw new Error(`Deploy step failed (exit code ${status}): ${cmd}`);
+  }
+}
+
 // This should run the build
-cp.spawnSync('source ~/.zshrc; npm run build', { shell: 'zsh', stdio: 'inherit' });
+run('source ~/.zshrc; npm run build');
 
 const PluginManifest: { minSupportedCliVersion: string | null } = require('../dist/plugin-manifest.json');
 
@@ -53,7 +73,22 @@ if (!name) {
 console.log(`Uploading plugin ${name}, version ${version} to cloudflare!`)
 
 const outputFilePath = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), '..', 'dist', 'index.js')
-cp.spawnSync(`source ~/.zshrc; npx wrangler r2 object put plugins/${name}/${version}/index.js --file=${outputFilePath} --remote`, { shell: 'zsh', stdio: 'inherit' });
+run(`source ~/.zshrc; npx wrangler r2 object put plugins/${name}/${version}/index.js --file=${outputFilePath} --remote`);
+
+const bundleUrl = `https://plugins.codifycli.com/${name}/${version}/index.js`;
+console.log(`Verifying ${bundleUrl}`);
+
+const bundleCheck = await fetch(bundleUrl);
+if (!bundleCheck.ok) {
+  throw new Error(`Uploaded bundle is not reachable at ${bundleUrl} (HTTP ${bundleCheck.status}). Aborting before the registry is updated.`);
+}
+
+const uploadedBundle = await bundleCheck.text();
+if (!uploadedBundle.startsWith('"use strict"')) {
+  throw new Error(`Bundle at ${bundleUrl} is not the expected JavaScript bundle (starts with: ${JSON.stringify(uploadedBundle.slice(0, 40))}). Aborting before the registry is updated.`);
+}
+
+console.log(`Bundle verified (${uploadedBundle.length} bytes)`);
 
 const client = createClient(
   process.env.SUPABASE_URL!,
@@ -87,7 +122,7 @@ await uploadResources(isBeta);
 
 if (isBeta) {
   console.log('Deploying beta completions worker...')
-  cp.spawnSync('source ~/.zshrc; npm run build:completions && cd completions-cron && npx wrangler deploy --env beta', { shell: 'zsh', stdio: 'inherit' })
+  run('source ~/.zshrc; npm run build:completions && cd completions-cron && npx wrangler deploy --env beta')
 
   // Generate embeddings for prerelease resources so the AI agent can find them via semantic search
   console.log('Triggering vector reindex for prerelease resources...')
@@ -111,7 +146,7 @@ if (isBeta) {
 if (!isBeta) {
   // Build and deploy completions as well.
   console.log('Deploying completions...')
-  cp.spawnSync('source ~/.zshrc; npm run deploy:completions' , { shell: 'zsh', stdio: 'inherit' })
+  run('source ~/.zshrc; npm run deploy:completions')
 
   // Trigger vector reindex so search embeddings reflect the latest resources
   console.log('Triggering vector reindex...')
