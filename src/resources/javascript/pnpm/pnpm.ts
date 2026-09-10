@@ -86,8 +86,11 @@ export class Pnpm extends Resource<PnpmConfig> {
       await fs.rm(pnpmHome?.trim() || expectedPnpmHome, { recursive: true, force: true });
 
       const shellRc = Utils.getPrimaryShellRc();
+
+      await FileUtils.removeBlockFromFile(shellRc, '# pnpm', '# pnpm end')
+      await FileUtils.removeLineFromStartupFile(/^export PNPM_HOME=.*$/)
       await FileUtils.removeLineFromStartupFile('# pnpm')
-      await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${expectedPnpmHome}"`)
+      await FileUtils.removeLineFromStartupFile('# pnpm end')
       await FileUtils.removeFromFile(shellRc,
 `case ":$PATH:" in
   *":$PNPM_HOME/bin:"*) ;;
@@ -98,7 +101,6 @@ esac`)
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac`)
-      await FileUtils.removeLineFromStartupFile('# pnpm end')
     } else if (isInstalledByNpm) {
       await $.spawn('npm uninstall -g pnpm', { interactive: true });
     } else if (isInstalledByHomebrew) {
