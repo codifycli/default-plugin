@@ -3,6 +3,7 @@ import {
   CreatePlan,
   DestroyPlan,
   ExampleConfig,
+  FileUtils,
   ModifyPlan,
   ParameterChange,
   Resource,
@@ -20,6 +21,7 @@ import { SettingsParameter } from './settings-parameter.js';
 
 const CLAUDE_DIR = path.join(os.homedir(), '.claude');
 const CLAUDE_MD_PATH = path.join(CLAUDE_DIR, 'CLAUDE.md');
+const LOCAL_BIN = path.join(os.homedir(), '.local', 'bin');
 
 const mcpStdioServerSchema = z.object({
   name: z.string().describe('Unique name for this MCP server'),
@@ -141,7 +143,7 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
   }
 
   async refresh(parameters: Partial<ClaudeCodeConfig>): Promise<Partial<ClaudeCodeConfig> | null> {
-    const claudeBin = path.join(os.homedir(), '.local', 'bin', 'claude');
+    const claudeBin = path.join(LOCAL_BIN, 'claude');
     try {
       await fs.access(claudeBin);
     } catch {
@@ -168,14 +170,22 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
   async create(plan: CreatePlan<ClaudeCodeConfig>): Promise<void> {
     const $ = getPty();
 
+    // The installer drops `claude` into ~/.local/bin but never adds that
+    // directory to the user's shell rc, so `claude` is not found in new shells.
+    // Create it up front so the install has a valid target, and persist it to
+    // the shell rc below. No-ops if the directory is already on PATH.
+    await fs.mkdir(LOCAL_BIN, { recursive: true });
+
     await $.spawn(
       'bash -c "curl -fsSL https://claude.ai/install.sh | bash"',
       { interactive: true },
     );
 
-    // Ensure PATH is updated so subsequent lifecycle methods can call `claude`
-    const localBin = path.join(os.homedir(), '.local', 'bin');
-    process.env['PATH'] = `${localBin}:${process.env['PATH'] ?? ''}`;
+    await FileUtils.addPathToShellRc(LOCAL_BIN, false);
+
+    // Also update this process's PATH so subsequent lifecycle methods in this
+    // same run can call `claude` without waiting for a new shell.
+    process.env['PATH'] = `${LOCAL_BIN}:${process.env['PATH'] ?? ''}`;
 
     if (plan.desiredConfig.globalClaudeMd) {
       await this.writeClaudeMd(plan.desiredConfig.globalClaudeMd);
@@ -201,8 +211,11 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
       await fs.rm(CLAUDE_MD_PATH, { force: true });
     }
 
-    // Native uninstall: remove the binary and version files
-    await fs.rm(path.join(os.homedir(), '.local', 'bin', 'claude'), { force: true });
+    // Native uninstall: remove the binary and version files. The ~/.local/bin
+    // PATH entry added in create() is intentionally left in the shell rc --
+    // it's a shared directory used by other resources (asdf, uv, openclaw),
+    // so removing it here would break them.
+    await fs.rm(path.join(LOCAL_BIN, 'claude'), { force: true });
     await fs.rm(path.join(os.homedir(), '.local', 'share', 'claude'), { recursive: true, force: true });
   }
 
