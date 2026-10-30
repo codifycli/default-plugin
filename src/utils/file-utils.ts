@@ -115,6 +115,77 @@ ${lines.join('\n')}`)
     await fs.writeFile(filePath, newContents, 'utf8');
   }
 
+  static async removeBlockFromFile(filePath: string, startMarker: string, endMarker: string): Promise<void> {
+    const file = await fs.readFile(filePath, 'utf8');
+    const lines = file.split('\n');
+
+    const start = lines.findIndex((l) => l.trim() === startMarker);
+    if (start === -1) {
+      return;
+    }
+
+    const relativeEnd = lines.slice(start + 1).findIndex((l) => l.trim() === endMarker);
+    if (relativeEnd === -1) {
+      return;
+    }
+
+    lines.splice(start, relativeEnd + 2);
+
+    await fs.writeFile(filePath, lines.join('\n'), 'utf8');
+    console.log(`Removed block ${startMarker} to ${endMarker} from ${filePath}`);
+  }
+
+  /**
+   * Removes a shell `case ... esac` statement whose body references the given variable.
+   *
+   * `pnpm setup` emits a PATH guard of the form:
+   *
+   *     case ":$PATH:" in
+   *       *":$PNPM_HOME:"*) ;;
+   *       *) export PATH="$PNPM_HOME:$PATH" ;;
+   *     esac
+   *
+   * The inner lines differ between pnpm versions and between platforms (`$PNPM_HOME` vs
+   * `$PNPM_HOME/bin`, differing indentation), and on Linux the block is sometimes written with no
+   * `# pnpm end` marker, so neither exact-text nor marker-range removal catches it. Matching on
+   * the variable reference and then consuming through `esac` handles every layout.
+   */
+  static async removeCaseStatementReferencing(filePath: string, variable: string): Promise<void> {
+    const file = await fs.readFile(filePath, 'utf8');
+    const lines = file.split('\n');
+
+    for (let i = lines.length - 1; i >= 0; i--) {
+      if (!lines[i]?.trim().startsWith('case ')) {
+        continue;
+      }
+
+      // Find the matching `esac`, bailing out if the statement is unterminated.
+      let end = -1;
+      for (let j = i + 1; j < lines.length; j++) {
+        if (lines[j]?.trim() === 'esac') {
+          end = j;
+          break;
+        }
+
+        if (lines[j]?.trim().startsWith('case ')) {
+          break;
+        }
+      }
+
+      if (end === -1) {
+        continue;
+      }
+
+      const body = lines.slice(i, end + 1).join('\n');
+      if (body.includes(variable)) {
+        lines.splice(i, end - i + 1);
+      }
+    }
+
+    await fs.writeFile(filePath, lines.join('\n'), 'utf8');
+    console.log(`Removed case statement referencing ${variable} from ${filePath}`);
+  }
+
 
   static async removeLineFromFile(filePath: string, search: RegExp | string): Promise<void> {
     const file = await fs.readFile(filePath, 'utf8')

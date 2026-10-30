@@ -86,18 +86,16 @@ export class Pnpm extends Resource<PnpmConfig> {
       await fs.rm(pnpmHome?.trim() || expectedPnpmHome, { recursive: true, force: true });
 
       const shellRc = Utils.getPrimaryShellRc();
+
+      // `pnpm setup` owns this block and its formatting drifts between versions and platforms:
+      // PNPM_HOME has been emitted with both double and single quotes, the PATH guard targets
+      // either $PNPM_HOME or $PNPM_HOME/bin, and on Linux the trailing `# pnpm end` marker is not
+      // always written. Remove the marked range first, then clean up structurally so a block with
+      // no end marker does not survive.
+      await FileUtils.removeBlockFromFile(shellRc, '# pnpm', '# pnpm end')
+      await FileUtils.removeCaseStatementReferencing(shellRc, '$PNPM_HOME')
+      await FileUtils.removeLineFromStartupFile(/^export PNPM_HOME=.*$/)
       await FileUtils.removeLineFromStartupFile('# pnpm')
-      await FileUtils.removeLineFromStartupFile(`export PNPM_HOME="${expectedPnpmHome}"`)
-      await FileUtils.removeFromFile(shellRc,
-`case ":$PATH:" in
-  *":$PNPM_HOME/bin:"*) ;;
-  *) export PATH="$PNPM_HOME/bin:$PATH" ;;
-esac`)
-      await FileUtils.removeFromFile(shellRc,
-`case ":$PATH:" in
-  *":$PNPM_HOME:"*) ;;
-  *) export PATH="$PNPM_HOME:$PATH" ;;
-esac`)
       await FileUtils.removeLineFromStartupFile('# pnpm end')
     } else if (isInstalledByNpm) {
       await $.spawn('npm uninstall -g pnpm', { interactive: true });
