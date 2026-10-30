@@ -7,13 +7,19 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus,
-  getPty, z, Utils, PackageManager
+  getPty, z, Utils
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
+import * as path from 'node:path';
 
 import { TartCloneParameter } from './clone-parameter.js';
 import { TartLoginParameter } from './login-parameter.js';
+
+const TART_DOWNLOAD_URL = 'https://github.com/cirruslabs/tart/releases/latest/download/tart.tar.gz';
+const TART_INSTALL_DIR = '/usr/local/tart';
+const TART_BIN_PATH = '/usr/local/bin/tart';
 
 const schema = z.object({
   tartHome: z
@@ -91,7 +97,6 @@ export class TartResource extends Resource<TartConfig> {
       },
       operatingSystems: [OS.Darwin],
       schema,
-      dependencies: ['homebrew'],
       parameterSettings: {
         tartHome: { type: 'directory', canModify: true },
         // login: { type: 'stateful', definition: new TartLoginParameter() },
@@ -127,23 +132,27 @@ export class TartResource extends Resource<TartConfig> {
   async create(plan: CreatePlan<TartConfig>): Promise<void> {
     const $ = getPty();
 
-    // Check if Homebrew is installed
-    const { status: brewStatus } = await $.spawnSafe('which brew', { interactive: true });
-    if (brewStatus !== SpawnStatus.SUCCESS) {
-      throw new Error('Homebrew is not installed. Please install Homebrew before installing tart.');
+    // Install tart from the official GitHub release rather than the cirruslabs/cli Homebrew tap.
+    // The tap's GoReleaser-generated formulae declare both `depends_on :macos` and
+    // `depends_on :macos => :ventura`, which Homebrew 6+ rejects as a hard error
+    // (https://github.com/cirruslabs/homebrew-cli/issues/21).
+    const curlCheck = await $.spawnSafe('which curl');
+    if (curlCheck.status === SpawnStatus.ERROR) {
+      await Utils.installViaPkgMgr('curl');
     }
 
-    // Tap and trust cirruslabs/cli so all formulae from the tap (including the
-    // softnet dependency) are allowed by Homebrew 5.x+ tap trust enforcement.
-    await $.spawnSafe('brew tap cirruslabs/cli', {
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1, HOMEBREW_NO_ASK: 1, NONINTERACTIVE: 1 },
-    });
-    await $.spawnSafe('brew trust cirruslabs/cli', {
-      env: { HOMEBREW_NO_AUTO_UPDATE: 1, NONINTERACTIVE: 1 },
-    });
+    const temporaryDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-tart-'));
+    try {
+      await $.spawn(`curl -fsSL ${TART_DOWNLOAD_URL} -o tart.tar.gz`, { cwd: temporaryDir });
+      await $.spawn('tar -xzf tart.tar.gz', { cwd: temporaryDir });
 
-    // Install tart via Homebrew
-    await Utils.installViaPkgMgr('cirruslabs/cli/tart', undefined, PackageManager.BREW);
+      await $.spawn(`mkdir -p ${TART_INSTALL_DIR} /usr/local/bin`, { requiresRoot: true });
+      await $.spawn(`rm -rf ${TART_INSTALL_DIR}/tart.app`, { requiresRoot: true });
+      await $.spawn(`mv ./tart.app ${TART_INSTALL_DIR}/tart.app`, { cwd: temporaryDir, requiresRoot: true });
+      await $.spawn(`ln -sf ${TART_INSTALL_DIR}/tart.app/Contents/MacOS/tart ${TART_BIN_PATH}`, { requiresRoot: true });
+    } finally {
+      await fs.rm(temporaryDir, { recursive: true, force: true });
+    }
 
     // Set TART_HOME if specified
     if (plan.desiredConfig.tartHome) {
@@ -183,10 +192,15 @@ export class TartResource extends Resource<TartConfig> {
      
     await FileUtils.removeLineFromShellRc(/^export TART_HOME=.*/);
 
-    // Uninstall tart via Homebrew
-    const { status: brewStatus } = await $.spawnSafe('which brew');
+    await $.spawnSafe(`rm -f ${TART_BIN_PATH}`, { requiresRoot: true });
+    await $.spawnSafe(`rm -rf ${TART_INSTALL_DIR}`, { requiresRoot: true });
+
+    // Clean up installs made by earlier versions of this resource via the cirruslabs/cli tap
+    const { status: brewStatus } = await $.spawnSafe('brew list --formula cirruslabs/cli/tart');
     if (brewStatus === SpawnStatus.SUCCESS) {
-      await Utils.uninstallViaPkgMgr('cirruslabs/cli/tart', undefined, PackageManager.BREW);
+      await $.spawnSafe('brew uninstall --formula cirruslabs/cli/tart', {
+        env: { HOMEBREW_NO_AUTO_UPDATE: 1, NONINTERACTIVE: 1 },
+      });
     }
   }
 }
