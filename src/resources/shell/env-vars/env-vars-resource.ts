@@ -14,14 +14,23 @@ import { OS } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';
+import {
+  assertSafeDoubleQuotedShellValue,
+  SAFE_DOUBLE_QUOTED_VALUE_REGEX,
+  UNSAFE_SHELL_VALUE_MESSAGE
+} from '../../../utils/shell-escape.js';
 
 const ENV_DECLARATION_REGEX = /^\s*export\s+([A-Z_a-z][A-Z0-9_a-z]*)\s*=\s*(["']?)(.+?)\2\s*(?:#.*)?$/gm;
 
 export const schema = z.object({
   vars: z
     .array(z.object({
-      variable: z.string().describe('The environment variable name (e.g. PNPM_HOME)'),
-      value: z.string().describe('The environment variable value'),
+      variable: z.string()
+        .regex(/^[A-Z_a-z]\w*$/, 'The environment variable name may only contain letters, numbers and underscores and cannot start with a number')
+        .describe('The environment variable name (e.g. PNPM_HOME)'),
+      value: z.string()
+        .regex(SAFE_DOUBLE_QUOTED_VALUE_REGEX, `The environment variable value ${UNSAFE_SHELL_VALUE_MESSAGE}`)
+        .describe('The environment variable value'),
     }))
     .describe('Environment variables to declare')
     .optional(),
@@ -212,6 +221,12 @@ export class EnvVarsResource extends Resource<EnvVarsConfig> {
   }
 
   private declarationString(variable: string, value: string): string {
+    // The value is placed inside double quotes in the shell startup file. Reject anything the shell would evaluate.
+    if (!/^[A-Z_a-z]\w*$/.test(variable)) {
+      throw new Error(`Invalid env var name ${JSON.stringify(variable)}`);
+    }
+
+    assertSafeDoubleQuotedShellValue(value, `value for env var ${variable}`);
     return `export ${variable}="${value}"`;
   }
 }

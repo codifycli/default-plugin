@@ -7,13 +7,15 @@
   "properties": {
     "path": {
       "type": "string",
+      "pattern": "^(?:[^\\n\\r\"$\\\\`]|\\$[A-Z_a-z]\\w*|\\$\\{[A-Z_a-z]\\w*\\})*$",
       "description": "The path to append. This parameter cannot be used at the same time as paths"
     },
     "paths": {
       "type": "array",
       "description": "Multiple paths to append. This parameter cannot be used at the same time as path",
       "items": {
-        "type": "string"
+        "type": "string",
+        "pattern": "^(?:[^\\n\\r\"$\\\\`]|\\$[A-Z_a-z]\\w*|\\$\\{[A-Z_a-z]\\w*\\})*$"
       }
     },
     "prepend": {

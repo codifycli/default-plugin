@@ -16,6 +16,7 @@ import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { assertSafeDoubleQuotedShellValue } from '../../../utils/shell-escape.js';
 import { untildify } from '../../../utils/untildify.js';
 import Schema from './path-schema.json';
 import os from 'node:os';
@@ -91,6 +92,13 @@ export class PathResource extends Resource<PathConfig> {
   override async validate(parameters: Partial<PathConfig>): Promise<void> {
     if (parameters.path && parameters.paths) {
       throw new Error('Both path and paths cannot be specified together')
+    }
+
+    // Paths are written into the shell startup file. Reject anything the shell would evaluate.
+    for (const p of [parameters.path, ...(parameters.paths ?? [])]) {
+      if (p !== undefined) {
+        assertSafeDoubleQuotedShellValue(p, 'path');
+      }
     }
   }
 
@@ -217,7 +225,8 @@ export class PathResource extends Resource<PathConfig> {
   }
 
   private async addPath(path: string, prepend = false): Promise<void> {
-    // Escaping is done within file utils
+    // Validated again here: older @codifycli/plugin-core versions do not quote or validate the path
+    assertSafeDoubleQuotedShellValue(path, 'path');
     await FileUtils.addPathToShellRc(path, prepend);
   }
   
@@ -312,11 +321,6 @@ export class PathResource extends Resource<PathConfig> {
     return segments;
   }
 
-  private async resolvePathWithVariables(pathWithVariables: string): Promise<string> {
-    const $ = getPty();
-    const { data } = await $.spawnSafe(`echo ${pathWithVariables}`);
-    return data.trim();
-  }
 }
 
 interface PathDeclaration {
