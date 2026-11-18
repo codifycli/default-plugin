@@ -18,6 +18,7 @@ import fs from 'node:fs/promises';
 import { FileUtils } from '../../../utils/file-utils.js';
 import os from 'node:os';
 import path from 'node:path';
+import { escapeSingleQuoted, SAFE_ALIAS_NAME_REGEX, unescapeSingleQuoted } from '../../../utils/shell-escape.js';
 
 const ALIAS_REGEX = /^'?([^=]+?)'?='?(.*?)'?$/
 
@@ -29,7 +30,9 @@ interface AliasDeclaration {
 export const schema = z.object({
   aliases: z
     .array(z.object({
-      alias: z.string().describe('The name of the alias'),
+      alias: z.string()
+        .regex(SAFE_ALIAS_NAME_REGEX, 'The alias name cannot contain whitespace or any of / \\ $ ` = | & ; ( ) < > \' "')
+        .describe('The name of the alias'),
       value: z.string().describe('The alias value'),
     }))
     .describe('Aliases to create')
@@ -123,7 +126,7 @@ export class AliasesResource extends Resource<AliasesConfig> {
       .map((l) => l.replace(/^alias\s+/, ''))
       .map((l) => l.match(ALIAS_REGEX))
       .filter(Boolean)
-      .map((m) => (m ? { alias: m[1], value: m[2] } : null))
+      .map((m) => (m ? { alias: m[1], value: unescapeSingleQuoted(m[2]) } : null))
       .filter(Boolean) as Array<{ alias: string; value: string }>;
 
     if (parameters.declarationsOnly) {
@@ -222,7 +225,12 @@ export class AliasesResource extends Resource<AliasesConfig> {
   }
 
   private aliasString(alias: string, value: string): string {
-    return `alias ${alias}='${value}'`
+    if (!SAFE_ALIAS_NAME_REGEX.test(alias)) {
+      throw new Error(`Invalid alias name ${JSON.stringify(alias)}`);
+    }
+
+    // The value is placed inside single quotes in the shell startup file
+    return `alias ${alias}='${escapeSingleQuoted(value)}'`
   }
 
   private aliasStringShort(alias: string, value: string): string {

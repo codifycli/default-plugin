@@ -12,6 +12,7 @@ import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';
+import { assertSafeDoubleQuotedShellValue } from '../../../utils/shell-escape.js';
 import Schema from './env-var-schema.json';
 
 export interface EnvVarConfig extends StringIndexedObject {
@@ -162,6 +163,8 @@ export class EnvVarResource extends Resource<EnvVarConfig> {
   }
 
   private declarationString(variable: string, value: string): string {
+    // The value is placed inside double quotes in the shell startup file. Reject anything the shell would evaluate.
+    assertSafeDoubleQuotedShellValue(value, `value for env var ${variable}`);
     return `export ${variable}="${value}"`;
   }
 }

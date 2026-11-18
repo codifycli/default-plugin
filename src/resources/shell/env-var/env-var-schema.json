@@ -12,7 +12,8 @@
     },
     "value": {
       "type": "string",
-      "description": "The environment variable value (e.g. $HOME/.local/share/pnpm)"
+      "pattern": "^(?:[^\\n\\r\"$\\\\`]|\\$[A-Z_a-z]\\w*|\\$\\{[A-Z_a-z]\\w*\\})*$",
+      "description": "The environment variable value (e.g. $HOME/.local/share/pnpm). May only contain plain characters and simple variable references ($NAME or ${NAME}). Command substitution, backticks, quotes, backslashes and new lines are not allowed"
     }
   },
   "required": ["variable", "value"],
