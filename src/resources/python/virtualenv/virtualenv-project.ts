@@ -1,24 +1,27 @@
 import {
   CreatePlan, DestroyPlan, ExampleConfig, ModifyPlan, ParameterChange, RefreshContext, Resource,
   ResourceSettings,
-  getPty
+  getPty,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import schema from './virtualenv-project-schema.json';
 
-export interface VirtualenvProjectConfig extends ResourceConfig {
-  dest: string;
-  python?: string;
-  noVcsIgnore?: boolean;
-  systemSitePackages?: boolean;
-  symlinks?: boolean;
-  cwd?: string;
-  automaticallyInstallRequirementsTxt?: boolean;
-}
+export const schema = z.object({
+  dest: z.string().describe('The directory to create virtualenv at'),
+  python: z.string().optional().describe('A path to the python interpreter to use to create the virtualenv. This defaults to the global python3 version.'),
+  noVcsIgnore: z.boolean().optional().describe('Don\'t create VCS ignore directive in the destination directory (default: false)'),
+  systemSitePackages: z.boolean().optional().describe('Give the virtual environment access to the system site-packages dir (default: false)'),
+  symlinks: z.boolean().optional().describe(' Try to use symlinks rather than copies (default: true)'),
+  cwd: z.string().optional().describe('The cwd to create virtualenv from. This allows a relative path to be used for dest.'),
+  automaticallyInstallRequirementsTxt: z.boolean().optional().describe('If an requirements.txt is available in the cwd, automatically install it when a virtual env is first created.'),
+})
+  .describe('Install and manage local packages for a project with virtualenv');
+
+export type VirtualenvProjectConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<VirtualenvProjectConfig> = {
   dest: '.venv',

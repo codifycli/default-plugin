@@ -54,7 +54,7 @@ const codexConfigSchema = z
       ),
     shell_environment_policy: z
       .object({
-        inherit: z.enum(['all', 'core', 'none']).optional(),
+        inherit: z.enum(['all', 'core', 'none']).optional().describe('"all" passes every variable through, "core" keeps PATH and a minimal set, "none" starts empty.'),
       })
       .optional()
       .describe(
@@ -63,7 +63,7 @@ const codexConfigSchema = z
       ),
     history: z
       .object({
-        persistence: z.enum(['save-all', 'none']).optional(),
+        persistence: z.enum(['save-all', 'none']).optional().describe('"save-all" keeps session history, "none" disables it.'),
       })
       .optional()
       .describe('Session history settings. Set persistence to "save-all" to keep history or "none" to disable it.'),

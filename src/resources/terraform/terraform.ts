@@ -5,7 +5,8 @@ import {
   ResourceSettings,
   SpawnStatus,
   getPty,
-  Utils, FileUtils, PackageManager
+  Utils, FileUtils, PackageManager,
+  z
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
@@ -13,19 +14,19 @@ import os from 'node:os';
 import path from 'node:path';
 import semver from 'semver';
 
-import Schema from './terraform-schema.json';
 import { HashicorpReleaseInfo, HashicorpReleasesAPIResponse, TerraformVersionInfo } from './terraform-types.js';
 import { codifySpawn } from '../../utils/codify-spawn.js';
+
+export const schema = z.object({
+  directory: z.string().optional().describe('The directory to install Terraform. Defaults to /usr/local/bin.'),
+  version: z.string().optional().describe('The specific version of Terraform to install. Defaults to latest.'),
+})
+  .describe('Installs Terraform.');
 
 const TERRAFORM_RELEASES_API_URL = 'https://api.releases.hashicorp.com/v1/releases/terraform';
 const TERRAFORM_RELEASE_INFO_API_URL = (version: string) => `https://api.releases.hashicorp.com/v1/releases/terraform/${version}`;
 
-export interface TerraformConfig extends StringIndexedObject {
-  directory?: string,
-  version?: string,
-  // TODO: Add option to install using brew.
-  // TODO: Add option to install auto-complete
-}
+export type TerraformConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<TerraformConfig> = {
   version: 'latest',
@@ -61,7 +62,7 @@ export class TerraformResource extends Resource<TerraformConfig> {
         example2: exampleCustomDir,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
         directory: {
           type: 'directory',

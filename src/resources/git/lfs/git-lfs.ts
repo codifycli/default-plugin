@@ -1,12 +1,12 @@
-import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
-import Schema from './git-lfs-schema.json';
+export const schema = z.object({})
+  .describe('Installs git-lfs. This resource will automatically activate git-lfs as well.');
 
-export interface GitLfsConfig extends ResourceConfig {
-  // TODO: Add --system option for installing.
-}
+
+export type GitLfsConfig = z.infer<typeof schema>;
 
 const exampleWithRepo: ExampleConfig = {
   title: 'Install Git LFS and clone a repository',
@@ -32,7 +32,7 @@ export class GitLfsResource extends Resource<GitLfsConfig> {
         example1: exampleWithRepo,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       dependencies: ['homebrew'],
     }
   }

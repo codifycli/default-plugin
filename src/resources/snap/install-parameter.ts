@@ -2,7 +2,7 @@ import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/pl
 
 import { SnapConfig } from './snap.js';
 
-export interface SnapPackage {
+export type SnapPackage = {
   name: string;
   channel?: string;
   classic?: boolean;

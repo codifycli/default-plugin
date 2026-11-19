@@ -1,4 +1,4 @@
-import { Resource, ResourceSettings, SpawnStatus, getPty, Utils, PackageManager } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, getPty, Utils, PackageManager, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs';
 
@@ -8,20 +8,22 @@ import {
   JenvAddParameter,
   JAVA_VERSION_INTEGER,
 } from './java-versions-parameter.js';
-import Schema from './jenv-schema.json';
 import os from 'node:os';
 
-export interface JenvConfig extends ResourceConfig {
-  add?: string[],
-  global?: string,
-}
+export const schema = z.object({
+  add: z.array(z.string()).optional().describe('The java_home path to add to jenv. Jenv does not directly install Java. This resources optionally allows users to specify a LTS version instead of a path (8, 11, 17, 21, 22) and install it via Homebrew'),
+  global: z.string().optional().describe('Set the global Java version using Jenv.'),
+})
+  .describe('Install jenv and manage Java versions using jenv. Jenv cannot install Java directly, it needs to be installed separately and added to Jenv.');
+
+export type JenvConfig = z.infer<typeof schema>;
 
 export class JenvResource extends Resource<JenvConfig> {
   getSettings(): ResourceSettings<JenvConfig> {
     return {
       id: 'jenv',
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       dependencies: Utils.isMacOS() ? ['homebrew'] : [],
       parameterSettings: {
         add: { stateful: new JenvAddParameter(), order: 1 },
