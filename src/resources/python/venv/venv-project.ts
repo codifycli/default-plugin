@@ -4,28 +4,31 @@ import {
   ExampleConfig,
   Resource,
   ResourceSettings,
-  getPty
+  getPty,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import schema from './venv-project-schema.json';
 
-export interface VenvProjectConfig extends ResourceConfig {
-  envDir: string;
-  systemSitePackages?: boolean;
-  symlinks?: boolean;
-  copies?: boolean;
-  clear?: boolean;
-  upgrade?: boolean;
-  withoutPip?: boolean;
-  prompt?: string;
-  upgradeDeps?: boolean;
-  cwd?: string;
-  automaticallyInstallRequirementsTxt?: boolean;
-}
+export const schema = z.object({
+  envDir: z.string().describe('A directory to create the environment in.'),
+  systemSitePackages: z.boolean().optional().describe('Give the virtual environment access to the system site-packages dir.'),
+  symlinks: z.boolean().optional().describe('Try to use symlinks rather than copies, when symlinks are not the default for the platform.'),
+  copies: z.boolean().optional().describe('Delete the contents of the environment directory if it already exists, before environment creation.'),
+  clear: z.boolean().optional().describe('Try to use symlinks rather than copies (default: true).'),
+  upgrade: z.boolean().optional().describe('Upgrade the environment directory to use this version of Python, assuming Python has been upgraded in-place.'),
+  withoutPip: z.boolean().optional().describe('Skips installing or upgrading pip in the virtual environment (pip is bootstrapped by default).'),
+  prompt: z.string().optional().describe('Provides an alternative prompt prefix for this environment.'),
+  upgradeDeps: z.boolean().optional().describe('Upgrade core dependencies: pip setuptools to the latest version in PyPI.'),
+  cwd: z.string().optional().describe('The cwd to create virtualenv from. This allows a relative path to be used for dest.'),
+  automaticallyInstallRequirementsTxt: z.boolean().optional().describe('If an requirements.txt is available in the cwd, automatically install it when a virtual env is first created.'),
+})
+  .describe('Install and manage local packages for a project with venv');
+
+export type VenvProjectConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<VenvProjectConfig> = {
   envDir: '.venv',

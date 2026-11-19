@@ -7,7 +7,8 @@ import {
   ParameterChange,
   RefreshContext,
   Resource,
-  ResourceSettings
+  ResourceSettings,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import { createHash } from 'node:crypto';
@@ -19,14 +20,16 @@ import { finished } from 'node:stream/promises';
 import trash from 'trash';
 
 import { FileUtils } from '../../utils/file-utils.js';
-import schema from './remote-file-schema.json'
 
-export interface FileConfig extends ResourceConfig{
-  path: string;
-  remote?: string;
-  hash?: string;
-  onlyCreate: boolean;
-}
+export const schema = z.object({
+  path: z.string().describe('The local path of the file.'),
+  remote: z.string().describe('The remote codify cloud file path. This should be in the format of codify://<uuid>:<file_path>'),
+  hash: z.string().optional().describe('Leave empty. The md5 hash of the file.'),
+  onlyCreate: z.boolean().optional().describe('Forces the resource to only create the file if it doesn\'t exist but don\'t detect any content changes. Also skips uploading the file to Codify cloud on refresh and import.'),
+})
+  .describe('Represents a file stored on codify cloud. Use apply to pull changes from remote and save to local. Use refresh and import to upload changes to remote.');
+
+export type FileConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<FileConfig> = {
   path: '<Replace me here!>',

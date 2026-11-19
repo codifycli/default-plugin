@@ -1,15 +1,16 @@
-import { ExampleConfig, Resource, ResourceSettings, SpawnStatus, Utils, getPty } from '@codifycli/plugin-core';
+import { ExampleConfig, Resource, ResourceSettings, SpawnStatus, Utils, getPty, z } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 
 import { GitEmailParameter } from './git-email-paramater.js';
 import { GitNameParameter } from './git-name-parameter.js';
-import Schema from './git-schema.json';
 
-export interface GitConfig extends StringIndexedObject {
-  email?: string,
-  username?: string,
-  // TODO: Allow upgrading git to the latest version in the future. This means installing git using homebrew
-}
+export const schema = z.object({
+  email: z.string().optional().describe('The global email to set for git'),
+  username: z.string().optional().describe('The global username to set for git'),
+})
+  .describe('Set and manage global git settings (email and username)');
+
+export type GitConfig = z.infer<typeof schema>;
 
 const exampleConfig: ExampleConfig = {
   title: 'Configure global git identity',
@@ -29,7 +30,7 @@ export class GitResource extends Resource<GitConfig> {
         example1: exampleConfig,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
         email: { stateful: new GitEmailParameter(), },

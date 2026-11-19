@@ -47,19 +47,19 @@ const toolsSchema = z
     })).optional()
       .describe('Restricts tools based on the requester\'s identity (keyed by channel, user ID, or * for default).'),
     web: z.looseObject({
-      fetch: z.looseObject({ enabled: z.boolean().optional() }).optional()
+      fetch: z.looseObject({ enabled: z.boolean().optional().describe('Enable the web fetch tool.') }).optional()
         .describe('Configures webpage retrieval capabilities, including provider selection and character limits.'),
-      search: z.looseObject({ enabled: z.boolean().optional() }).optional()
+      search: z.looseObject({ enabled: z.boolean().optional().describe('Enable the web search tool.') }).optional()
         .describe('Enables web search functionality with API key configuration and result limits.'),
     }).optional()
       .describe('Web fetch and search tool settings.'),
     codeMode: z.boolean().optional()
       .describe('Activates a generic code-execution surface where models interact through exec and wait rather than traditional tools.'),
-    elevated: z.looseObject({ allowFrom: z.array(z.string()).optional() }).optional()
+    elevated: z.looseObject({ allowFrom: z.array(z.string()).optional().describe('Sender IDs allowed to trigger elevated (unsandboxed) execution.') }).optional()
       .describe('Controls whether agents can execute commands outside the sandbox; allowFrom restricts which senders can trigger elevated execution.'),
-    exec: z.looseObject({ timeout: z.number().optional() }).optional()
+    exec: z.looseObject({ timeout: z.number().optional().describe('Command execution timeout.') }).optional()
       .describe('Manages command execution behaviour, including timeouts, cleanup intervals, and patch application settings.'),
-    loopDetection: z.looseObject({ enabled: z.boolean().optional() }).optional()
+    loopDetection: z.looseObject({ enabled: z.boolean().optional().describe('Enable detection of agents stuck repeating the same tool calls.') }).optional()
       .describe('Detects and prevents tool-call loops through pattern recognition and configurable thresholds.'),
     sandbox: z.looseObject({}).optional()
       .describe('Filters which tools remain accessible within sandboxed sessions, including MCP servers and plugins.'),
@@ -111,7 +111,11 @@ const skillsSchema = z
     entries: z.record(z.string(), z.looseObject({
       enabled: z.boolean().optional()
         .describe('Disables a skill even if it is bundled or installed.'),
-      apiKey: z.union([z.string(), z.object({ source: z.string(), provider: z.string(), id: z.string() })]).optional()
+      apiKey: z.union([z.string(), z.object({
+        source: z.string().describe('Where the secret is stored (SecretRef source).'),
+        provider: z.string().describe('The secret provider (SecretRef provider).'),
+        id: z.string().describe('The secret identifier within the provider.'),
+      })]).optional()
         .describe('Convenience field for skills declaring a primary environment variable; accepts a plaintext string or a SecretRef object.'),
       env: z.record(z.string(), z.string()).optional()
         .describe('Skill-scoped environment variables injected at runtime.'),
@@ -214,8 +218,8 @@ const agentsSchema = z
       workspace: z.string().optional()
         .describe('Default workspace directory for agent operations.'),
       model: z.union([z.string(), z.object({
-        primary: z.string(),
-        fallbacks: z.array(z.string()).optional(),
+        primary: z.string().describe('Primary model, as "provider/model".'),
+        fallbacks: z.array(z.string()).optional().describe('Models to fall back to, in order, when the primary model fails.'),
       })]).optional()
         .describe('Default LLM model for agent runs, as "provider/model" or an object with primary and fallbacks.'),
       thinkingDefault: z.enum(['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'adaptive', 'max']).optional()
@@ -229,7 +233,7 @@ const agentsSchema = z
           .describe('Whether the sandbox is shared across sessions, scoped per agent, or per session.'),
       }).optional()
         .describe('Sandbox constraints for agent execution environments.'),
-      heartbeat: z.looseObject({ every: z.string().optional() }).optional()
+      heartbeat: z.looseObject({ every: z.string().optional().describe('Interval between check-ins (e.g. "30m").') }).optional()
         .describe('Timing and behaviour for periodic agent check-ins (e.g. every: "30m").'),
       maxConcurrent: z.number().optional()
         .describe('Maximum number of simultaneously active agent sessions.'),
@@ -348,7 +352,7 @@ export const settingsSchema = z
         .describe('Exclusive allowlist — when set, only listed plugins load.'),
       deny: z.array(z.string()).optional()
         .describe('Blocklist — deny overrides both allow and per-plugin enablement.'),
-      load: z.looseObject({ paths: z.array(z.string()).optional() }).optional()
+      load: z.looseObject({ paths: z.array(z.string()).optional().describe('Additional directories to load plugins from.') }).optional()
         .describe('Additional filesystem directories where standalone plugins are discovered.'),
       entries: z.record(z.string(), z.looseObject({
         enabled: z.boolean().optional()
@@ -362,7 +366,7 @@ export const settingsSchema = z
     env: z.looseObject({
       vars: z.record(z.string(), z.string()).optional()
         .describe('Inline environment variables applied when not already present in the process.'),
-      shellEnv: z.looseObject({ enabled: z.boolean().optional() }).optional()
+      shellEnv: z.looseObject({ enabled: z.boolean().optional().describe('Import missing environment variables from the login shell profile.') }).optional()
         .describe('When enabled, imports missing environment variables from the system login shell profile.'),
     }).optional()
       .describe('Environment variable injection for the gateway process.'),

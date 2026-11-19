@@ -1,14 +1,16 @@
-import { CreatePlan, DestroyPlan, ExampleConfig, getPty, RefreshContext, Resource, ResourceSettings } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, getPty, RefreshContext, Resource, ResourceSettings, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 
-import schema from './pip-sync-schema.json'
 import { RequirementFilesParameter } from './requirement-files-parameter.js';
 
-export interface PipSyncConfig extends ResourceConfig {
-  requirementFiles: string[];
-  virtualEnv?: string;
-  cwd?: string;
-}
+export const schema = z.object({
+  virtualEnv: z.string().optional().describe('A virtual env to activate before issuing commands.'),
+  requirementFiles: z.array(z.string()).describe('A list of requirement files to supply pip-sync.'),
+  cwd: z.string().optional().describe('The working directory to run commands from. If cwd is supplied, the other parameters can be specified as relative to cwd.'),
+})
+  .describe('Install and manage though pip-tools by installing + uninstalling packages using pip-sync');
+
+export type PipSyncConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<PipSyncConfig> = {
   requirementFiles: ['requirements.txt'],

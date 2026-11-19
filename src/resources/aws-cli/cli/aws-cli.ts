@@ -1,23 +1,21 @@
-import { Resource, ResourceSettings, SpawnStatus, Utils, PackageManager, getPty, FileUtils } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, Utils, PackageManager, getPty, FileUtils, z } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { exampleAwsCliConfigs } from '../examples.js';
-import Schema from './aws-cli-schema.json';
 
-export interface AwsCliConfig extends StringIndexedObject {
-  // TODO: Add version parameter
-  // TODO: Add setup parameter
-  // TODO: Add parameter to prefer homebrew
-}
+export const schema = z.object({})
+  .describe('Installs aws-cli.');
+
+export type AwsCliConfig = z.infer<typeof schema>;
 
 export class AwsCliResource extends Resource<AwsCliConfig> {
 
   getSettings(): ResourceSettings<AwsCliConfig> {
     return {
-      schema: Schema,
+      schema,
       exampleConfigs: {
         ...exampleAwsCliConfigs,
       },

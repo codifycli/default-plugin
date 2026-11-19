@@ -2,7 +2,7 @@ import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/pl
 
 import { YumConfig } from './yum.js';
 
-export interface YumPackage {
+export type YumPackage = {
   name: string;
   version?: string;
 }

@@ -41,7 +41,7 @@ const schema = z
       .string()
       .optional()
       .describe('Codify remote file reference (codify://<documentId>:<fileName>).'),
-    hash: z.string().optional(),
+    hash: z.string().optional().describe('Internal: content hash of the remote file, used to detect remote changes. Set automatically when remoteFile is used.'),
   })
   .refine((d) => !(d.contents !== undefined && d.remoteFile !== undefined), {
     message: 'Only one of contents or remoteFile may be specified.',

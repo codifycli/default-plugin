@@ -10,18 +10,21 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus,
-  Utils
+  Utils,
+  z
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';
-import Schema from './alias-schema.json';
 
-export interface AliasConfig extends StringIndexedObject {
-  alias: string;
-  value: string;
-}
+export const schema = z.object({
+  alias: z.string().regex(new RegExp('^[^ 	\n/\\$`=|&;()<>\'"]*$')).describe('The name of the alias'),
+  value: z.string().optional().describe('The alias value'),
+})
+  .describe('Manages user aliases. It permanently saves the alias by adding it to the shell startup script.');
+
+export type AliasConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<AliasConfig> = {
   alias: '<Replace me here!>',
@@ -58,7 +61,7 @@ export class AliasResource extends Resource<AliasConfig> {
         example2: exampleSystemAlias,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
         value: { canModify: true }
       },
@@ -113,7 +116,7 @@ export class AliasResource extends Resource<AliasConfig> {
       await fs.writeFile(shellRcPath, '', { encoding: 'utf8' });
     }
 
-    const { alias, value } = plan.desiredConfig;
+    const { alias, value } = plan.desiredConfig as Required<AliasConfig>;
     const aliasString = this.aliasString(alias, value);
 
     await FileUtils.addToStartupFile(aliasString);
@@ -126,7 +129,7 @@ export class AliasResource extends Resource<AliasConfig> {
       return;
     }
 
-    const { alias, value } = plan.currentConfig;
+    const { alias, value } = plan.currentConfig as Required<AliasConfig>;
     const aliasInfo = await this.findAlias(alias, value);
     if (!aliasInfo) {
       throw new Error(`Unable to find alias: ${alias} on the system. Codify isn't able to search all locations on the system. Please delete the alias manually and re-run Codify.`);
@@ -143,7 +146,7 @@ export class AliasResource extends Resource<AliasConfig> {
       throw new Error(`Unable to modify Alias. Cannot find line ${aliasString} in ${aliasInfo.path}. Please delete the alias manually and re-run Codify.`);
     }
     
-    const newAlias = this.aliasString(plan.desiredConfig.alias, plan.desiredConfig.value);
+    const newAlias = this.aliasString(plan.desiredConfig.alias, plan.desiredConfig.value!);
     lines.splice(aliasLineNum, 1, newAlias);
     
     await fs.writeFile(aliasInfo.path, lines.join('\n'), 'utf8');
@@ -152,7 +155,7 @@ export class AliasResource extends Resource<AliasConfig> {
   }
 
   async destroy(plan: DestroyPlan<AliasConfig>): Promise<void> {
-    const { alias, value } = plan.currentConfig;
+    const { alias, value } = plan.currentConfig as Required<AliasConfig>;
     const aliasInfo = await this.findAlias(alias, value);
     if (!aliasInfo) {
       throw new Error(`Unable to find alias: ${alias} on the system. Codify isn't able to search all locations on the system. Please delete the alias manually and re-run Codify.`);

@@ -1,11 +1,18 @@
-import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty, Utils, FileUtils } from '@codifycli/plugin-core';
+import { CreatePlan, Resource, ResourceSettings, SpawnStatus, getPty, Utils, FileUtils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { MacportsInstallParameter, PortPackage } from './install-parameter.js';
-import schema from './macports-schema.json';
+
+export const schema = z.object({
+  install: z.array(z.union([z.string(), z.looseObject({
+    name: z.string().describe('The package name.'),
+    version: z.string().optional().describe('The version to install. Omit for the latest version.'),
+  })])).optional().describe('Installs packages.'),
+})
+  .describe('Install macports and manage packages.');
 
 const MACPORTS_DOWNLOAD_LINKS: Record<string, string> = {
   '26': 'https://github.com/macports/macports-base/releases/download/v2.11.6/MacPorts-2.11.6-26-Tahoe.pkg',
@@ -21,9 +28,7 @@ const MACPORTS_DOWNLOAD_LINKS: Record<string, string> = {
   '6': 'https://github.com/macports/macports-base/releases/download/v2.10.5/MacPorts-2.10.5-10.11-ElCapitan.pkg',
 }
 
-export interface MacportsConfig extends ResourceConfig {
-  install: Array<PortPackage | string>;
-}
+export type MacportsConfig = z.infer<typeof schema>;
 
 export class MacportsResource extends Resource<MacportsConfig> {
 

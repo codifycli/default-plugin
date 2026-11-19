@@ -1,16 +1,18 @@
-import { Resource, ResourceSettings, SpawnStatus, getPty, Utils } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, getPty, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 
-import Schema from './pgcli-schema.json';
+export const schema = z.object({})
+  .describe('Installs pgcli.');
 
-export interface PgcliConfig extends ResourceConfig {}
+
+export type PgcliConfig = z.infer<typeof schema>;
 
 export class PgcliResource extends Resource<PgcliConfig> {
   getSettings(): ResourceSettings<PgcliConfig> {
     return {
       id: 'pgcli',
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       dependencies: [...Utils.isMacOS() ? ['homebrew'] : []],
     }
   }

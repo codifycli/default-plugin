@@ -6,20 +6,23 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings,
-  getPty
+  getPty,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
 import { exampleSshConfigs } from '../../ssh/examples.js';
-import Schema from './git-repositories-schema.json';
 
-export interface GitRepositoriesConfig extends ResourceConfig {
-  autoVerifySSH: boolean;
-  parentDirectory: string;
-  repositories: string[];
-}
+export const schema = z.object({
+  repositories: z.array(z.string()).describe('Remote repository URLs to clone.'),
+  parentDirectory: z.string().describe('Parent directory to clone repositories into. Each repository is cloned as a subdirectory using the repository name.'),
+  autoVerifySSH: z.boolean().optional().describe('Automatically verifies the ssh connection for ssh git clones. Defaults to true.'),
+})
+  .describe('Clone multiple Git repositories into a shared parent directory.');
+
+export type GitRepositoriesConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<GitRepositoriesConfig> = {
   parentDirectory: '<Replace me here!>',
@@ -50,7 +53,7 @@ export class GitRepositoriesResource extends Resource<GitRepositoriesConfig> {
         ...exampleSshConfigs,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
         repositories: { type: 'array', canModify: true },
         parentDirectory: { type: 'directory' },
