@@ -72,7 +72,7 @@ export class SshConfigFileResource extends Resource<SshConfig> {
       schema: Schema,
       isSensitive: true,
       parameterSettings: {
-        hosts: { type: 'stateful', definition: new SshConfigHostsParameter() }
+        hosts: { stateful: new SshConfigHostsParameter() }
       },
       importAndDestroy: {
         refreshKeys: ['hosts'],

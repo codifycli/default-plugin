@@ -1,9 +1,9 @@
-import { ArrayParameterSetting, SpawnStatus, StatefulParameter, getPty } from '@codifycli/plugin-core';
+import { ParameterSetting, SpawnStatus, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
 import { HomebrewConfig } from './homebrew.js';
 
 export class FormulaeParameter extends StatefulParameter<HomebrewConfig, string[]> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       isElementEqual(desired, current) {

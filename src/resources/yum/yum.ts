@@ -53,7 +53,7 @@ export class YumResource extends Resource<YumConfig> {
       operatingSystems: [OS.Linux],
       schema,
       parameterSettings: {
-        install: { type: 'stateful', definition: new YumInstallParameter() },
+        install: { stateful: new YumInstallParameter() },
         update: { type: 'boolean', default: true, setting: true }
       }
     };

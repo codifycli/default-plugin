@@ -1,9 +1,9 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
+import { ParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 
 import { NvmConfig } from './nvm.js';
 
 export class NvmNodeVersionsParameter extends ArrayStatefulParameter<NvmConfig, string> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       isElementEqual: (desired, current) => current.includes(desired),

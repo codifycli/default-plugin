@@ -64,7 +64,7 @@ export class OllamaResource extends Resource<OllamaConfig> {
       schema,
       dependencies: ['homebrew'],
       parameterSettings: {
-        models: { type: 'stateful', definition: new ModelsParameter() },
+        models: { stateful: new ModelsParameter() },
       },
     };
   }

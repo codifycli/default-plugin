@@ -91,8 +91,8 @@ export class VscodeResource extends Resource<VscodeConfig> {
           type: 'directory',
           default: Utils.isMacOS() ? '/Applications' : path.join(os.homedir(), '.local', 'bin'),
         },
-        extensions: { type: 'stateful', definition: new ExtensionsParameter(), order: 1 },
-        settings: { type: 'stateful', definition: new SettingsParameter(), order: 2 },
+        extensions: { stateful: new ExtensionsParameter(), order: 1 },
+        settings: { stateful: new SettingsParameter(), order: 2 },
       },
     };
   }

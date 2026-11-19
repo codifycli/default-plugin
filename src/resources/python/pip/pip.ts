@@ -84,7 +84,7 @@ export class Pip extends Resource<PipResourceConfig> {
           filterInStatelessMode: (desired, current) =>
             current.filter((c) => desired.find((d) => this.isSame(c, d)))
         },
-        installFiles: { type: 'stateful', definition: new PipInstallFilesParameter(), },
+        installFiles: { stateful: new PipInstallFilesParameter(), },
         virtualEnv: { type: 'directory', setting: true }
       },
       allowMultiple: {

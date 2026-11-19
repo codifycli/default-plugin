@@ -51,8 +51,8 @@ export class PyenvResource extends Resource<PyenvConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
-        global: { type: 'stateful', definition: new PyenvGlobalParameter(), order: 2 },
-        pythonVersions: { type: 'stateful', definition: new PythonVersionsParameter(), order: 1, },
+        global: { stateful: new PyenvGlobalParameter(), order: 2 },
+        pythonVersions: { stateful: new PythonVersionsParameter(), order: 1, },
       },
     }
   }

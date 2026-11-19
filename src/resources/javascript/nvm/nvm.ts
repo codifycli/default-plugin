@@ -49,8 +49,8 @@ export class NvmResource extends Resource<NvmConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema: Schema,
       parameterSettings: {
-        global: { type: 'stateful', definition: new NvmGlobalParameter(), order: 2 },
-        nodeVersions: { type: 'stateful', definition: new NvmNodeVersionsParameter(), order: 1 },
+        global: { stateful: new NvmGlobalParameter(), order: 2 },
+        nodeVersions: { stateful: new NvmNodeVersionsParameter(), order: 1 },
       },
     }
   }

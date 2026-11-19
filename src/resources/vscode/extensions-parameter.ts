@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, Plan, SpawnStatus, StatefulParameter, Utils, getPty } from '@codifycli/plugin-core';
+import { ParameterSetting, Plan, SpawnStatus, StatefulParameter, Utils, getPty } from '@codifycli/plugin-core';
 import path from 'node:path';
 
 import { VscodeConfig } from './vscode.js';
@@ -20,7 +20,7 @@ function getCodeBinary(directory?: string | null): string {
 }
 
 export class ExtensionsParameter extends StatefulParameter<VscodeConfig, string[]> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       isElementEqual(desired, current) {

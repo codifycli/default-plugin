@@ -66,7 +66,7 @@ export class RustResource extends Resource<RustConfig> {
       schema,
       removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
-        cargoPackages: { type: 'stateful', definition: new CargoPackagesParameter(), order: 1 },
+        cargoPackages: { stateful: new CargoPackagesParameter(), order: 1 },
       },
       dependencies: [...(Utils.isMacOS() ? ['xcode-tools'] : [])],
     };

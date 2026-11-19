@@ -31,8 +31,8 @@ export class RbenvResource extends Resource<RbenvConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        rubyVersions: { type: 'stateful', definition: new RubyVersionsParameter(), order: 1 },
-        global: { type: 'stateful', definition: new RbenvGlobalParameter(), order: 2 },
+        rubyVersions: { stateful: new RubyVersionsParameter(), order: 1 },
+        global: { stateful: new RbenvGlobalParameter(), order: 2 },
       },
     };
   }

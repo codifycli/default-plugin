@@ -34,7 +34,7 @@ export class Pnpm extends Resource<PnpmConfig> {
       schema,
       parameterSettings: {
         version: { type: 'version' },
-        globalEnvNodeVersion: { type: 'stateful', definition: new PnpmGlobalEnvStatefulParameter() }
+        globalEnvNodeVersion: { stateful: new PnpmGlobalEnvStatefulParameter() }
       }
     }
   }

@@ -59,8 +59,8 @@ export class FnmResource extends Resource<FnmConfig> {
         example2: exampleMultiVersion,
       },
       parameterSettings: {
-        nodeVersions: { type: 'stateful', definition: new FnmNodeVersionsParameter(), order: 1 },
-        defaultVersion: { type: 'stateful', definition: new FnmDefaultVersionParameter(), order: 2 },
+        nodeVersions: { stateful: new FnmNodeVersionsParameter(), order: 1 },
+        defaultVersion: { stateful: new FnmDefaultVersionParameter(), order: 2 },
       },
     };
   }

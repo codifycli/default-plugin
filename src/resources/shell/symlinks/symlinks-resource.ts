@@ -73,15 +73,9 @@ export class SymlinksResource extends Resource<SymlinksConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        symlinks: {
-          type: 'array',
-          itemType: 'object',
-          canModify: true,
-          isElementEqual: (a: SymlinkEntry, b: SymlinkEntry) =>
-            this.resolve(a.path) === this.resolve(b.path) && this.resolve(a.target) === this.resolve(b.target),
-          filterInStatelessMode: (desired: SymlinkEntry[], current: SymlinkEntry[]) =>
-            current.filter((c) => desired.some((d) => this.resolve(d.path) === this.resolve(c.path))),
-        },
+        symlinks: { canModify: true, key: 'path' },
+        'symlinks[*].path': { type: 'directory' },
+        'symlinks[*].target': { type: 'directory' },
       },
       importAndDestroy: {
         refreshMapper(input) {

@@ -67,9 +67,9 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
         example2: exampleWithCasks,
       },
       parameterSettings: {
-        taps: { type: 'stateful', definition: new TapsParameter(), order: 1 },
-        formulae: { type: 'stateful', definition: new FormulaeParameter(), order: 2 },
-        casks: { type: 'stateful', definition: new CasksParameter(), order: 3 },
+        taps: { stateful: new TapsParameter(), order: 1 },
+        formulae: { stateful: new FormulaeParameter(), order: 2 },
+        casks: { stateful: new CasksParameter(), order: 3 },
         directory: { type: 'directory' },
         skipAlreadyInstalledCasks: { type: 'boolean', default: true, setting: true },
         onlyPlanUserInstalled: { type: 'boolean', default: true, setting: true },

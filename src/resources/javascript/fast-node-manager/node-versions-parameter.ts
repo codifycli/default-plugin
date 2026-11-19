@@ -1,9 +1,9 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
+import { ParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 
 import { FnmConfig } from './fast-node-manager.js';
 
 export class FnmNodeVersionsParameter extends ArrayStatefulParameter<FnmConfig, string> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       isElementEqual: (desired, current) => current.includes(desired),

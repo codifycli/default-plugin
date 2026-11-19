@@ -108,9 +108,10 @@ export class CursorResource extends Resource<CursorConfig> {
           type: 'directory',
           default: Utils.isMacOS() ? '/Applications' : CURSOR_LOCAL_BIN,
         },
-        extensions: { type: 'stateful', definition: new ExtensionsParameter(), order: 1 },
-        settings: { type: 'stateful', definition: new SettingsParameter(), order: 2 },
-        mcpServers: { type: 'stateful', definition: new McpServersParameter(), order: 3 },
+        extensions: { stateful: new ExtensionsParameter(), order: 1 },
+        settings: { stateful: new SettingsParameter(), order: 2 },
+        mcpServers: { stateful: new McpServersParameter(), order: 3 },
+        'mcpServers.*.env.*': { isSensitive: true },
       },
     };
   }

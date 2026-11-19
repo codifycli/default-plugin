@@ -33,7 +33,7 @@ export class MacportsResource extends Resource<MacportsConfig> {
       operatingSystems: [OS.Darwin],
       schema,
       parameterSettings: {
-        install: { type: 'stateful', definition: new MacportsInstallParameter() }
+        install: { stateful: new MacportsInstallParameter() }
       }
     };
   }

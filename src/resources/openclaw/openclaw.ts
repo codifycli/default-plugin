@@ -449,7 +449,15 @@ export class OpenClawResource extends Resource<OpenClawConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        settings: { type: 'stateful', definition: new OpenClawSettingsParameter(), order: 1 },
+        settings: { stateful: new OpenClawSettingsParameter(), order: 1 },
+        'settings.env.vars.*': { isSensitive: true },
+        'settings.gateway.auth.token': { isSensitive: true },
+        'settings.gateway.auth.password': { isSensitive: true },
+        'settings.cron.webhookToken': { isSensitive: true },
+        'settings.mcp.servers.*.env.*': { isSensitive: true },
+        'settings.mcp.servers.*.headers.*': { isSensitive: true },
+        'settings.skills.entries.*.apiKey': { isSensitive: true },
+        'settings.skills.entries.*.env.*': { isSensitive: true },
       },
     };
   }
