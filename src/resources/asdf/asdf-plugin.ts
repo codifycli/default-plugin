@@ -76,7 +76,7 @@ export class AsdfPluginResource extends Resource<AsdfPluginConfig> {
       dependencies: ['asdf'],
       schema,
       parameterSettings: {
-        versions: { type: 'stateful', definition: new AsdfPluginVersionsParameter() }
+        versions: { stateful: new AsdfPluginVersionsParameter() }
       },
       allowMultiple: {
         identifyingParameters: ['plugin'],

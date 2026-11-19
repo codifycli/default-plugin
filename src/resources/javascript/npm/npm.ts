@@ -49,7 +49,7 @@ export class Npm extends Resource<NpmConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        globalInstall: { type: 'stateful', definition: new NpmInstallParameter() },
+        globalInstall: { stateful: new NpmInstallParameter() },
       },
       importAndDestroy: {
         preventDestroy: true,

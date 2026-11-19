@@ -98,13 +98,8 @@ export class EnvFileResource extends Resource<EnvFileConfig> {
       parameterSettings: {
         dir: { type: 'directory' },
         filename: { default: '.env' },
-        contents: {
-          type: 'array',
-          itemType: 'object',
-          canModify: true,
-          isSensitive: true,
-          isElementEqual: (a: EnvEntry, b: EnvEntry) => a.key === b.key && a.value === b.value,
-        },
+        contents: { canModify: true },
+        'contents[*].value': { isSensitive: true },
         remoteFile: { type: 'string', canModify: true },
         hash: { type: 'string', canModify: true },
       },

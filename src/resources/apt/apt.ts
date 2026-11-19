@@ -55,7 +55,7 @@ export class AptResource extends Resource<AptConfig> {
       schema,
       removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
-        install: { type: 'stateful', definition: new AptInstallParameter() },
+        install: { stateful: new AptInstallParameter() },
         update: { type: 'boolean', default: true, setting: true }
       }
     };

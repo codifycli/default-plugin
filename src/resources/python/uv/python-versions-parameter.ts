@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
+import { ParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
 
 import { UvConfig } from './uv.js';
 
@@ -11,7 +11,7 @@ import { UvConfig } from './uv.js';
  * against the user-specified prefix (e.g. "3.12").
  */
 export class UvPythonVersionsParameter extends ArrayStatefulParameter<UvConfig, string> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       // desired "3.12" matches installed "3.12.3" via startsWith

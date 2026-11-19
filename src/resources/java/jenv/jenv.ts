@@ -24,8 +24,8 @@ export class JenvResource extends Resource<JenvConfig> {
       schema: Schema,
       dependencies: Utils.isMacOS() ? ['homebrew'] : [],
       parameterSettings: {
-        add: { type: 'stateful', definition: new JenvAddParameter(), order: 1 },
-        global: { type: 'stateful', definition: new JenvGlobalParameter(), order: 2 },
+        add: { stateful: new JenvAddParameter(), order: 1 },
+        global: { stateful: new JenvGlobalParameter(), order: 2 },
       },
     };
   }

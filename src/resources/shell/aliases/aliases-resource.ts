@@ -91,14 +91,7 @@ export class AliasesResource extends Resource<AliasesConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        aliases: {
-          type: 'array',
-          itemType: 'object',
-          isElementEqual: (a, b) => a.alias === b.alias && a.value === b.value,
-          filterInStatelessMode: (desired, current) =>
-            current.filter((c) => desired.some((d) => d.alias === c.alias)),
-          canModify: true,
-        },
+        aliases: { canModify: true, key: 'alias' },
         declarationsOnly: { default: true, setting: true },
       },
       importAndDestroy: {

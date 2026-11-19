@@ -126,13 +126,11 @@ export class MyResource extends Resource<MyConfig> {
 - Safer default - won't accidentally capture unwanted system state
 - Example: Only manage the paths/aliases the user explicitly listed
 
-**Implementation:**
+**Implementation:** arrays and objects are filtered automatically. For arrays of objects declare the identifying
+field with `key` so a changed item is planned as a modification:
 ```typescript
 parameterSettings: {
-  paths: {
-    filterInStatelessMode: (desired, current) =>
-      current.filter((c) => desired.some((d) => d === c))
-  }
+  aliases: { canModify: true, key: 'alias' },
 }
 ```
 
@@ -145,39 +143,24 @@ parameterSettings: {
 **Implementation:**
 ```typescript
 parameterSettings: {
-  formulae: {
-    type: 'stateful',
-    definition: new FormulaeParameter(),
-    order: 2
-  }
+  formulae: { stateful: new FormulaeParameter(), order: 2 },
 }
 ```
 
 ## Schema Validation
 
-Two approaches are supported:
+Schemas are written in **Zod** (single source of truth: the config type is inferred and the JSON Schema sent to the
+CLI/editor is generated from it). Do not add `*-schema.json` files or hand-written config interfaces.
 
-**1. JSON Schema** (traditional):
 ```typescript
-// Separate .json file
-import Schema from './my-resource-schema.json'
-
-export interface MyConfig extends StringIndexedObject {
-  field: string
-}
-
-getSettings() {
-  return { schema: Schema }
-}
-```
-
-**2. Zod Schema** (preferred):
-```typescript
-// Single source of truth - schema and types in sync
 export const schema = z.object({
-  field: z.string(),
-  optional: z.boolean().optional(),
-})
+  field: z.string().describe('What this field does.'),
+  optional: z.boolean().optional().describe('What this flag does.'),
+  items: z.array(z.object({
+    name: z.string().describe('Item name.'),
+  })).optional().describe('Items to manage.'),
+}).meta({ $comment: 'https://codifycli.com/docs/resources/my-resource' })
+  .describe('My resource description.')
 
 export type MyConfig = z.infer<typeof schema>
 
@@ -186,7 +169,14 @@ getSettings() {
 }
 ```
 
-Zod is preferred because types are automatically inferred from the schema, preventing drift between validation and TypeScript types.
+Rules:
+- **Every field (including nested fields) needs a `.describe()`.** The build fails on undocumented fields
+  (`findUndescribedFields` from plugin-core).
+- Put `.describe()` / `.meta()` **after** checks like `.min()`, `.regex()`: Zod drops metadata when a check is chained
+  after it (the build check catches this).
+- `.refine()` / `.superRefine()` are enforced during validation, but they are not part of the JSON Schema shown in the
+  editor, so also mention the rule in the description.
+- Fields with `.default()` are optional for the user.
 
 ## Testing Strategy
 
@@ -438,37 +428,39 @@ allowMultiple: {
 
 ### Parameter Settings
 
+Only declare what the schema can't express. `array`/`object` types are inferred from the schema; declare
+`directory`/`version` types, sensitivity, identity keys, defaults and stateful parameters.
+
 ```typescript
 parameterSettings: {
   // Boolean setting (not tracked in state)
-  skipAlreadyInstalledCasks: {
-    type: 'boolean',
-    default: true,
-    setting: true
-  },
+  skipAlreadyInstalledCasks: { type: 'boolean', default: true, setting: true },
 
-  // Directory path
-  directory: {
-    type: 'directory'
-  },
+  // Directory path (~ expansion + path aware comparison)
+  directory: { type: 'directory' },
 
-  // Modifiable array
-  paths: {
-    type: 'array',
-    itemType: 'directory',
-    canModify: true,
-    isElementEqual: (a, b) => a === b,
-    filterInStatelessMode: (desired, current) => /* ... */
-  },
+  // Modifiable array of directories
+  paths: { canModify: true, itemType: 'directory' },
 
-  // Stateful parameter with custom handler
-  formulae: {
-    type: 'stateful',
-    definition: new FormulaeParameter(),
-    order: 2
-  }
+  // Array of objects identified by a field. Drives stateless filtering + modify detection.
+  envFiles: { canModify: true, key: 'name' },
+
+  // Nested settings use typed paths (they autocomplete; typos fail to compile).
+  // `[*]` = every array element, `.*` = every record value. Only use them when a nested value needs a setting.
+  'envFiles[*].contents[*].value': { isSensitive: true },
+  'symlinks[*].path': { type: 'directory' },
+
+  // Stateful parameter
+  formulae: { stateful: new FormulaeParameter(), order: 2 },
 }
 ```
+
+- Mark secrets with `isSensitive`. If only part of a value is secret (env vars, headers, tokens inside a settings
+  object), mark the nested path rather than the whole parameter.
+- Nested paths only accept `type`, `isSensitive`, `isEqual`, `itemType`, `isElementEqual`, `key` and
+  `filterInStatelessMode`. `default`, `transformation`, `canModify`, `setting`, `stateful` and `order` are top level only.
+- Custom `isEqual`/`isElementEqual` must be functions. Reuse the built in comparisons via `ParameterEquals` (e.g.
+  `ParameterEquals.directory`).
 
 ### Stateful Parameters for State-Bearing Parameters
 
@@ -497,7 +489,7 @@ async modify(pc, plan) {
 
 // Correct — delegate to a StatefulParameter
 parameterSettings: {
-  settings: { type: 'stateful', definition: new SettingsParameter(), order: 1 }
+  settings: { stateful: new SettingsParameter(), order: 1 }
 }
 ```
 
@@ -516,7 +508,7 @@ When a resource manages a list of installed versions (e.g. `nvm`'s Node versions
 export const LATEST_VERSION_KEYWORD = 'latest';
 
 export class MyVersionsParameter extends ArrayStatefulParameter<MyConfig, string> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return { type: 'array', isElementEqual: (desired, current) => desired === current };
   }
 
@@ -647,7 +639,7 @@ The framework automatically validates dependencies exist and orders execution.
 ## Adding a New Resource
 
 1. Create directory: `src/resources/category/resource-name/`
-2. Create schema file (JSON or Zod): `resource-name-schema.json` or inline Zod
+2. Define the Zod schema (with a `.describe()` on every field) in the resource file
 3. Create resource class extending `Resource<ConfigType>`
 4. Implement all required lifecycle methods
 5. Register in `src/index.ts`

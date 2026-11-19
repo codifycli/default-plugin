@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, Plan, SpawnStatus, StatefulParameter, Utils, getPty } from '@codifycli/plugin-core';
+import { ParameterSetting, Plan, SpawnStatus, StatefulParameter, Utils, getPty } from '@codifycli/plugin-core';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -32,7 +32,7 @@ async function resolveCursorBinary(directory?: string | null): Promise<string> {
 }
 
 export class ExtensionsParameter extends StatefulParameter<CursorConfig, string[]> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       isElementEqual(desired, current) {

@@ -29,7 +29,7 @@ export class SshConfigHostsParameter extends StatefulParameter<SshConfig, SshCon
   getSettings(): ParameterSetting {
     return {
       type: 'array',
-      isElementEqual: 'object',
+      itemType: 'object',
       filterInStatelessMode(desired, current) {
         return current.filter((c) => desired.some((d) => SshConfigHostsParameter.isHostObjectSame(c, d)))
       },

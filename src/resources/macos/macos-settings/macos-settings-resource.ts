@@ -440,10 +440,10 @@ export class MacosSettingsResource extends Resource<MacosSettingsConfig> {
         example2: exampleNonAppleKeyboard,
       },
       parameterSettings: {
-        mouse:    { type: 'stateful', definition: new MouseSettingsParameter(),    order: 1 },
-        keyboard: { type: 'stateful', definition: new KeyboardSettingsParameter(), order: 2 },
-        trackpad: { type: 'stateful', definition: new TrackpadSettingsParameter(), order: 3 },
-        dock:     { type: 'stateful', definition: new DockSettingsParameter(),     order: 4 },
+        mouse:    { stateful: new MouseSettingsParameter(),    order: 1 },
+        keyboard: { stateful: new KeyboardSettingsParameter(), order: 2 },
+        trackpad: { stateful: new TrackpadSettingsParameter(), order: 3 },
+        dock:     { stateful: new DockSettingsParameter(),     order: 4 },
       },
       importAndDestroy: {
         preventDestroy: true,

@@ -79,9 +79,9 @@ export class UvResource extends Resource<UvConfig> {
       schema,
       removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
-        pythonVersions: { type: 'stateful', definition: new UvPythonVersionsParameter(), order: 1 },
-        global: { type: 'stateful', definition: new UvGlobalParameter(), order: 2 },
-        tools: { type: 'stateful', definition: new UvToolsParameter(), order: 3 },
+        pythonVersions: { stateful: new UvPythonVersionsParameter(), order: 1 },
+        global: { stateful: new UvGlobalParameter(), order: 2 },
+        tools: { stateful: new UvToolsParameter(), order: 3 },
       },
       dependencies: [...(Utils.isMacOS() ? ['homebrew'] : [])],
     };

@@ -90,15 +90,8 @@ export class EnvVarsResource extends Resource<EnvVarsConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        vars: {
-          type: 'array',
-          itemType: 'object',
-          canModify: true,
-          isSensitive: true,
-          isElementEqual: (a, b) => a.variable === b.variable && a.value === b.value,
-          filterInStatelessMode: (desired, current) =>
-            current.filter((c) => desired.some((d) => d.variable === c.variable)),
-        },
+        vars: { canModify: true, key: 'variable' },
+        'vars[*].value': { isSensitive: true },
         declarationsOnly: { default: true, setting: true },
       },
       importAndDestroy: {

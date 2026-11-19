@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, Plan, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { ParameterSetting, ArrayStatefulParameter, Plan, SpawnStatus, getPty } from '@codifycli/plugin-core';
 
 import { TartConfig } from './tart.js';
 
@@ -8,7 +8,7 @@ interface TartCloneItem {
 }
 
 export class TartCloneParameter extends ArrayStatefulParameter<TartConfig, TartCloneItem> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       isElementEqual: (a: TartCloneItem, b: TartCloneItem) => a.name === b.name,

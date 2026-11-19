@@ -37,7 +37,7 @@ export class PipSync extends Resource<PipSyncConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        requirementFiles: { type: 'stateful', definition: new RequirementFilesParameter() },
+        requirementFiles: { stateful: new RequirementFilesParameter() },
         virtualEnv: { type: 'directory', setting: true },
         cwd: { type: 'directory', setting: true }
       },

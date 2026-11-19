@@ -32,8 +32,8 @@ export class GitResource extends Resource<GitConfig> {
       schema: Schema,
       removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
-        email: { type: 'stateful', definition: new GitEmailParameter(), },
-        username: { type: 'stateful', definition: new GitNameParameter() },
+        email: { stateful: new GitEmailParameter(), },
+        username: { stateful: new GitNameParameter() },
       },
     }
   }

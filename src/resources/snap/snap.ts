@@ -58,7 +58,7 @@ export class SnapResource extends Resource<SnapConfig> {
       removeStatefulParametersBeforeDestroy: true,
       schema,
       parameterSettings: {
-        install: { type: 'stateful', definition: new SnapInstallParameter() }
+        install: { stateful: new SnapInstallParameter() }
       }
     };
   }

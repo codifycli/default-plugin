@@ -1,4 +1,4 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus, Utils, PackageManager } from '@codifycli/plugin-core';
+import { ParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus, Utils, PackageManager } from '@codifycli/plugin-core';
 import fs from 'node:fs/promises';
 import semver from 'semver';
 
@@ -40,7 +40,7 @@ function parseVersionFromBrewPath(p: string): string | undefined {
 }
 
 export class JenvAddParameter extends ArrayStatefulParameter<JenvConfig, string> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       itemType: 'directory',

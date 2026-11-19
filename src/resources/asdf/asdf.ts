@@ -63,7 +63,7 @@ export class AsdfResource extends Resource<AsdfConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        plugins: { type: 'stateful', definition: new AsdfPluginsParameter() },
+        plugins: { stateful: new AsdfPluginsParameter() },
       },
     }
   }

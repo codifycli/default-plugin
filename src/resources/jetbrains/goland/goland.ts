@@ -110,7 +110,7 @@ export class GoLandResource extends Resource<GoLandConfig> {
       parameterSettings: {
         settingsZip: { type: 'string', setting: true },
         importSettings: { type: 'boolean', setting: true },
-        plugins: { type: 'stateful', definition: new JetBrainsPluginsParameter<GoLandConfig>(PRODUCT), order: 1 },
+        plugins: { stateful: new JetBrainsPluginsParameter<GoLandConfig>(PRODUCT), order: 1 },
         jvmMaxHeapSize: { type: 'string', canModify: true },
         jvmMinHeapSize: { type: 'string', canModify: true },
       },

@@ -53,7 +53,7 @@ export class DnfResource extends Resource<DnfConfig> {
       operatingSystems: [OS.Linux],
       schema,
       parameterSettings: {
-        install: { type: 'stateful', definition: new DnfInstallParameter() },
+        install: { stateful: new DnfInstallParameter() },
         update: { type: 'boolean', default: true, setting: true }
       }
     };
