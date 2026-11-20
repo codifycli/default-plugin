@@ -114,8 +114,10 @@ export class CodexProjectResource extends Resource<CodexProjectConfig> {
       parameterSettings: {
         directory: { type: 'directory', canModify: false },
         agentsMd: { canModify: true },
-        config: { type: 'stateful', definition: new CodexConfigParameter(), order: 1 },
-        mcpServers: { type: 'stateful', definition: new CodexMcpServersParameter(), order: 2 },
+        config: { stateful: new CodexConfigParameter(), order: 1 },
+        mcpServers: { stateful: new CodexMcpServersParameter(), order: 2 },
+        'mcpServers[*].env.*': { isSensitive: true },
+        'mcpServers[*].httpHeaders.*': { isSensitive: true },
       },
       allowMultiple: {
         identifyingParameters: ['directory'],

@@ -1,14 +1,16 @@
-import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, getPty, Resource, ResourceSettings, SpawnStatus, Utils, z } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';
-import Schema from './ssh-add-schema.json'
 
-export interface SshAddConfig extends StringIndexedObject {
-  path: string;
-  appleUseKeychain: boolean,
-}
+export const schema = z.object({
+  path: z.string().describe('The path to the ssh key to add'),
+  appleUseKeychain: z.boolean().optional().describe('Corresponds to the --apple-use-keychain parameter. Controls whether the key should be loaded into the apple keychain. Only keys with a passphrase can be loaded'),
+})
+  .describe('Adds ssh private keys to the ssh agent.');
+
+export type SshAddConfig = z.infer<typeof schema>;
 
 const APPLE_KEYCHAIN_REGEX = /Identity added: (.*) \((.*)\)/;
 
@@ -17,7 +19,7 @@ export class SshAddResource extends Resource<SshAddConfig> {
     return {
       id: 'ssh-add',
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
         path: {
           type: 'directory'

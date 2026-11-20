@@ -63,7 +63,7 @@ export class CasksParameter extends StatefulParameter<HomebrewConfig, string[]> 
   }
 
   async add(valueToAdd: string[], plan: Plan<HomebrewConfig>): Promise<void> {
-    await this.installCasks(valueToAdd, plan!.desiredConfig!.skipAlreadyInstalledCasks);
+    await this.installCasks(valueToAdd, plan!.desiredConfig!.skipAlreadyInstalledCasks ?? true);
   }
 
   override async modify(newValue: string[], previousValue: string[], plan: Plan<HomebrewConfig>): Promise<void> {

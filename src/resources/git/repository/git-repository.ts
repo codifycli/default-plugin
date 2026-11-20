@@ -4,21 +4,25 @@ import {
   ExampleConfig,
   Resource,
   ResourceSettings,
-  getPty
+  getPty,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
 import { exampleSshConfigs } from '../../ssh/examples.js';
-import Schema from './git-repository-schema.json';
 
-export interface GitRepositoryConfig extends ResourceConfig {
-  autoVerifySSH: boolean;
-  directory?: string;
-  parentDirectory?: string;
-  repository: string;
-}
+export const schema = z.object({
+  repository: z.string().optional().describe('Remote repository URL to clone from.'),
+  directory: z.string().optional().describe('Exact directory to clone into. Passed directly to git clone as the destination path.'),
+  parentDirectory: z.string().optional().describe('Parent directory to clone into. The folder name is derived from the repository URL using default git semantics.'),
+  autoVerifySSH: z.boolean().optional().describe('Automatically verifies the ssh connection for ssh git clones. Defaults to true.'),
+})
+  .meta({ oneOf: [{"required": ["repository", "directory"]}, {"required": ["repository", "parentDirectory"]}] })
+  .describe('Clone a single Git repository. Specify either an exact destination directory or a parent directory to clone into.');
+
+export type GitRepositoryConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<GitRepositoryConfig> = {
   repository: '<Replace me here!>',
@@ -46,7 +50,7 @@ export class GitRepositoryResource extends Resource<GitRepositoryConfig> {
         ...exampleSshConfigs,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
         directory: { type: 'directory' },
         parentDirectory: { type: 'directory' },
@@ -127,7 +131,7 @@ export class GitRepositoryResource extends Resource<GitRepositoryConfig> {
     const { directory, parentDirectory, repository, autoVerifySSH } = plan.desiredConfig;
 
     if (autoVerifySSH) {
-      await this.autoVerifySSHForFirstAttempt(repository);
+      await this.autoVerifySSHForFirstAttempt(repository!);
     }
 
     if (parentDirectory) {
@@ -144,7 +148,7 @@ export class GitRepositoryResource extends Resource<GitRepositoryConfig> {
   override async destroy(plan: DestroyPlan<GitRepositoryConfig>): Promise<void> {
     const { directory, parentDirectory, repository } = plan.currentConfig;
     const target = parentDirectory
-      ? path.resolve(parentDirectory, this.extractBasename(repository)!)
+      ? path.resolve(parentDirectory, this.extractBasename(repository!)!)
       : directory;
     throw new Error(`The git-repository resource is not designed to delete folders.\nPlease delete ${target} manually and re-apply`);
   }

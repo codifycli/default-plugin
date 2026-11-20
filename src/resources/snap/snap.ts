@@ -5,18 +5,25 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus,
-  Utils
+  Utils,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
 
 import { SnapInstallParameter, SnapPackage } from './install-parameter.js';
-import schema from './snap-schema.json';
 
-export interface SnapConfig extends ResourceConfig {
-  install: Array<SnapPackage | string>;
-}
+export const schema = z.object({
+  install: z.array(z.union([z.string(), z.looseObject({
+    name: z.string().describe('The snap name.'),
+    channel: z.string().optional().describe('The channel to install from (e.g., stable, edge, beta, candidate)'),
+    classic: z.boolean().optional().describe('Install the snap in classic mode (with full system access)'),
+  })])).optional().describe('Installs packages using snap.'),
+})
+  .describe('Manage snap packages on Linux systems.');
 
-const defaultConfig: Partial<SnapConfig> = {
+export type SnapConfig = z.infer<typeof schema>;
+
+const defaultConfig: Partial<SnapConfig & ResourceConfig> = {
   install: [],
   os: [ResourceOs.LINUX],
 }
@@ -58,7 +65,7 @@ export class SnapResource extends Resource<SnapConfig> {
       removeStatefulParametersBeforeDestroy: true,
       schema,
       parameterSettings: {
-        install: { type: 'stateful', definition: new SnapInstallParameter() }
+        install: { stateful: new SnapInstallParameter() }
       }
     };
   }

@@ -1,4 +1,4 @@
-import { CreatePlan, DestroyPlan, ExampleConfig, RefreshContext, Resource, ResourceSettings, getPty, Utils } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, RefreshContext, Resource, ResourceSettings, getPty, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
@@ -6,12 +6,14 @@ import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
 import { PnpmGlobalEnvStatefulParameter } from './pnpm-global-env-stateful-parameter.js';
-import schema from './pnpm-schema.json';
 
-export interface PnpmConfig extends ResourceConfig {
-  version?: string;
-  globalEnvNodeVersion?: string;
-}
+export const schema = z.object({
+  version: z.string().optional().describe('A specific version of pnpm to install. (defaults to the latest)'),
+  globalEnvNodeVersion: z.string().optional().describe('Set the global node version. Corresponds to pnpm env --global use'),
+})
+  .describe('Install and manage Node dependencies and versions using pnpm.');
+
+export type PnpmConfig = z.infer<typeof schema>;
 
 const exampleWithNode: ExampleConfig = {
   title: 'Install pnpm with a global Node.js version',
@@ -34,7 +36,7 @@ export class Pnpm extends Resource<PnpmConfig> {
       schema,
       parameterSettings: {
         version: { type: 'version' },
-        globalEnvNodeVersion: { type: 'stateful', definition: new PnpmGlobalEnvStatefulParameter() }
+        globalEnvNodeVersion: { stateful: new PnpmGlobalEnvStatefulParameter() }
       }
     }
   }

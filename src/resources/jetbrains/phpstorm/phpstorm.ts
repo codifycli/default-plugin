@@ -110,7 +110,7 @@ export class PhpStormResource extends Resource<PhpStormConfig> {
       parameterSettings: {
         settingsZip: { type: 'string', setting: true },
         importSettings: { type: 'boolean', setting: true },
-        plugins: { type: 'stateful', definition: new JetBrainsPluginsParameter<PhpStormConfig>(PRODUCT), order: 1 },
+        plugins: { stateful: new JetBrainsPluginsParameter<PhpStormConfig>(PRODUCT), order: 1 },
         jvmMaxHeapSize: { type: 'string', canModify: true },
         jvmMinHeapSize: { type: 'string', canModify: true },
       },

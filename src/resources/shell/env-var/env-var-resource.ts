@@ -7,18 +7,21 @@ import {
   Resource,
   ResourceSettings,
   Utils,
+  z
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 
 import { FileUtils } from '../../../utils/file-utils.js';
 import { assertSafeDoubleQuotedShellValue } from '../../../utils/shell-escape.js';
-import Schema from './env-var-schema.json';
 
-export interface EnvVarConfig extends StringIndexedObject {
-  variable: string;
-  value: string;
-}
+export const schema = z.object({
+  variable: z.string().regex(new RegExp('^[A-Z_a-z][A-Z0-9_a-z]*$')).describe('The environment variable name (e.g. PNPM_HOME)'),
+  value: z.string().regex(new RegExp('^(?:[^\\n\\r"$\\\\`]|\\$[A-Z_a-z]\\w*|\\$\\{[A-Z_a-z]\\w*\\})*$')).describe('The environment variable value (e.g. $HOME/.local/share/pnpm). May only contain plain characters and simple variable references ($NAME or ${NAME}). Command substitution, backticks, quotes, backslashes and new lines are not allowed'),
+})
+  .describe('Manages a single shell environment variable by writing an export declaration to the shell startup script.');
+
+export type EnvVarConfig = z.infer<typeof schema>;
 
 const ENV_DECLARATION_REGEX = /^\s*export\s+([A-Z_a-z][A-Z0-9_a-z]*)\s*=\s*(["']?)(.+?)\2\s*(?:#.*)?$/gm;
 
@@ -59,7 +62,7 @@ export class EnvVarResource extends Resource<EnvVarConfig> {
         example2: exampleAsdfDataDir,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
         value: { canModify: true, isSensitive: true },
       },

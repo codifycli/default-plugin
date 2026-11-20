@@ -93,8 +93,8 @@ export class XcodesResource extends Resource<XcodesConfig> {
       operatingSystems: [OS.Darwin],
       schema,
       parameterSettings: {
-        xcodeVersions: { type: 'stateful', definition: new XcodeVersionsParameter(), order: 1 },
-        selected: { type: 'stateful', definition: new XcodesSelectedParameter(), order: 2 },
+        xcodeVersions: { stateful: new XcodeVersionsParameter(), order: 1 },
+        selected: { stateful: new XcodesSelectedParameter(), order: 2 },
         appleId: { type: 'string', setting: true },
         appleIdPassword: { type: 'string', setting: true },
         acceptLicense: { type: 'boolean', setting: true, default: true },

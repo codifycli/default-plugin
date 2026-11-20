@@ -110,7 +110,7 @@ export class RiderResource extends Resource<RiderConfig> {
       parameterSettings: {
         settingsZip: { type: 'string', setting: true },
         importSettings: { type: 'boolean', setting: true },
-        plugins: { type: 'stateful', definition: new JetBrainsPluginsParameter<RiderConfig>(PRODUCT), order: 1 },
+        plugins: { stateful: new JetBrainsPluginsParameter<RiderConfig>(PRODUCT), order: 1 },
         jvmMaxHeapSize: { type: 'string', canModify: true },
         jvmMinHeapSize: { type: 'string', canModify: true },
       },

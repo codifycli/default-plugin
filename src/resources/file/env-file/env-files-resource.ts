@@ -119,18 +119,8 @@ export class EnvFilesResource extends Resource<EnvFilesConfig> {
       schema,
       parameterSettings: {
         dir: { type: 'directory' },
-        envFiles: {
-          type: 'array',
-          itemType: 'object',
-          canModify: true,
-          isSensitive: true,
-          isElementEqual: (a: EnvFileEntry, b: EnvFileEntry) =>
-            a.name === b.name &&
-            a.remoteFile === b.remoteFile &&
-            JSON.stringify(a.contents) === JSON.stringify(b.contents),
-          filterInStatelessMode: (desired: EnvFileEntry[], current: EnvFileEntry[]) =>
-            current.filter((c) => desired.some((d) => d.name === c.name)),
-        },
+        envFiles: { canModify: true, key: 'name' },
+        'envFiles[*].contents[*].value': { isSensitive: true },
       },
       isSensitive: true,
       allowMultiple: {

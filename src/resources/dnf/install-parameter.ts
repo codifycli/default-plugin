@@ -2,7 +2,7 @@ import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/pl
 
 import { DnfConfig } from './dnf.js';
 
-export interface DnfPackage {
+export type DnfPackage = {
   name: string;
   version?: string;
 }

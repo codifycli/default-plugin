@@ -1,9 +1,11 @@
-import { CreatePlan, DestroyPlan, ExampleConfig, getPty, Resource, ResourceSettings, Utils } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, getPty, Resource, ResourceSettings, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 
-import schema from './virtualenv-schema.json';
+export const schema = z.object({})
+  .describe('Install and manage local packages with virtualenv');
 
-export interface VirtualenvConfig extends ResourceConfig {}
+
+export type VirtualenvConfig = z.infer<typeof schema>;
 
 const exampleWithProject: ExampleConfig = {
   title: 'Install virtualenv and set up a project environment',

@@ -1,16 +1,18 @@
-import { CreatePlan, DestroyPlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, z } from '@codifycli/plugin-core';
 import { RefreshContext } from '@codifycli/plugin-core/src/resource/resource.js';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 
-import schema from './action-schema.json'
+export const schema = z.object({
+  condition: z.string().optional().describe('A bash condition that decides whether the action needs to run. Exit code 0 means the action is already done — skip it. Any non-zero exit code means the action should run. Think of it as a check for the desired end-state: if the check passes (exit 0), the work is done; if it fails (non-zero), run the action. Example: \'command -v mytool\' exits 0 when mytool is already installed (skip), and non-zero when it is absent (run the install action).'),
+  action: z.string().describe('A bash command to run.'),
+  cwd: z.string().optional().describe('The directory that the action should be ran in.'),
+  requiresRoot: z.boolean().optional().describe('When true, the action is executed with root privileges (sudo). Codify handles privilege escalation — do not add sudo to the action command directly.'),
+  requiresStdin: z.boolean().optional().describe('When true, the action is run in interactive mode so it can read from stdin (e.g. for prompts or password input).'),
+})
+  .describe('Run custom scripts using the action resource. A condition can be specified to conditionally trigger a script.');
 
-export interface ActionConfig extends StringIndexedObject {
-  condition?: string;
-  action: string;
-  cwd?: string;
-  requiresRoot?: boolean;
-  requiresStdin?: boolean;
-}
+
+export type ActionConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<ActionConfig> = {
   action: '<Replace me here!>',

@@ -2,7 +2,7 @@ import { ParameterSetting, Plan, SpawnStatus, StatefulParameter, getPty } from '
 
 import { MacportsConfig } from './macports.js';
 
-export interface PortPackage {
+export type PortPackage = {
   name: string;
   version?: string;
 }

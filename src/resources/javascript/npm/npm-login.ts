@@ -7,6 +7,7 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fsSync from 'node:fs';
@@ -14,13 +15,15 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import schema from './npm-login-schema.json';
+export const schema = z.object({
+  authToken: z.string().describe('The npm auth token used for authenticating with the registry. If not provided, then web login is assumed. Generate one at https://www.npmjs.com/settings/<username>/tokens by creating a \'Classic Token\' (Automation or Read/Write). Tokens look like: npm_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'),
+  scope: z.string().regex(new RegExp('^@.+\\.?')).optional().describe('Optional npm scope (e.g. @myorg) to bind to a specific registry.'),
+  registry: z.string().optional().describe('Registry URL to use for authentication and optional scope mapping.'),
+})
+  .describe('Manage npm login/authentication in ~/.npmrc, including scoped registry mapping and tokens.');
 
-export interface NpmLoginConfig extends ResourceConfig {
-  authToken: string;
-  scope?: string; // Example: "@myorg"
-  registry?: string; // Example: "https://registry.npmjs.org/"
-}
+
+export type NpmLoginConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<NpmLoginConfig> = {
   registry: 'https://registry.npmjs.org/',

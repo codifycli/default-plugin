@@ -1,15 +1,17 @@
-import { CreatePlan, ExampleConfig, Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { CreatePlan, ExampleConfig, Resource, ResourceSettings, SpawnStatus, getPty, z } from '@codifycli/plugin-core';
 import { LinuxDistro, OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
 
-import schema from './apt-schema.json';
 import { AptInstallParameter } from './install-parameter.js';
 
-export interface AptConfig extends ResourceConfig {
-  install: string[];
-  update?: boolean;
-}
+export const schema = z.object({
+  install: z.array(z.string()).optional().describe('Installs packages using apt. Use \'name=version\' syntax to pin a version (e.g. \'nodejs=20.*\').'),
+  update: z.boolean().optional().describe('Whether to run apt-get update before installing packages. Defaults to true.'),
+})
+  .describe('Manage apt packages on Debian-based systems.');
 
-const defaultConfig: Partial<AptConfig> = {
+export type AptConfig = z.infer<typeof schema>;
+
+const defaultConfig: Partial<AptConfig & ResourceConfig> = {
   install: [],
   distro: [LinuxDistro.DEBIAN_BASED],
   os: [ResourceOs.LINUX]
@@ -55,7 +57,7 @@ export class AptResource extends Resource<AptConfig> {
       schema,
       removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
-        install: { type: 'stateful', definition: new AptInstallParameter() },
+        install: { stateful: new AptInstallParameter() },
         update: { type: 'boolean', default: true, setting: true }
       }
     };

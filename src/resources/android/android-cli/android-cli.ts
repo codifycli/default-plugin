@@ -67,8 +67,8 @@ export class AndroidCliResource extends Resource<AndroidCliConfig> {
       removeStatefulParametersBeforeDestroy: true,
       parameterSettings: {
         sdkPath: { type: 'directory', canModify: true },
-        sdkPackages: { type: 'stateful', definition: new AndroidSdkPackagesParameter(), order: 1 },
-        emulators: { type: 'stateful', definition: new AndroidEmulatorsParameter(), order: 2 },
+        sdkPackages: { stateful: new AndroidSdkPackagesParameter(), order: 1 },
+        emulators: { stateful: new AndroidEmulatorsParameter(), order: 2 },
       },
     };
   }

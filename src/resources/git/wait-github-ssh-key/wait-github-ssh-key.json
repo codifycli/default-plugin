@@ -1,9 +1,0 @@
-{
-  "$schema": "http://json-schema.org/draft-07/schema",
-  "$id": "https://www.codifycli.com/wait-github-ssh-key.json",
-  "title": "Wait github ssh key",
-  "description": "Allow users to add their ssh-keys to github.",
-  "type": "object",
-  "properties": {},
-  "additionalProperties": false
-}
