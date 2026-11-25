@@ -1,4 +1,6 @@
 import {PluginTester, testSpawn} from '@codifycli/plugin-test';
+import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import {beforeAll, describe, expect, it} from 'vitest';
 import {SpawnStatus} from "@codifycli/schemas";
@@ -106,5 +108,39 @@ describe('GitHub CLI integration tests', async () => {
         },
       }
     );
+  });
+
+  // Needs a classic personal access token of a throwaway GitHub account with the admin:public_key scope:
+  // GH_TEST_TOKEN=ghp_... npm run test:integration -- test/github-cli
+  it.skipIf(!process.env.GH_TEST_TOKEN)('Can upload and delete an SSH key on GitHub', { timeout: 300_000 }, async () => {
+    const keyDir = await fs.mkdtemp(path.join(os.tmpdir(), 'codify-gh-ssh-key-'));
+    const keyFile = path.join(keyDir, 'id_ed25519');
+    await testSpawn(`ssh-keygen -t ed25519 -N "" -C codify-test -f "${keyFile}"`);
+    const publicKey = (await fs.readFile(`${keyFile}.pub`, 'utf8')).split(' ').slice(0, 2).join(' ');
+
+    const title = `codify-test-${Date.now()}`;
+    const listKeys = () => testSpawn(`gh api user/keys --jq '.[].key'`);
+
+    await PluginTester.fullTest(
+      pluginPath,
+      [
+        { type: 'github-cli' },
+        { type: 'github-cli-auth', token: process.env.GH_TEST_TOKEN, scopes: ['admin:public_key'] },
+        { type: 'github-cli-ssh-key', title, keyFile: `${keyFile}.pub` },
+      ],
+      {
+        validateApply: async () => {
+          const result = await listKeys();
+          expect(result.status).toBe(SpawnStatus.SUCCESS);
+          expect(result.data).toContain(publicKey);
+        },
+        validateDestroy: async () => {
+          const result = await testSpawn('which gh');
+          expect(result.status).toBe(SpawnStatus.ERROR);
+        },
+      }
+    );
+
+    await fs.rm(keyDir, { recursive: true, force: true });
   });
 });

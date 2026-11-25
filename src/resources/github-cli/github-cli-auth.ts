@@ -2,6 +2,7 @@ import {
   CreatePlan,
   DestroyPlan,
   ModifyPlan,
+  ParameterChange,
   Resource,
   ResourceSettings,
   SpawnStatus,
@@ -14,6 +15,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { exampleGithubCliAuthBasic, exampleGithubCliAuthEnterprise } from './examples.js';
+import { ensureTokenScopes, getTokenScopes, missingScopes } from './gh-scopes.js';
 
 export const schema = z
   .object({
@@ -25,6 +27,13 @@ export const schema = z
       .string()
       .optional()
       .describe('GitHub hostname (default: github.com). Set this for GitHub Enterprise Server instances'),
+    scopes: z
+      .array(z.string())
+      .optional()
+      .describe(
+        'Additional OAuth scopes the login must have on top of gh\'s defaults (repo, read:org, gist), e.g. ["admin:public_key"] to upload SSH keys. ' +
+        'Missing scopes are added with gh auth refresh, which asks you to approve them in the browser. Not checked for fine-grained tokens'
+      ),
   })
   .meta({ $comment: 'https://cli.github.com/manual/gh_auth' })
   .describe('GitHub CLI authentication — log in and out of GitHub accounts');
@@ -52,6 +61,7 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
       parameterSettings: {
         token: { canModify: true, isSensitive: true },
         hostname: { default: 'github.com' },
+        scopes: { canModify: true },
       },
       importAndDestroy: {
         requiredParameters: [],
@@ -86,28 +96,41 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
     const { status } = await $.spawnSafe(`gh auth status --hostname "${hostname}"`);
     if (status === SpawnStatus.ERROR) return null;
 
+    const result: Partial<GithubCliAuthConfig> = { hostname };
+
+    if (params.scopes) {
+      result.scopes = await this.refreshScopes(hostname, params.scopes);
+    }
+
     const { data: tokenData, status: tokenStatus } = await $.spawnSafe(
       `gh auth token --hostname "${hostname}"`
     );
-    if (tokenStatus === SpawnStatus.ERROR) return { hostname };
+    if (tokenStatus === SpawnStatus.ERROR) return result;
 
     return {
-      hostname,
+      ...result,
       token: tokenData.trim(),
     };
   }
 
   async create(plan: CreatePlan<GithubCliAuthConfig>): Promise<void> {
-    const { token, hostname = 'github.com' } = plan.desiredConfig;
-    await this.login(token, hostname);
+    const { token, hostname = 'github.com', scopes } = plan.desiredConfig;
+    await this.login(token, hostname, scopes);
   }
 
   async modify(
-    _pc: unknown,
+    pc: ParameterChange<GithubCliAuthConfig>,
     plan: ModifyPlan<GithubCliAuthConfig>
   ): Promise<void> {
-    const { token, hostname = 'github.com' } = plan.desiredConfig;
-    await this.login(token, hostname);
+    const { token, hostname = 'github.com', scopes } = plan.desiredConfig;
+
+    // Only the scopes changed: add the missing ones to the existing login instead of logging in again.
+    if (pc.name === 'scopes') {
+      await ensureTokenScopes(hostname, scopes ?? []);
+      return;
+    }
+
+    await this.login(token, hostname, scopes);
   }
 
   async destroy(plan: DestroyPlan<GithubCliAuthConfig>): Promise<void> {
@@ -125,11 +148,37 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
     }
   }
 
-  private async login(token: string | undefined, hostname: string): Promise<void> {
+  /**
+   * The desired scopes the current login grants, in the desired order. The scopes gh can't report (fine-grained
+   * tokens) are assumed granted since they can't be checked or added.
+   */
+  private async refreshScopes(hostname: string, desired: string[]): Promise<string[]> {
+    const current = await getTokenScopes(hostname);
+    if (current === null) {
+      return desired;
+    }
+
+    const missing = new Set(missingScopes(current, desired));
+    return desired.filter((scope) => !missing.has(scope));
+  }
+
+  private async login(token: string | undefined, hostname: string, scopes?: string[]): Promise<void> {
     const $ = getPty();
 
     if (!token) {
-      await $.spawn(`gh auth login --hostname "${hostname}" --web`, { interactive: true, stdin: true });
+      const scopesFlag = scopes && scopes.length > 0 ? ` --scopes "${scopes.join(',')}"` : '';
+
+      // Reuse the protocol set with the github-cli resource (gh config) so the login doesn't ask for it again.
+      const { data: protocol, status: protocolStatus } = await $.spawnSafe('gh config get git_protocol', { interactive: true });
+      const trimmedProtocol = protocol?.trim();
+      const protocolFlag = protocolStatus === SpawnStatus.SUCCESS && (trimmedProtocol === 'ssh' || trimmedProtocol === 'https')
+        ? ` --git-protocol ${trimmedProtocol}`
+        : '';
+
+      await $.spawn(
+        `gh auth login --hostname "${hostname}" --web${protocolFlag}${scopesFlag}`,
+        { interactive: true, stdin: true },
+      );
       return;
     }
 
