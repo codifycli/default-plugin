@@ -3,6 +3,7 @@ import { OS } from '@codifycli/schemas';
 import os from 'node:os';
 import path from 'node:path';
 
+import { versionsArraySchema } from '../../../utils/version-aliases.js';
 import { RbenvGlobalParameter } from './global-parameter.js';
 import { RubyVersionsParameter } from './ruby-versions-parameter.js';
 
@@ -11,9 +12,7 @@ const RBENV_PATH_EXPORT = 'export PATH="$HOME/.rbenv/bin:$PATH"';
 const RBENV_INIT = 'eval "$(rbenv init -)"';
 
 const schema = z.object({
-  rubyVersions: z
-    .array(z.string())
-    .describe('Ruby versions to install via rbenv (e.g. ["3.3.0", "3.2.4"])')
+  rubyVersions: versionsArraySchema(['latest'], 'Ruby versions to install via rbenv (e.g. ["3.3.0", "3.2.4"]).')
     .optional(),
   global: z
     .string()

@@ -10,17 +10,13 @@ import {
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 
+import { versionsArraySchema } from '../../utils/version-aliases.js';
 import { XcodesSelectedParameter } from './selected-parameter.js';
 import { XcodeVersionsParameter } from './xcode-versions-parameter.js';
 
 const schema = z
   .object({
-    xcodeVersions: z
-      .array(z.string())
-      .describe(
-        'List of Xcode versions to install via xcodes (e.g. ["15.2", "14.3.1"]). ' +
-        'Use "latest" to install the newest available Xcode release (runs `xcodes install --latest`).'
-      )
+    xcodeVersions: versionsArraySchema(['latest'], 'List of Xcode versions to install via xcodes (e.g. ["15.2", "14.3.1"]).')
       .optional(),
     selected: z
       .string()

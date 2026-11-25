@@ -1,36 +1,50 @@
-import { ArrayStatefulParameter, getPty, Plan, SpawnStatus } from '@codifycli/plugin-core';
+import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
+import { isStableVersion, newestVersion } from '../../utils/version-aliases.js';
+import { VersionsParameter } from '../../utils/versions-parameter.js';
 import { AsdfPluginConfig } from './asdf-plugin.js';
 
-export class AsdfPluginVersionsParameter extends ArrayStatefulParameter<AsdfPluginConfig, string> {
+// Only "latest" is handled generically. Other keywords (ex: "lts" for asdf-nodejs) are plugin specific and are passed
+// straight through to asdf like any other version string.
+export class AsdfPluginVersionsParameter extends VersionsParameter<AsdfPluginConfig> {
+  protected readonly supportedAliases = ['latest'] as const;
 
-  async refresh(desired: null | string[], config: Partial<AsdfPluginConfig>): Promise<null | string[]> {
+  constructor() {
+    super('versions');
+  }
+
+  protected async listInstalled(config: Partial<AsdfPluginConfig>): Promise<null | string[]> {
     const $ = getPty();
-
-    const versions = await $.spawnSafe(`asdf list ${config.plugin}`);
-    if (versions.status === SpawnStatus.ERROR || versions.data.trim() === 'No versions installed') {
+    const { data, status } = await $.spawnSafe(`asdf list ${config.plugin}`);
+    if (status === SpawnStatus.ERROR || data.includes('No versions installed') || data.includes('No compatible versions installed')) {
       return null;
     }
 
-    const latest = desired?.includes('latest')
-      ? (await $.spawn(`asdf latest ${config.plugin}`)).data.trim()
-      : null;
-
-    return versions.data.split(/\n/)
-      .map((l) => l.trim())
-      .map((l) => l.replaceAll( '*', ''))
-      .map((l) => l.trim() === latest ? 'latest' : l)
+    return data.split(/\n/)
+      .map((l) => l.replaceAll('*', '').trim())
       .filter(Boolean);
   }
 
-  async addItem(item: string, plan: Plan<AsdfPluginConfig>): Promise<void> {
-    const pty = getPty();
-    await pty.spawn(`asdf install ${plan.desiredConfig?.plugin} ${item}`, { interactive: true });
+  // `asdf latest` queries the plugin's remote version list. Falls back to the newest installed version.
+  protected async resolveAlias(_alias: unknown, installed: string[], config: Partial<AsdfPluginConfig>): Promise<null | string> {
+    const $ = getPty();
+    const { data, status } = await $.spawnSafe(`asdf latest ${config.plugin}`);
+    const latest = data.trim();
+
+    if (status === SpawnStatus.SUCCESS && latest && !latest.includes(' ')) {
+      return latest;
+    }
+
+    return newestVersion(installed, isStableVersion);
   }
 
-  async removeItem(item: string, plan: Plan<AsdfPluginConfig>): Promise<void> {
-    const pty = getPty();
-    await pty.spawn(`asdf uninstall ${plan.currentConfig?.plugin} ${item}`, { interactive: true });
+  protected async installVersion(version: string, config: Partial<AsdfPluginConfig>): Promise<void> {
+    const $ = getPty();
+    await $.spawn(`asdf install ${config.plugin} ${version}`, { interactive: true });
   }
 
+  protected async uninstallVersion(version: string, config: Partial<AsdfPluginConfig>): Promise<void> {
+    const $ = getPty();
+    await $.spawn(`asdf uninstall ${config.plugin} ${version}`, { interactive: true });
+  }
 }

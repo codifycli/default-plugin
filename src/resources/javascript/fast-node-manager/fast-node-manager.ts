@@ -3,6 +3,7 @@ import { OS } from '@codifycli/schemas';
 import os from 'node:os';
 import path from 'node:path';
 
+import { versionsArraySchema } from '../../../utils/version-aliases.js';
 import { FnmDefaultVersionParameter } from './default-version-parameter.js';
 import { FnmNodeVersionsParameter } from './node-versions-parameter.js';
 
@@ -10,13 +11,11 @@ const FNM_DIR = path.join(os.homedir(), '.fnm');
 const FNM_MULTISHELL_EXPORT = 'export FNM_MULTISHELL_PATH="${TMPDIR:-/tmp}/fnm_multishells"';
 
 const schema = z.object({
-  nodeVersions: z
-    .array(z.string())
-    .describe('Node.js versions to install via fnm (e.g. ["20", "18.20.0", "lts"])')
+  nodeVersions: versionsArraySchema(['latest', 'lts'], 'Node.js versions to install via fnm (e.g. ["20", "18.20.0", "lts"]). Partial matching is supported.')
     .optional(),
   defaultVersion: z
     .string()
-    .describe('The default (global) Node.js version set by fnm.')
+    .describe('The default (global) Node.js version set by fnm. Accepts "latest" or "lts" to follow the newest release / LTS release.')
     .optional(),
 })
   .describe('fast-node-manager resource — install and manage multiple Node.js versions via fnm');

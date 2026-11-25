@@ -9,5 +9,6 @@ export default async function loadRubyVersions(): Promise<string[]> {
 
   const data = await response.json() as { name: string }[]
 
-  return data.map((entry) => entry.name)
+  // "latest" is a keyword supported by the rbenv resource, not a real ruby-build definition.
+  return ['latest', ...data.map((entry) => entry.name)]
 }

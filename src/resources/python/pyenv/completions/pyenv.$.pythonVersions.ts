@@ -17,5 +17,6 @@ export default async function loadPyenvPythonVersions(): Promise<string[]> {
   }
 
   const pyenvVersions = await response.json() as PyenvPythonVersions
-  return pyenvVersions.map((v) => v.name)
+  // "latest" is a keyword supported by the pyenv resource, not a real python-build definition.
+  return ['latest', ...pyenvVersions.map((v) => v.name)]
 }

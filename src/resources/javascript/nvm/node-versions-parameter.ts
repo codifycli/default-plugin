@@ -1,61 +1,58 @@
-import { ParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
+import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
+import { VersionAlias, stripV } from '../../../utils/version-aliases.js';
+import { VersionsParameter } from '../../../utils/versions-parameter.js';
 import { NvmConfig } from './nvm.js';
 
-export class NvmNodeVersionsParameter extends ArrayStatefulParameter<NvmConfig, string> {
-  getSettings(): ParameterSetting {
-    return {
-      type: 'array',
-      isElementEqual: (desired, current) => current.includes(desired),
-    }
+const VERSION_REGEX = /v?(\d+\.\d+\.\d+)/;
+
+export class NvmNodeVersionsParameter extends VersionsParameter<NvmConfig> {
+  protected readonly supportedAliases = ['latest', 'lts'] as const;
+
+  constructor() {
+    super('nodeVersions');
   }
 
-  override async refresh(desired: null | string[]): Promise<null | string[]> {
-    const $ = getPty()
+  protected async listInstalled(): Promise<string[]> {
+    const $ = getPty();
+    const { data } = await $.spawnSafe('nvm ls --no-colors --no-alias');
 
-    const { data } = await $.spawnSafe('nvm ls --no-colors --no-alias')
-
-    const versions = data.split(/\n/)
-      .map((l) =>
-        l.replaceAll(' ', '')
-          .replaceAll('->', '')
-          .replaceAll('*', '')
-          .replaceAll('v', '')
-          ?.trim()
-      ).filter(Boolean)
-      .filter((v) => v !== 'system');
-
-    // To make matching easier, we will replace the elements in
-    // current with what we currently have installed. This is because nvm has weird
-    // matching logic that we cannot replicate
-    for (const desiredVersion of desired ?? []) {
-      const { status, data } = await $.spawnSafe(`nvm ls ${desiredVersion} --no-colors`);
-
-      if (status !== SpawnStatus.SUCCESS) {
-        continue;
-      }
-
-      const matchedVersion = data.replaceAll('->', '')
-        .replaceAll('v', '')
-        .replaceAll('*', '')
-        ?.trim();
-
-      if (versions.includes(matchedVersion)) {
-        const index = versions.indexOf(matchedVersion);
-        versions.splice(index, 1, desiredVersion);
-      }
-    }
-
-    return versions;
+    return data.split(/\n/)
+      .map((l) => l.match(VERSION_REGEX)?.[1])
+      .filter((v): v is string => Boolean(v));
   }
 
-  override async addItem(version: string): Promise<void> {
+  // nvm has its own partial matching logic (20 -> 20.15.1) that we defer to.
+  protected async matchInstalled(desired: string): Promise<null | string> {
+    return this.nvmVersion(`nvm version ${desired}`);
+  }
+
+  protected async resolveAlias(alias: VersionAlias): Promise<null | string> {
+    const remote = alias === 'lts' ? 'nvm version-remote --lts' : 'nvm version-remote node';
+    const local = alias === 'lts' ? 'nvm version "lts/*"' : 'nvm version node';
+
+    return (await this.nvmVersion(remote)) ?? this.nvmVersion(local);
+  }
+
+  protected async installVersion(version: string): Promise<void> {
     const $ = getPty();
     await $.spawn(`nvm install ${version}`, { interactive: true });
   }
 
-  override async removeItem(version: string): Promise<void> {
+  protected async uninstallVersion(version: string): Promise<void> {
     const $ = getPty();
     await $.spawn(`nvm uninstall ${version}`, { interactive: true });
+  }
+
+  /** Runs an nvm command that prints a single version (or N/A) and returns it without the v prefix. */
+  private async nvmVersion(command: string): Promise<null | string> {
+    const $ = getPty();
+    const { data, status } = await $.spawnSafe(command);
+    if (status !== SpawnStatus.SUCCESS) {
+      return null;
+    }
+
+    const match = data.match(VERSION_REGEX)?.[1];
+    return match ? stripV(match) : null;
   }
 }

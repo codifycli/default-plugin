@@ -13,5 +13,6 @@ export default async function loadNvmNodeVersions(): Promise<string[]> {
     }
   }
 
-  return [...result]
+  // "latest" / "lts" are keywords supported by the nvm resource, not real nodejs.org entries.
+  return ['latest', 'lts', ...result]
 }

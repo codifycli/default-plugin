@@ -5,11 +5,12 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
+import { versionsArraySchema } from '../../../utils/version-aliases.js';
 import { PyenvGlobalParameter } from './global-parameter.js';
 import { PythonVersionsParameter } from './python-versions-parameter.js';
 
 export const schema = z.object({
-  pythonVersions: z.array(z.string()).optional().describe('An array of Python versions to install using pyenv. Partial matching is supported (3.9 instead of 3.9.11)'),
+  pythonVersions: versionsArraySchema(['latest'], 'An array of Python versions to install using pyenv. Partial matching is supported (3.9 instead of 3.9.11).').optional(),
   global: z.string().optional().describe('The global Python version set by pyenv.'),
 })
   .describe('Install and manage Python versions using pyenv.');

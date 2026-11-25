@@ -17,7 +17,7 @@ const schema = z
     plugin: z.string().describe('Asdf plugin name'),
     versions: z
       .array(z.string())
-      .describe('A list of versions to install')
+      .describe('A list of versions to install. Use "latest" to always track the newest release: each apply installs it if a newer one is out (older installs are kept). Other keywords are passed through to the asdf plugin.')
       .optional(),
     gitUrl: z
       .string()
