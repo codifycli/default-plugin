@@ -87,4 +87,36 @@ describe('Vscode integration tests', async () => {
       },
     });
   });
+
+  it('Can manage extensions with vscode-extensions without touching other extensions', { timeout: 300000 }, async () => {
+    const listExtensions = async () => (await testSpawn(`"${codeBin}" --list-extensions`)).data?.toLowerCase() ?? '';
+
+    await PluginTester.fullTest(pluginPath, [
+      { type: 'vscode' },
+      { type: 'vscode-extensions', name: 'python', extensions: ['ms-python.python'] },
+      { type: 'vscode-extensions', name: 'go', extensions: ['golang.go'] },
+    ], {
+      validateApply: async () => {
+        const extensions = await listExtensions();
+        expect(extensions).to.include('ms-python.python');
+        expect(extensions).to.include('golang.go');
+
+        // Installed outside of Codify: must survive the modify below
+        await testSpawn(`"${codeBin}" --install-extension editorconfig.editorconfig --force`);
+      },
+      testModify: {
+        modifiedConfigs: [
+          { type: 'vscode' },
+          { type: 'vscode-extensions', name: 'python', extensions: ['ms-python.python', 'charliermarsh.ruff'] },
+          { type: 'vscode-extensions', name: 'go', extensions: ['golang.go'] },
+        ],
+        validateModify: async () => {
+          const extensions = await listExtensions();
+          expect(extensions).to.include('charliermarsh.ruff');
+          expect(extensions).to.include('golang.go');
+          expect(extensions).to.include('editorconfig.editorconfig');
+        },
+      },
+    });
+  });
 });
