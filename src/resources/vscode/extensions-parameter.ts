@@ -1,11 +1,10 @@
 import { ParameterSetting, Plan, SpawnStatus, StatefulParameter, Utils, getPty } from '@codifycli/plugin-core';
+import { StringIndexedObject } from '@codifycli/schemas';
 import path from 'node:path';
-
-import { VscodeConfig } from './vscode.js';
 
 const VSCODE_APPLICATION_NAME = 'Visual Studio Code.app';
 
-function getCodeBinary(directory?: string | null): string {
+export function getCodeBinary(directory?: string | null): string {
   if (Utils.isMacOS()) {
     // On macOS the code binary lives inside the app bundle. Use the full path so it
     // works immediately after install without requiring a new shell session.
@@ -19,7 +18,14 @@ function getCodeBinary(directory?: string | null): string {
   return 'code';
 }
 
-export class ExtensionsParameter extends StatefulParameter<VscodeConfig, string[]> {
+/** Configs with a list of VS Code extensions, and optionally the directory VS Code is installed in (macOS). */
+type ExtensionsConfig = StringIndexedObject & { directory?: string | null; extensions?: string[] };
+
+/**
+ * Installs VS Code extensions. In the default (declarative) mode only the listed extensions are managed: the framework
+ * filters the installed extensions down to the declared ones, so other installed extensions are never uninstalled.
+ */
+export class ExtensionsParameter extends StatefulParameter<ExtensionsConfig, string[]> {
   getSettings(): ParameterSetting {
     return {
       type: 'array',
@@ -29,7 +35,7 @@ export class ExtensionsParameter extends StatefulParameter<VscodeConfig, string[
     };
   }
 
-  override async refresh(desired: string[] | null, config: Partial<VscodeConfig>): Promise<string[] | null> {
+  override async refresh(desired: string[] | null, config: Partial<ExtensionsConfig>): Promise<string[] | null> {
     const $ = getPty();
     const code = getCodeBinary(config.directory);
     const result = await $.spawnSafe(`"${code}" --list-extensions`);
@@ -39,7 +45,7 @@ export class ExtensionsParameter extends StatefulParameter<VscodeConfig, string[
     return result.data.split('\n').filter(Boolean);
   }
 
-  async add(valueToAdd: string[], plan: Plan<VscodeConfig>): Promise<void> {
+  async add(valueToAdd: string[], plan: Plan<ExtensionsConfig>): Promise<void> {
     const $ = getPty();
     const code = getCodeBinary(plan.desiredConfig?.directory);
     for (const ext of valueToAdd) {
@@ -47,14 +53,14 @@ export class ExtensionsParameter extends StatefulParameter<VscodeConfig, string[
     }
   }
 
-  async modify(newValue: string[], previousValue: string[], plan: Plan<VscodeConfig>): Promise<void> {
+  async modify(newValue: string[], previousValue: string[], plan: Plan<ExtensionsConfig>): Promise<void> {
     const toAdd = newValue.filter((n) => !previousValue.some((p) => p.toLowerCase() === n.toLowerCase()));
     const toRemove = previousValue.filter((p) => !newValue.some((n) => n.toLowerCase() === p.toLowerCase()));
     await this.remove(toRemove, plan);
     await this.add(toAdd, plan);
   }
 
-  async remove(valueToRemove: string[], plan: Plan<VscodeConfig>): Promise<void> {
+  async remove(valueToRemove: string[], plan: Plan<ExtensionsConfig>): Promise<void> {
     const $ = getPty();
     const code = getCodeBinary(plan.desiredConfig?.directory ?? plan.currentConfig?.directory);
     for (const ext of valueToRemove) {

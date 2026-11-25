@@ -125,7 +125,9 @@ export class GithubCliResource extends Resource<GithubCliConfig> {
     await Utils.installViaPkgMgr('gh');
     await this.applyConfig(plan.desiredConfig);
     if (plan.desiredConfig.interactiveLogin) {
-      await $.spawn('gh auth login --web', { interactive: true, stdin: true });
+      // Keys are managed by the ssh-key and github-cli-ssh-key resources: don't let gh generate or upload one.
+      const protocolFlag = plan.desiredConfig.gitProtocol ? ` --git-protocol ${plan.desiredConfig.gitProtocol}` : '';
+      await $.spawn(`gh auth login --web --skip-ssh-key${protocolFlag}`, { interactive: true, stdin: true });
     }
   }
 

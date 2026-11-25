@@ -40,4 +40,50 @@ describe('Goenv resource integration tests', () => {
       },
     });
   });
+
+  it('Installs Go programs with go install and leaves other programs alone', { timeout: 600000 }, async () => {
+    const goBin = async () => {
+      const { data: gobin } = await testSpawn('go env GOBIN');
+      if (gobin.trim()) return gobin.trim();
+      const { data: gopath } = await testSpawn('go env GOPATH');
+      return path.join(gopath.trim().split(path.delimiter)[0], 'bin');
+    };
+
+    await PluginTester.fullTest(pluginPath, [
+      {
+        type: 'goenv',
+        goVersions: ['latest'],
+        global: 'latest',
+        packages: ['golang.org/x/tools/cmd/stringer@latest'],
+      },
+    ], {
+      validateApply: async () => {
+        const { status } = await testSpawn('stringer -help');
+        expect(status).toBe(SpawnStatus.SUCCESS);
+
+        // Installed outside of Codify: must survive the modify below
+        const { status: installStatus } = await testSpawn('go install golang.org/x/tools/cmd/goimports@latest');
+        expect(installStatus).toBe(SpawnStatus.SUCCESS);
+      },
+      testModify: {
+        modifiedConfigs: [
+          {
+            type: 'goenv',
+            goVersions: ['latest'],
+            global: 'latest',
+            packages: [
+              'golang.org/x/tools/cmd/stringer@latest',
+              { package: 'github.com/golang-migrate/migrate/v4/cmd/migrate@latest', tags: ['postgres'] },
+            ],
+          },
+        ],
+        validateModify: async () => {
+          const bin = await goBin();
+          expect(fs.existsSync(path.join(bin, 'migrate'))).toBe(true);
+          expect(fs.existsSync(path.join(bin, 'stringer'))).toBe(true);
+          expect(fs.existsSync(path.join(bin, 'goimports'))).toBe(true);
+        },
+      },
+    });
+  });
 });

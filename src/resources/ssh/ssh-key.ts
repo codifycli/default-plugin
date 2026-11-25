@@ -6,6 +6,7 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings,
+  SpawnStatus,
   z
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
@@ -14,6 +15,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';
+import { escapeSingleQuoted } from '../../utils/shell-escape.js';
 import { exampleSshConfigs } from './examples.js';
 
 export const schema = z.object({
@@ -35,7 +37,24 @@ const defaultConfig: Partial<SshKeyConfig> = {
   passphrase: '',
 }
 
-const SSH_KEYGEN_FINGERPRINT_REGEX = /^(\d+) (.*):(.*) (.*) \((.*)\)$/
+// "<bits> <hash algorithm>:<fingerprint> <comment> (<type>)". The comment can contain spaces, or be "no comment".
+const SSH_KEYGEN_FINGERPRINT_REGEX = /^(\d+) (\S+):(\S+) (.*) \((\S+)\)$/
+
+/** Parses the output of `ssh-keygen -l -f <key>` */
+export function parseSshKeygenFingerprint(output: string): { bits: number; comment: string; type: string } | null {
+  const line = output.trim().split(/\r?\n/).at(-1) ?? '';
+  const [, bits, , , comment, type] = line.trim().match(SSH_KEYGEN_FINGERPRINT_REGEX) ?? [];
+  if (!bits || !type) {
+    return null;
+  }
+
+  return { bits: Number.parseInt(bits, 10), comment: comment === 'no comment' ? '' : comment, type: type.toLowerCase() };
+}
+
+/** Quotes a value as a single shell argument */
+function shellArg(value: string): string {
+  return `'${escapeSingleQuoted(value)}'`;
+}
 
 export class SshKeyResource extends Resource<SshKeyConfig> {
   getSettings(): ResourceSettings<SshKeyConfig> {
@@ -105,14 +124,16 @@ export class SshKeyResource extends Resource<SshKeyConfig> {
       return null;
     }
 
-    const { data: existingKey } = await $.spawn(`ssh-keygen -l -f ${parameters.fileName}`, { cwd: parameters.folder! });
-    const [_, bits, __, ___, comment, type] = existingKey
-      .trim()
-      .match(SSH_KEYGEN_FINGERPRINT_REGEX) ?? [];
-
-    if (!bits || !type) {
-      console.error(`Unable to parse ssh keygen output: ${_}`)
-      return null;
+    const { data, status } = await $.spawnSafe(`ssh-keygen -l -f ${shellArg(keyPath)}`);
+    const fingerprint = status === SpawnStatus.SUCCESS ? parseSshKeygenFingerprint(data) : null;
+    if (!fingerprint) {
+      // The file exists, so report it as existing: planning a create would make ssh-keygen ask to overwrite it.
+      console.error(`Unable to read the ssh key ${keyPath}: ${data}`);
+      return {
+        fileName: parameters.fileName,
+        passphrase: parameters.passphrase,
+        folder: parameters.folder!,
+      };
     }
 
     const currentConfig: Partial<SshKeyConfig> = {
@@ -122,64 +143,76 @@ export class SshKeyResource extends Resource<SshKeyConfig> {
     };
 
     if (parameters.bits) {
-      currentConfig.bits = Number.parseInt(bits, 10);
+      currentConfig.bits = fingerprint.bits;
     }
 
     if (parameters.keyType) {
-      currentConfig.keyType = type.toLowerCase() as SshKeyType;
+      currentConfig.keyType = fingerprint.type as SshKeyType;
     }
 
     if (parameters.comment) {
-      currentConfig.comment = comment;
+      currentConfig.comment = fingerprint.comment;
     }
 
     return currentConfig;
   }
 
   override async create(plan: CreatePlan<SshKeyConfig>): Promise<void> {
-    const folderPath = path.resolve(os.homedir(), '.ssh')
     const $ = getPty();
+    const { folder, fileName, keyType, passphrase, comment, bits } = plan.desiredConfig;
+    const keyPath = path.join(folder!, fileName!);
 
-    if (!(await FileUtils.dirExists(folderPath))) {
-      await fs.mkdir(folderPath);
-      await fs.chmod(folderPath, 0o700);
+    // Never overwrite a key: ssh-keygen would wait forever for an answer to "Overwrite (y/n)?". The key can appear
+    // between plan and apply, ex: gh auth login offers to generate one.
+    if (await FileUtils.fileExists(keyPath)) {
+      throw new Error(
+        `The ssh key ${keyPath} already exists (it was created after the plan was generated). ` +
+        'Codify does not overwrite ssh keys: run the plan again to manage the existing key, or delete it first.'
+      );
+    }
+
+    if (!(await FileUtils.dirExists(folder!))) {
+      await fs.mkdir(folder!, { recursive: true, mode: 0o700 });
     }
 
     const command = [
       'ssh-keygen',
-      `-f "${plan.desiredConfig.fileName}"`,
-      `-t ${plan.desiredConfig.keyType}`,
-      `-P "${plan.desiredConfig.passphrase}"`
-    ]
+      `-f ${shellArg(keyPath)}`,
+      `-t ${keyType}`,
+      `-N ${shellArg(passphrase ?? '')}`,
+    ];
 
-    if (plan.desiredConfig.comment) {
-      command.push(`-C "${plan.desiredConfig.comment}"`);
+    if (comment) {
+      command.push(`-C ${shellArg(comment)}`);
     }
 
-    if (plan.desiredConfig.bits) {
-      command.push(`-b ${plan.desiredConfig.bits}`);
+    if (bits) {
+      command.push(`-b ${bits}`);
     }
 
-    await $.spawn(command.join(' '), { cwd: plan.desiredConfig.folder })
+    await $.spawn(command.join(' '));
   }
 
   override async modify(pc: ParameterChange<SshKeyConfig>, plan: ModifyPlan<SshKeyConfig>): Promise<void> {
     const $ = getPty();
+    const keyPath = path.join(plan.desiredConfig.folder!, plan.desiredConfig.fileName!);
+    const passphrase = plan.desiredConfig.passphrase ?? '';
+
     if (pc.name === 'comment') {
-      await $.spawn(`ssh-keygen -f ${plan.desiredConfig.fileName} -c -C "${pc.newValue}"`, { cwd: plan.desiredConfig.folder! })
+      await $.spawn(`ssh-keygen -c -f ${shellArg(keyPath)} -P ${shellArg(passphrase)} -C ${shellArg(pc.newValue ?? '')}`);
       return;
     }
 
     // Passphrase can't be called in stateless mode because we don't know what the previous password is
     if (pc.name === 'passphrase') {
-      await $.spawn(`ssh-keygen -f ${plan.desiredConfig.fileName} -N ${pc.newValue} -P ${pc.previousValue} -p`, { cwd: plan.desiredConfig.folder! })
+      await $.spawn(`ssh-keygen -p -f ${shellArg(keyPath)} -P ${shellArg(pc.previousValue ?? '')} -N ${shellArg(pc.newValue ?? '')}`);
     }
   }
 
   override async destroy(plan: DestroyPlan<SshKeyConfig>): Promise<void> {
     const keyPath = path.join(plan.currentConfig.folder!, plan.currentConfig.fileName!);
 
-    await fs.rm(keyPath);
-    await fs.rm(`${keyPath}.pub`);
+    await fs.rm(keyPath, { force: true });
+    await fs.rm(`${keyPath}.pub`, { force: true });
   }
 }

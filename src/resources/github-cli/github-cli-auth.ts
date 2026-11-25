@@ -57,7 +57,8 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
       isSensitive: true,
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
-      dependencies: ['github-cli'],
+      // ssh-key first so the key exists before logging in (and before github-cli-ssh-key uploads it).
+      dependencies: ['github-cli', 'ssh-key'],
       parameterSettings: {
         token: { canModify: true, isSensitive: true },
         hostname: { default: 'github.com' },
@@ -175,8 +176,10 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
         ? ` --git-protocol ${trimmedProtocol}`
         : '';
 
+      // --skip-ssh-key: with the ssh protocol gh offers to generate ~/.ssh/id_ed25519 and upload it. Keys are managed by
+      // the ssh-key and github-cli-ssh-key resources instead, and a key generated here makes ssh-key ask to overwrite it.
       await $.spawn(
-        `gh auth login --hostname "${hostname}" --web${protocolFlag}${scopesFlag}`,
+        `gh auth login --hostname "${hostname}" --web --skip-ssh-key${protocolFlag}${scopesFlag}`,
         { interactive: true, stdin: true },
       );
       return;

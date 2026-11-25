@@ -15,6 +15,7 @@ import path from 'node:path';
 
 import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
 import { GoenvGlobalParameter } from './global-parameter.js';
+import { GoPackagesParameter, goPackageSchema } from './go-packages-parameter.js';
 import { GoVersionsParameter } from './go-versions-parameter.js';
 
 const GOENV_ROOT = path.join(os.homedir(), '.goenv');
@@ -28,6 +29,10 @@ const schema = z
       .optional(),
     global: globalVersionSchema(['latest'], 'The global Go version set by goenv.')
       .optional(),
+    packages: z
+      .array(goPackageSchema)
+      .optional()
+      .describe('Programs to install with go install using the global Go version, e.g. ["golang.org/x/tools/gopls@latest", "github.com/go-delve/delve/cmd/dlv@latest"]. Only the listed programs are managed.'),
   })
   .describe('goenv resource — install and manage multiple Go versions');
 
@@ -49,14 +54,19 @@ const exampleBasic: ExampleConfig = {
   ],
 };
 
-const exampleMultiVersion: ExampleConfig = {
-  title: 'Manage multiple Go versions',
-  description: 'Install goenv with multiple Go versions for cross-version testing, setting the latest as the default.',
+const exampleTools: ExampleConfig = {
+  title: 'Go with developer tools',
+  description: 'Install the latest Go with goenv along with gopls, Delve and golangci-lint, so editors and linters work out of the box.',
   configs: [
     {
       type: 'goenv',
-      goVersions: ['1.21.0', '1.22.0', '1.23.0'],
-      global: '1.23.0',
+      goVersions: ['latest'],
+      global: 'latest',
+      packages: [
+        'golang.org/x/tools/gopls@latest',
+        'github.com/go-delve/delve/cmd/dlv@latest',
+        'github.com/golangci/golangci-lint/v2/cmd/golangci-lint@latest',
+      ],
     },
   ],
 };
@@ -68,13 +78,14 @@ export class GoenvResource extends Resource<GoenvConfig> {
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,
-        example2: exampleMultiVersion,
+        example2: exampleTools,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
         goVersions: { stateful: new GoVersionsParameter(), order: 1 },
         global: { stateful: new GoenvGlobalParameter(), order: 2 },
+        packages: { stateful: new GoPackagesParameter(), order: 3 },
       },
     };
   }
