@@ -13,7 +13,7 @@ export class RubyVersionsParameter extends VersionsParameter<RbenvConfig> {
 
   protected async listInstalled(): Promise<string[]> {
     const $ = getPty();
-    const { data } = await $.spawnSafe('rbenv versions --bare');
+    const { data } = await $.spawnSafe('rbenv versions --bare', { interactive: true });
     return parseLines(data);
   }
 
@@ -21,7 +21,7 @@ export class RubyVersionsParameter extends VersionsParameter<RbenvConfig> {
   // definitions). Plain x.y.z entries are MRI. Falls back to the newest installed MRI version.
   protected async resolveAlias(_alias: unknown, installed: string[]): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe('rbenv install --list');
+    const { data, status } = await $.spawnSafe('rbenv install --list', { interactive: true });
     const available = status === SpawnStatus.SUCCESS ? parseLines(data) : [];
 
     return newestVersion(available, isStableVersion) ?? newestVersion(installed, isStableVersion);

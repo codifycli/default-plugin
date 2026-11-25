@@ -11,7 +11,7 @@ export class GoenvGlobalParameter extends GlobalVersionParameter<GoenvConfig> {
 
   protected async readGlobal(): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe('goenv global');
+    const { data, status } = await $.spawnSafe('goenv global', { interactive: true });
     if (status === SpawnStatus.ERROR) {
       return null;
     }

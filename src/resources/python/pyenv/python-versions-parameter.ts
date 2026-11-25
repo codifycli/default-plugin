@@ -13,7 +13,7 @@ export class PythonVersionsParameter extends VersionsParameter<PyenvConfig> {
 
   protected async listInstalled(): Promise<string[]> {
     const $ = getPty();
-    const { data } = await $.spawnSafe('pyenv versions --bare --skip-aliases --skip-envs');
+    const { data } = await $.spawnSafe('pyenv versions --bare --skip-aliases --skip-envs', { interactive: true });
 
     return data.split(/\n/)
       .map((l) => l.trim())
@@ -43,7 +43,7 @@ export class PythonVersionsParameter extends VersionsParameter<PyenvConfig> {
 
   private async pyenvLatest(prefix: string, known = false): Promise<null | string> {
     const $ = getPty();
-    const { status, data } = await $.spawnSafe(`pyenv latest ${known ? '-k ' : ''}${prefix}`);
+    const { status, data } = await $.spawnSafe(`pyenv latest ${known ? '-k ' : ''}${prefix}`, { interactive: true });
     if (status !== SpawnStatus.SUCCESS) {
       return null;
     }

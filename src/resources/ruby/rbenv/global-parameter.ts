@@ -11,7 +11,7 @@ export class RbenvGlobalParameter extends GlobalVersionParameter<RbenvConfig> {
 
   protected async readGlobal(): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe('rbenv global');
+    const { data, status } = await $.spawnSafe('rbenv global', { interactive: true });
     if (status === SpawnStatus.ERROR) {
       return null;
     }

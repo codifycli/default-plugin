@@ -15,7 +15,7 @@ export class AsdfPluginVersionsParameter extends VersionsParameter<AsdfPluginCon
 
   protected async listInstalled(config: Partial<AsdfPluginConfig>): Promise<null | string[]> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe(`asdf list ${config.plugin}`);
+    const { data, status } = await $.spawnSafe(`asdf list ${config.plugin}`, { interactive: true });
     if (status === SpawnStatus.ERROR || data.includes('No versions installed') || data.includes('No compatible versions installed')) {
       return null;
     }
@@ -28,7 +28,7 @@ export class AsdfPluginVersionsParameter extends VersionsParameter<AsdfPluginCon
   // `asdf latest` queries the plugin's remote version list. Falls back to the newest installed version.
   protected async resolveAlias(_alias: unknown, installed: string[], config: Partial<AsdfPluginConfig>): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe(`asdf latest ${config.plugin}`);
+    const { data, status } = await $.spawnSafe(`asdf latest ${config.plugin}`, { interactive: true });
     const latest = data.trim();
 
     if (status === SpawnStatus.SUCCESS && latest && !latest.includes(' ')) {

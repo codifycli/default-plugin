@@ -16,7 +16,7 @@ export class NvmNodeVersionsParameter extends VersionsParameter<NvmConfig> {
 
   protected async listInstalled(): Promise<string[]> {
     const $ = getPty();
-    const { data } = await $.spawnSafe('nvm ls --no-colors --no-alias');
+    const { data } = await $.spawnSafe('nvm ls --no-colors --no-alias', { interactive: true });
 
     return data.split(/\n/)
       .map((l) => l.match(VERSION_REGEX)?.[1])
@@ -32,7 +32,7 @@ export class NvmNodeVersionsParameter extends VersionsParameter<NvmConfig> {
   // Falls back to nvm's local aliases when the remote can't be reached.
   protected async resolveAlias(alias: VersionAlias): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe('nvm ls-remote --no-colors');
+    const { data, status } = await $.spawnSafe('nvm ls-remote --no-colors', { interactive: true });
 
     if (status === SpawnStatus.SUCCESS) {
       const remote = parseNodeReleaseList(data).filter((r) => alias !== 'lts' || r.isLts);
@@ -58,7 +58,7 @@ export class NvmNodeVersionsParameter extends VersionsParameter<NvmConfig> {
   /** Runs an nvm command that prints a single version (or N/A) and returns it without the v prefix. */
   private async nvmVersion(command: string): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe(command);
+    const { data, status } = await $.spawnSafe(command, { interactive: true });
     if (status !== SpawnStatus.SUCCESS) {
       return null;
     }

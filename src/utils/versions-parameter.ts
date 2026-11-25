@@ -20,6 +20,9 @@ import {
  *   back to installed versions when the remote can't be reached)
  * - {@link installVersion} / {@link uninstallVersion}: always called with concrete versions, never a keyword
  * - optionally {@link matchInstalled} for partial matching (`22` → `22.11.0`)
+ *
+ * The lookups (listInstalled, resolveAlias, matchInstalled) also run during apply, where the shell RC is not sourced
+ * automatically: pass `{ interactive: true }` to every spawn in them or the version manager won't be on PATH.
  */
 export abstract class VersionsParameter<C extends StringIndexedObject> extends ArrayStatefulParameter<C, string> {
   /** Keywords this version manager understands. Anything else is treated as a regular version string. */
