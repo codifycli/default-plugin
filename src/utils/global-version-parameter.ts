@@ -8,6 +8,9 @@ import { VersionsParameter } from './versions-parameter.js';
  *
  * Accepts the same `latest` / `lts` keywords as the sibling versions list and resolves them through it, so both
  * parameters always agree on what a keyword means. The concrete version is what gets passed to the CLI.
+ *
+ * Pass `{ interactive: true }` to every spawn in readGlobal / setGlobal so the version manager is on PATH outside
+ * of refresh.
  */
 export abstract class GlobalVersionParameter<C extends StringIndexedObject>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- StatefulParameter requires V extends C[keyof C]; the value is always a version string

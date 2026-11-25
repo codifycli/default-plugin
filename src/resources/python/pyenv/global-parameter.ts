@@ -11,7 +11,7 @@ export class PyenvGlobalParameter extends GlobalVersionParameter<PyenvConfig> {
 
   protected async readGlobal(): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe('pyenv global');
+    const { data, status } = await $.spawnSafe('pyenv global', { interactive: true });
     if (status === SpawnStatus.ERROR) {
       return null;
     }

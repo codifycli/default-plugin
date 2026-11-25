@@ -13,7 +13,7 @@ export class XcodeVersionsParameter extends VersionsParameter<XcodesConfig> {
 
   protected async listInstalled(): Promise<string[]> {
     const $ = getPty();
-    const { data } = await $.spawnSafe('xcodes installed');
+    const { data } = await $.spawnSafe('xcodes installed', { interactive: true });
     return parseInstalledVersions(data);
   }
 
@@ -21,7 +21,7 @@ export class XcodeVersionsParameter extends VersionsParameter<XcodesConfig> {
   // `xcodes install --latest`. Falls back to the newest installed release.
   protected async resolveAlias(_alias: unknown, installed: string[]): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe('xcodes list');
+    const { data, status } = await $.spawnSafe('xcodes list', { interactive: true });
     const available = status === SpawnStatus.SUCCESS ? parseInstalledVersions(data) : [];
 
     return newestRelease(available) ?? newestRelease(installed);

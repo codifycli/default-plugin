@@ -13,7 +13,7 @@ export class GoVersionsParameter extends VersionsParameter<GoenvConfig> {
 
   protected async listInstalled(): Promise<string[]> {
     const $ = getPty();
-    const { data } = await $.spawnSafe('goenv versions --bare');
+    const { data } = await $.spawnSafe('goenv versions --bare', { interactive: true });
     return parseLines(data);
   }
 
@@ -21,7 +21,7 @@ export class GoVersionsParameter extends VersionsParameter<GoenvConfig> {
   // (1.23rc1), which isStableVersion filters out. Falls back to the newest installed version.
   protected async resolveAlias(_alias: unknown, installed: string[]): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe('goenv install --list');
+    const { data, status } = await $.spawnSafe('goenv install --list', { interactive: true });
     const available = status === SpawnStatus.SUCCESS ? parseLines(data) : [];
 
     return newestVersion(available, isStableVersion) ?? newestVersion(installed, isStableVersion);

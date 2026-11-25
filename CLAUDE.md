@@ -521,6 +521,9 @@ export class MyVersionsParameter extends VersionsParameter<MyConfig> {
 }
 ```
 
+- **Pass `{ interactive: true }` to every spawn in `listInstalled` / `resolveAlias` / `matchInstalled`.** The base class
+  also calls them during apply (to resolve a keyword before installing or uninstalling), where the shell RC is not
+  sourced, so without it the version manager isn't on PATH and resolution fails with "Unable to resolve".
 - Build the schema with `versionsArraySchema(supportedAliases, description)` from `src/utils/version-aliases.ts`. It
   rejects keywords the resource doesn't support and documents them.
 - Pure helpers (`normalizeVersions`, `newestVersion`, `isStableVersion`, `matchVersionPrefix`) are unit tested in

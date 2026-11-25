@@ -11,7 +11,7 @@ export class NvmGlobalParameter extends GlobalVersionParameter<NvmConfig> {
 
   protected async readGlobal(): Promise<null | string> {
     const $ = getPty();
-    const { data, status } = await $.spawnSafe('nvm ls default --no-colors');
+    const { data, status } = await $.spawnSafe('nvm ls default --no-colors', { interactive: true });
     if (status === SpawnStatus.ERROR) {
       return null;
     }
