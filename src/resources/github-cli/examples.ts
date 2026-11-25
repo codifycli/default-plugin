@@ -103,14 +103,20 @@ export const exampleGithubCliSshKeyBasic: ExampleConfig = {
 
 export const exampleGithubCliSshKeyFull: ExampleConfig = {
   title: 'Full SSH key setup for GitHub',
-  description: 'Install gh, authenticate, then upload a local SSH key to your GitHub account.',
+  description: 'Install gh, generate an SSH key, log in through the browser with permission to manage SSH keys, then upload the key to your GitHub account.',
   configs: [
     {
       type: 'github-cli',
+      gitProtocol: 'ssh',
+    },
+    {
+      type: 'ssh-key',
+      keyType: 'ed25519',
+      passphrase: '',
     },
     {
       type: 'github-cli-auth',
-      token: '<Replace me here!>',
+      scopes: ['admin:public_key'],
     },
     {
       type: 'github-cli-ssh-key',
