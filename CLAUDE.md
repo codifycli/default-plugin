@@ -493,45 +493,43 @@ parameterSettings: {
 }
 ```
 
-### "latest" Keyword for Version-List Parameters
+### "latest" / "lts" Keywords for Version-List Parameters
 
-When a resource manages a list of installed versions (e.g. `nvm`'s Node versions, `pyenv`'s Python versions, `xcodes`' Xcode versions), always support a symbolic `'latest'` entry in that array alongside explicit version strings. This lets users write `versions: ['latest']` instead of having to know/hardcode the current newest release.
+When a resource manages a list of installed versions (nvm, fnm, pyenv, rbenv, goenv, asdf-plugin, xcodes), extend
+`VersionsParameter` from `src/utils/versions-parameter.ts` instead of `ArrayStatefulParameter`. It implements the
+`latest` / `lts` keywords once; subclasses only describe how to talk to their CLI.
 
-**Requirements for `'latest'`:**
-- It must resolve to a real, concrete version at `addItem`/install time (e.g. by passing whatever "install latest" flag the underlying CLI supports — `xcodes install --latest`, `nvm install --lts`/`node`, `pyenv install` + `pyenv latest -k <major>`, etc. — or by resolving the latest version yourself before installing if the CLI has no such flag).
-- It must **not** show up as a perpetual diff in the plan. Once resolved, `refresh()` should normalize the real installed version back to the literal string `'latest'` in the array it returns whenever that installed version is the one which satisfies the `'latest'` entry in desired — so the framework's equality check treats them as converged instead of proposing an add/remove on every plan.
-- `removeItem` (and any other lifecycle method that receives an individual array element) must resolve `'latest'` back to the real installed version before acting — never pass the literal string `'latest'` to an uninstall/select command.
-
-**Reference implementation:** `src/resources/xcodes/xcode-versions-parameter.ts` (`LATEST_VERSION_KEYWORD`, `normalizeLatestKeyword`, `resolveInstalledVersion`). The pattern:
+**Semantics are rolling:** every plan resolves a keyword to the newest release available right now. If that release
+isn't installed, the plan proposes installing it (older installs are kept). Once installed, `refresh()` relabels it
+with the keyword so the plan converges. Import without a config returns concrete versions.
 
 ```typescript
-export const LATEST_VERSION_KEYWORD = 'latest';
+export class MyVersionsParameter extends VersionsParameter<MyConfig> {
+  protected readonly supportedAliases = ['latest'] as const; // add 'lts' only if the ecosystem has LTS releases
 
-export class MyVersionsParameter extends ArrayStatefulParameter<MyConfig, string> {
-  getSettings(): ParameterSetting {
-    return { type: 'array', isElementEqual: (desired, current) => desired === current };
-  }
+  constructor() { super('myVersions'); } // the config key, used to avoid uninstalling versions still needed
 
-  override async refresh(desired: string[] | null): Promise<string[] | null> {
-    const installed = await getInstalledVersions();
-    return normalizeLatestKeyword(installed, desired ?? []); // maps the newest unclaimed installed version back to 'latest'
+  protected async listInstalled(config) { /* concrete installed versions, or null */ }
+  protected async resolveAlias(alias, installed, config) {
+    /* concrete version the keyword points to now; fall back to installed versions when offline */
   }
-
-  override async addItem(version: string): Promise<void> {
-    const installArg = version === LATEST_VERSION_KEYWORD ? '--latest' : version;
-    await install(installArg);
-  }
-
-  override async removeItem(version: string): Promise<void> {
-    const resolved = version === LATEST_VERSION_KEYWORD ? await resolveNewestInstalled() : version;
-    if (resolved) await uninstall(resolved);
-  }
+  protected async installVersion(version, config) { /* always a concrete version */ }
+  protected async uninstallVersion(version, config) { /* always a concrete version */ }
+  // optional: partial matching (22 -> 22.11.0). Default is exact. matchVersionPrefix() is a ready made helper.
+  protected async matchInstalled(desired, installed, config) { ... }
 }
 ```
 
-Also add `'latest'` as a hardcoded first entry in that parameter's completions file (`completions/<resource>.$.<param>.ts`) so it surfaces as a suggestion in the editor alongside real fetched version numbers.
-
-Do **not** extend this convention to a resource's singular "selected/active version" parameter (e.g. `xcodes`' `selected`) unless the underlying CLI's select/activate command itself supports a latest-equivalent flag — most select commands only operate on already-installed exact versions.
+- Build the schema with `versionsArraySchema(supportedAliases, description)` from `src/utils/version-aliases.ts`. It
+  rejects keywords the resource doesn't support and documents them.
+- Pure helpers (`normalizeVersions`, `newestVersion`, `isStableVersion`, `matchVersionPrefix`) are unit tested in
+  `src/utils/version-aliases.test.ts`; add parsing tests next to them rather than in integration tests.
+- The sibling global/default parameter extends `GlobalVersionParameter` (`src/utils/global-version-parameter.ts`) and
+  only implements `readGlobal` / `setGlobal` / `remove`. It resolves keywords through the versions parameter so both
+  always agree on what a keyword means. Build its schema with `globalVersionSchema(supportedAliases, description)`.
+- Add the keywords as hardcoded first entries in the versions parameter's completions file. The global's completions
+  should mirror the versions parameter (`{ mirrorParameter: '$.<versions>' }`) so the keywords carry over.
+- Completion filenames must start with the resource **id** (`fnm.$.nodeVersions.ts`), not the folder name.
 
 ### defaultConfig and exampleConfigs
 

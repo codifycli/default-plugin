@@ -1,27 +1,44 @@
-import { ArrayStatefulParameter, getPty } from '@codifycli/plugin-core';
+import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
+import { isStableVersion, newestVersion } from '../../../utils/version-aliases.js';
+import { VersionsParameter } from '../../../utils/versions-parameter.js';
 import { RbenvConfig } from './rbenv.js';
 
-export class RubyVersionsParameter extends ArrayStatefulParameter<RbenvConfig, string> {
-  override async refresh(_desired: string[] | null): Promise<string[] | null> {
+export class RubyVersionsParameter extends VersionsParameter<RbenvConfig> {
+  protected readonly supportedAliases = ['latest'] as const;
+
+  constructor() {
+    super('rubyVersions');
+  }
+
+  protected async listInstalled(): Promise<string[]> {
     const $ = getPty();
     const { data } = await $.spawnSafe('rbenv versions --bare');
-
-    return parseInstalledVersions(data);
+    return parseLines(data);
   }
 
-  override async addItem(version: string): Promise<void> {
+  // `rbenv install --list` prints the latest stable release of each Ruby implementation (from ruby-build's local
+  // definitions). Plain x.y.z entries are MRI. Falls back to the newest installed MRI version.
+  protected async resolveAlias(_alias: unknown, installed: string[]): Promise<null | string> {
     const $ = getPty();
-    await $.spawn(`rbenv install ${version}`, { interactive: true });
+    const { data, status } = await $.spawnSafe('rbenv install --list');
+    const available = status === SpawnStatus.SUCCESS ? parseLines(data) : [];
+
+    return newestVersion(available, isStableVersion) ?? newestVersion(installed, isStableVersion);
   }
 
-  override async removeItem(version: string): Promise<void> {
+  protected async installVersion(version: string): Promise<void> {
+    const $ = getPty();
+    await $.spawn(`rbenv install --skip-existing ${version}`, { interactive: true });
+  }
+
+  protected async uninstallVersion(version: string): Promise<void> {
     const $ = getPty();
     await $.spawn(`rbenv uninstall --force ${version}`, { interactive: true });
   }
 }
 
-function parseInstalledVersions(output: string): string[] {
+function parseLines(output: string): string[] {
   return output
     .split('\n')
     .map((line) => line.trim())

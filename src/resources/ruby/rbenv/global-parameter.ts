@@ -1,18 +1,17 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
+import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
+import { GlobalVersionParameter } from '../../../utils/global-version-parameter.js';
+import { RubyVersionsParameter } from './ruby-versions-parameter.js';
 import { RbenvConfig } from './rbenv.js';
 
-export class RbenvGlobalParameter extends StatefulParameter<RbenvConfig, string> {
-  getSettings(): ParameterSetting {
-    return {
-      type: 'version',
-    };
+export class RbenvGlobalParameter extends GlobalVersionParameter<RbenvConfig> {
+  constructor() {
+    super(new RubyVersionsParameter());
   }
 
-  override async refresh(): Promise<string | null> {
+  protected async readGlobal(): Promise<null | string> {
     const $ = getPty();
     const { data, status } = await $.spawnSafe('rbenv global');
-
     if (status === SpawnStatus.ERROR) {
       return null;
     }
@@ -20,14 +19,9 @@ export class RbenvGlobalParameter extends StatefulParameter<RbenvConfig, string>
     return parseGlobalVersion(data);
   }
 
-  override async add(valueToAdd: string): Promise<void> {
+  protected async setGlobal(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`rbenv global ${valueToAdd}`, { interactive: true });
-  }
-
-  override async modify(newValue: string): Promise<void> {
-    const $ = getPty();
-    await $.spawn(`rbenv global ${newValue}`, { interactive: true });
+    await $.spawn(`rbenv global ${version}`, { interactive: true });
   }
 
   override async remove(): Promise<void> {
@@ -36,11 +30,8 @@ export class RbenvGlobalParameter extends StatefulParameter<RbenvConfig, string>
   }
 }
 
-/**
- * Parse the output of `rbenv global`.
- * Returns null when rbenv reports "system" (no user-managed version set).
- */
-function parseGlobalVersion(output: string): string | null {
+/** Returns null when rbenv reports "system" (no user-managed version set). */
+function parseGlobalVersion(output: string): null | string {
   const version = output.trim();
   return version === 'system' ? null : version;
 }

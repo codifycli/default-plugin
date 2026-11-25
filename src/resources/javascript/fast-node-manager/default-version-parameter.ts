@@ -1,18 +1,17 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
+import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
+import { GlobalVersionParameter } from '../../../utils/global-version-parameter.js';
 import { FnmConfig } from './fast-node-manager.js';
+import { FnmNodeVersionsParameter } from './node-versions-parameter.js';
 
-export class FnmDefaultVersionParameter extends StatefulParameter<FnmConfig, string> {
-  getSettings(): ParameterSetting {
-    return {
-      type: 'version',
-    };
+export class FnmDefaultVersionParameter extends GlobalVersionParameter<FnmConfig> {
+  constructor() {
+    super(new FnmNodeVersionsParameter());
   }
 
-  override async refresh(): Promise<string | null> {
+  protected async readGlobal(): Promise<null | string> {
     const $ = getPty();
     const { data, status } = await $.spawnSafe('fnm list', { interactive: true });
-
     if (status === SpawnStatus.ERROR) {
       return null;
     }
@@ -27,14 +26,9 @@ export class FnmDefaultVersionParameter extends StatefulParameter<FnmConfig, str
     return null;
   }
 
-  override async add(valueToAdd: string): Promise<void> {
+  protected async setGlobal(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`fnm default ${valueToAdd}`, { interactive: true });
-  }
-
-  override async modify(newValue: string): Promise<void> {
-    const $ = getPty();
-    await $.spawn(`fnm default ${newValue}`, { interactive: true });
+    await $.spawn(`fnm default ${version}`, { interactive: true });
   }
 
   override async remove(valueToRemove: string): Promise<void> {

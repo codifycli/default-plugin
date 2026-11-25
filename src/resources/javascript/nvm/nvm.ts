@@ -3,12 +3,13 @@ import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
 import { FileUtils } from '../../../utils/file-utils.js';
+import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
 import { NvmGlobalParameter } from './global-parameter.js';
 import { NvmNodeVersionsParameter } from './node-versions-parameter.js';
 
 export const schema = z.object({
-  nodeVersions: z.array(z.string()).optional().describe('An array of node versions to install using nvm. Partial matching is supported (20 instead of 20.15.1)'),
-  global: z.string().optional().describe('The global Node version set by nvm.'),
+  nodeVersions: versionsArraySchema(['latest', 'lts'], 'An array of node versions to install using nvm. Partial matching is supported (20 instead of 20.15.1).').optional(),
+  global: globalVersionSchema(['latest', 'lts'], 'The global Node version set by nvm.').optional(),
 })
   .describe('Install and manage Node versions using nvm.');
 

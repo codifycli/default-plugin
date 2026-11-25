@@ -1,61 +1,69 @@
-import { ParameterSetting, ArrayStatefulParameter, getPty, SpawnStatus } from '@codifycli/plugin-core';
+import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
+import { newestVersion, parseNodeReleaseList, stripV, VersionAlias } from '../../../utils/version-aliases.js';
+import { VersionsParameter } from '../../../utils/versions-parameter.js';
 import { NvmConfig } from './nvm.js';
 
-export class NvmNodeVersionsParameter extends ArrayStatefulParameter<NvmConfig, string> {
-  getSettings(): ParameterSetting {
-    return {
-      type: 'array',
-      isElementEqual: (desired, current) => current.includes(desired),
-    }
+// Requires whitespace or end of line after the version so prereleases (v27.0.0-alpha.0) never match
+const VERSION_REGEX = /v?(\d+\.\d+\.\d+)(?=\s|$)/m;
+
+export class NvmNodeVersionsParameter extends VersionsParameter<NvmConfig> {
+  protected readonly supportedAliases = ['latest', 'lts'] as const;
+
+  constructor() {
+    super('nodeVersions');
   }
 
-  override async refresh(desired: null | string[]): Promise<null | string[]> {
-    const $ = getPty()
+  protected async listInstalled(): Promise<string[]> {
+    const $ = getPty();
+    const { data } = await $.spawnSafe('nvm ls --no-colors --no-alias');
 
-    const { data } = await $.spawnSafe('nvm ls --no-colors --no-alias')
+    return data.split(/\n/)
+      .map((l) => l.match(VERSION_REGEX)?.[1])
+      .filter((v): v is string => Boolean(v));
+  }
 
-    const versions = data.split(/\n/)
-      .map((l) =>
-        l.replaceAll(' ', '')
-          .replaceAll('->', '')
-          .replaceAll('*', '')
-          .replaceAll('v', '')
-          ?.trim()
-      ).filter(Boolean)
-      .filter((v) => v !== 'system');
+  // nvm has its own partial matching logic (20 -> 20.15.1) that we defer to.
+  protected async matchInstalled(desired: string): Promise<null | string> {
+    return this.nvmVersion(`nvm version ${desired}`);
+  }
 
-    // To make matching easier, we will replace the elements in
-    // current with what we currently have installed. This is because nvm has weird
-    // matching logic that we cannot replicate
-    for (const desiredVersion of desired ?? []) {
-      const { status, data } = await $.spawnSafe(`nvm ls ${desiredVersion} --no-colors`);
+  // `nvm ls-remote` marks LTS releases with "(LTS: <codename>)". Prereleases are skipped by the parser.
+  // Falls back to nvm's local aliases when the remote can't be reached.
+  protected async resolveAlias(alias: VersionAlias): Promise<null | string> {
+    const $ = getPty();
+    const { data, status } = await $.spawnSafe('nvm ls-remote --no-colors');
 
-      if (status !== SpawnStatus.SUCCESS) {
-        continue;
-      }
-
-      const matchedVersion = data.replaceAll('->', '')
-        .replaceAll('v', '')
-        .replaceAll('*', '')
-        ?.trim();
-
-      if (versions.includes(matchedVersion)) {
-        const index = versions.indexOf(matchedVersion);
-        versions.splice(index, 1, desiredVersion);
+    if (status === SpawnStatus.SUCCESS) {
+      const remote = parseNodeReleaseList(data).filter((r) => alias !== 'lts' || r.isLts);
+      const resolved = newestVersion(remote.map((r) => r.version));
+      if (resolved) {
+        return resolved;
       }
     }
 
-    return versions;
+    return this.nvmVersion(alias === 'lts' ? 'nvm version "lts/*"' : 'nvm version node');
   }
 
-  override async addItem(version: string): Promise<void> {
+  protected async installVersion(version: string): Promise<void> {
     const $ = getPty();
     await $.spawn(`nvm install ${version}`, { interactive: true });
   }
 
-  override async removeItem(version: string): Promise<void> {
+  protected async uninstallVersion(version: string): Promise<void> {
     const $ = getPty();
     await $.spawn(`nvm uninstall ${version}`, { interactive: true });
+  }
+
+  /** Runs an nvm command that prints a single version (or N/A) and returns it without the v prefix. */
+  private async nvmVersion(command: string): Promise<null | string> {
+    const $ = getPty();
+    const { data, status } = await $.spawnSafe(command);
+    if (status !== SpawnStatus.SUCCESS) {
+      return null;
+    }
+
+    const match = data.match(VERSION_REGEX)?.[1];
+    return match ? stripV(match) : null;
   }
 }

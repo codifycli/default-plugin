@@ -1,46 +1,34 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
+import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
+import { GlobalVersionParameter } from '../../../utils/global-version-parameter.js';
+import { NvmNodeVersionsParameter } from './node-versions-parameter.js';
 import { NvmConfig } from './nvm.js';
 
-export class NvmGlobalParameter extends StatefulParameter<NvmConfig, string>{
-
-  getSettings(): ParameterSetting {
-    return {
-      type: 'version',
-    }
+export class NvmGlobalParameter extends GlobalVersionParameter<NvmConfig> {
+  constructor() {
+    super(new NvmNodeVersionsParameter());
   }
 
-  override async refresh(): Promise<null | string> {
+  protected async readGlobal(): Promise<null | string> {
     const $ = getPty();
-
-    const { data, status } = await $.spawnSafe('nvm ls default --no-colors')
-
+    const { data, status } = await $.spawnSafe('nvm ls default --no-colors');
     if (status === SpawnStatus.ERROR) {
       return null;
     }
 
-    return this.formatVersion(data);
+    return data.replaceAll('->', '')
+      .replaceAll(' ', '')
+      .replaceAll('v', '')
+      .replaceAll('*', '')
+      .trim();
   }
 
-  override async add(valueToAdd: string): Promise<void> {
+  protected async setGlobal(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`nvm alias default ${valueToAdd}`, { interactive: true })
-  }
-
-  override async modify(newValue: string): Promise<void> {
-    const $ = getPty();
-    await $.spawn(`nvm alias default ${newValue}`, { interactive: true })
+    await $.spawn(`nvm alias default ${version}`, { interactive: true });
   }
 
   override async remove(valueToRemove: string): Promise<void> {
-    console.warn(`Nvm does not allow removing the global default. NodeJS will still be ${valueToRemove}. Skipping...`)
-  }
-
-  private formatVersion(output: string): null | string {
-    return output?.replaceAll('->', '')
-      ?.replaceAll(' ', '')
-      ?.replaceAll('v', '')
-      ?.replaceAll('*', '')
-      ?.trim()
+    console.warn(`Nvm does not allow removing the global default. NodeJS will still be ${valueToRemove}. Skipping...`);
   }
 }
