@@ -54,7 +54,7 @@ const codexConfigSchema = z
       ),
     shell_environment_policy: z
       .object({
-        inherit: z.enum(['all', 'core', 'none']).optional(),
+        inherit: z.enum(['all', 'core', 'none']).optional().describe('"all" passes every variable through, "core" keeps PATH and a minimal set, "none" starts empty.'),
       })
       .optional()
       .describe(
@@ -63,7 +63,7 @@ const codexConfigSchema = z
       ),
     history: z
       .object({
-        persistence: z.enum(['save-all', 'none']).optional(),
+        persistence: z.enum(['save-all', 'none']).optional().describe('"save-all" keeps session history, "none" disables it.'),
       })
       .optional()
       .describe('Session history settings. Set persistence to "save-all" to keep history or "none" to disable it.'),
@@ -144,8 +144,10 @@ export class CodexResource extends Resource<CodexConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        config: { type: 'stateful', definition: new CodexConfigParameter(), order: 1 },
-        mcpServers: { type: 'stateful', definition: new CodexMcpServersParameter(), order: 2 },
+        config: { stateful: new CodexConfigParameter(), order: 1 },
+        mcpServers: { stateful: new CodexMcpServersParameter(), order: 2 },
+        'mcpServers[*].env.*': { isSensitive: true },
+        'mcpServers[*].httpHeaders.*': { isSensitive: true },
       },
     };
   }

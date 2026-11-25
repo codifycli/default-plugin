@@ -1,16 +1,18 @@
-import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty, Utils, FileUtils } from '@codifycli/plugin-core';
+import { CreatePlan, DestroyPlan, Resource, ResourceSettings, getPty, Utils, FileUtils, z } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
 import { SpawnStatus } from '../../utils/codify-spawn.js';
-import Schema from './docker-schema.json';
 
-export interface DockerConfig extends StringIndexedObject {
-  acceptLicense?: boolean;
-  useCurrentUser?: boolean;
-}
+export const schema = z.object({
+  acceptLicense: z.boolean().optional().describe('Accepts the license agreement. Defaults to true'),
+  useCurrentUser: z.boolean().optional().describe('Use the current user to install docker. Defaults to true'),
+})
+  .describe('Installs docker.');
+
+export type DockerConfig = z.infer<typeof schema>;
 
 const ARM_DOWNLOAD_LINK = 'https://desktop.docker.com/mac/main/arm64/Docker.dmg'
 const INTEL_DOWNLOAD_LINK = 'https://desktop.docker.com/mac/main/amd64/Docker.dmg'
@@ -20,7 +22,7 @@ export class DockerResource extends Resource<DockerConfig> {
     return {
       id: 'docker',
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
         acceptLicense: {
           type: 'boolean',

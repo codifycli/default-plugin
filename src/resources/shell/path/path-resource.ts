@@ -10,7 +10,8 @@ import {
   Resource,
   ResourceSettings,
   Utils,
-  FileUtils
+  FileUtils,
+  z
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
@@ -18,15 +19,17 @@ import path from 'node:path';
 
 import { assertSafeDoubleQuotedShellValue } from '../../../utils/shell-escape.js';
 import { untildify } from '../../../utils/untildify.js';
-import Schema from './path-schema.json';
 import os from 'node:os';
 
-export interface PathConfig extends StringIndexedObject {
-  path: string;
-  paths: string[];
-  prepend: boolean;
-  declarationsOnly: boolean;
-}
+export const schema = z.object({
+  path: z.string().regex(new RegExp('^(?:[^\\n\\r"$\\\\`]|\\$[A-Z_a-z]\\w*|\\$\\{[A-Z_a-z]\\w*\\})*$')).optional().describe('The path to append. This parameter cannot be used at the same time as paths'),
+  paths: z.array(z.string().regex(new RegExp('^(?:[^\\n\\r"$\\\\`]|\\$[A-Z_a-z]\\w*|\\$\\{[A-Z_a-z]\\w*\\})*$'))).optional().describe('Multiple paths to append. This parameter cannot be used at the same time as path'),
+  prepend: z.boolean().optional().describe('Whether or not to prepend to the path.'),
+  declarationsOnly: z.boolean().default(false).describe('Only plan and manage explicitly declared paths found in shell startup scripts. This value is forced to true for stateful mode'),
+})
+  .describe('Manages user paths. It will permanently save paths by adding them to the shell startup script.');
+
+export type PathConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<PathConfig> = {
   paths: [],
@@ -54,7 +57,7 @@ export class PathResource extends Resource<PathConfig> {
         example1: exampleConfig,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       dependencies: ['env-var', 'env-vars'],
       parameterSettings: {
         path: { type: 'directory' },

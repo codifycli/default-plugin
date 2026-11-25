@@ -25,10 +25,10 @@ export const CURSOR_LOCAL_BIN = path.join(os.homedir(), '.local', 'bin');
 const CURSOR_LOCAL_BIN_EXPORT = `export PATH="${CURSOR_LOCAL_BIN}:$PATH"`;
 
 export const mcpServerSchema = z.object({
-  command: z.string().optional(),
-  args: z.array(z.string()).optional(),
-  env: z.record(z.string(), z.string()).optional(),
-  url: z.string().optional(),
+  command: z.string().optional().describe('Command used to launch a stdio MCP server (e.g. "npx").'),
+  args: z.array(z.string()).optional().describe('Arguments passed to the command.'),
+  env: z.record(z.string(), z.string()).optional().describe('Environment variables passed to the server process. Values are treated as sensitive.'),
+  url: z.string().optional().describe('URL of a remote (HTTP/SSE) MCP server. Use instead of command.'),
 });
 export type McpServer = z.infer<typeof mcpServerSchema>;
 export type McpServers = Record<string, McpServer>;
@@ -108,9 +108,10 @@ export class CursorResource extends Resource<CursorConfig> {
           type: 'directory',
           default: Utils.isMacOS() ? '/Applications' : CURSOR_LOCAL_BIN,
         },
-        extensions: { type: 'stateful', definition: new ExtensionsParameter(), order: 1 },
-        settings: { type: 'stateful', definition: new SettingsParameter(), order: 2 },
-        mcpServers: { type: 'stateful', definition: new McpServersParameter(), order: 3 },
+        extensions: { stateful: new ExtensionsParameter(), order: 1 },
+        settings: { stateful: new SettingsParameter(), order: 2 },
+        mcpServers: { stateful: new McpServersParameter(), order: 3 },
+        'mcpServers.*.env.*': { isSensitive: true },
       },
     };
   }

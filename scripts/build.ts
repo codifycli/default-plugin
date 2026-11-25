@@ -1,7 +1,7 @@
 import { JSONSchema } from '@apidevtools/json-schema-ref-parser';
 import { createRequire } from 'node:module';
 import { Ajv } from 'ajv';
-import { VerbosityLevel } from '@codifycli/plugin-core';
+import { findUndescribedFields, VerbosityLevel } from '@codifycli/plugin-core';
 import { SequentialPty } from '@codifycli/plugin-core';
 import { IpcMessage, IpcMessageSchema, MessageStatus, ResourceSchema } from '@codifycli/schemas';
 import mergeJsonSchemas from 'merge-json-schemas';
@@ -74,6 +74,15 @@ for (const type of resourceTypes) {
 
   const { schema: _schema, ...metadataWithoutSchema } = resourceInfo;
   metadataList.push(metadataWithoutSchema);
+}
+
+// Every field (including nested fields) must be documented. Descriptions are shown in the editor and the docs.
+const undescribed = [...schemasMap.entries()]
+  .flatMap(([type, schema]) => findUndescribedFields(schema as Record<string, unknown>).map((field) => `${type}: ${field}`));
+if (undescribed.length > 0) {
+  console.error(`The following schema fields are missing a description. Add a .describe() (after any checks like .min()):\n${undescribed.join('\n')}`);
+  plugin.kill(9);
+  process.exit(1);
 }
 
 const mergedSchemas = [...schemasMap.entries()].map(([type, schema]) => {

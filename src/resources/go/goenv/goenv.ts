@@ -76,8 +76,8 @@ export class GoenvResource extends Resource<GoenvConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        goVersions: { type: 'stateful', definition: new GoVersionsParameter(), order: 1 },
-        global: { type: 'stateful', definition: new GoenvGlobalParameter(), order: 2 },
+        goVersions: { stateful: new GoVersionsParameter(), order: 1 },
+        global: { stateful: new GoenvGlobalParameter(), order: 2 },
       },
     };
   }

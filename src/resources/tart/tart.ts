@@ -99,8 +99,8 @@ export class TartResource extends Resource<TartConfig> {
       schema,
       parameterSettings: {
         tartHome: { type: 'directory', canModify: true },
-        // login: { type: 'stateful', definition: new TartLoginParameter() },
-        clone: { type: 'stateful', definition: new TartCloneParameter() },
+        // login: { stateful: new TartLoginParameter() },
+        clone: { stateful: new TartCloneParameter() },
       }
     };
   }

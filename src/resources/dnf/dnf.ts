@@ -1,15 +1,20 @@
-import { CreatePlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
+import { CreatePlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, z } from '@codifycli/plugin-core';
 import { LinuxDistro, OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
 
-import schema from './dnf-schema.json';
 import { DnfInstallParameter, DnfPackage } from './install-parameter.js';
 
-export interface DnfConfig extends ResourceConfig {
-  install: Array<DnfPackage | string>;
-  update?: boolean;
-}
+export const schema = z.object({
+  install: z.array(z.union([z.string(), z.looseObject({
+    name: z.string().describe('The package name.'),
+    version: z.string().optional().describe('The version to install. Omit for the latest version.'),
+  })])).optional().describe('Installs packages using dnf.'),
+  update: z.boolean().optional().describe('Whether to run dnf check-update before installing packages. Defaults to true.'),
+})
+  .describe('Manage dnf packages on modern Red Hat-based systems.');
 
-const defaultConfig: Partial<DnfConfig> = {
+export type DnfConfig = z.infer<typeof schema>;
+
+const defaultConfig: Partial<DnfConfig & ResourceConfig> = {
   install: [],
   distro: [LinuxDistro.RPM_BASED],
   os: [ResourceOs.LINUX]
@@ -53,7 +58,7 @@ export class DnfResource extends Resource<DnfConfig> {
       operatingSystems: [OS.Linux],
       schema,
       parameterSettings: {
-        install: { type: 'stateful', definition: new DnfInstallParameter() },
+        install: { stateful: new DnfInstallParameter() },
         update: { type: 'boolean', default: true, setting: true }
       }
     };

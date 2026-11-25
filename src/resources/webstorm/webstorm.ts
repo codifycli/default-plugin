@@ -99,7 +99,7 @@ export class WebStormResource extends Resource<WebStormConfig> {
       parameterSettings: {
         settingsZip: { type: 'string', setting: true },
         importSettings: { type: 'boolean', setting: true },
-        plugins: { type: 'stateful', definition: new PluginsParameter(), order: 1 },
+        plugins: { stateful: new PluginsParameter(), order: 1 },
         jvmMaxHeapSize: { type: 'string', canModify: true },
         jvmMinHeapSize: { type: 'string', canModify: true },
       },

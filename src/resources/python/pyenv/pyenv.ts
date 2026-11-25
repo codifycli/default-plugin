@@ -1,4 +1,4 @@
-import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs';
 import os from 'node:os';
@@ -6,14 +6,15 @@ import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
 import { PyenvGlobalParameter } from './global-parameter.js';
-import Schema from './pyenv-schema.json';
 import { PythonVersionsParameter } from './python-versions-parameter.js';
 
-export interface PyenvConfig extends ResourceConfig {
-  global?: string,
-  pythonVersions?: string[],
-  // TODO: Add option here to use homebrew to install instead. Default to true. Maybe add option to set default values to resource config.
-}
+export const schema = z.object({
+  pythonVersions: z.array(z.string()).optional().describe('An array of Python versions to install using pyenv. Partial matching is supported (3.9 instead of 3.9.11)'),
+  global: z.string().optional().describe('The global Python version set by pyenv.'),
+})
+  .describe('Install and manage Python versions using pyenv.');
+
+export type PyenvConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<PyenvConfig> = {
   pythonVersions: [],
@@ -49,10 +50,10 @@ export class PyenvResource extends Resource<PyenvConfig> {
         example2: exampleMultiVersion,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
-        global: { type: 'stateful', definition: new PyenvGlobalParameter(), order: 2 },
-        pythonVersions: { type: 'stateful', definition: new PythonVersionsParameter(), order: 1, },
+        global: { stateful: new PyenvGlobalParameter(), order: 2 },
+        pythonVersions: { stateful: new PythonVersionsParameter(), order: 1, },
       },
     }
   }

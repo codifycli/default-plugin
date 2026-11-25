@@ -6,23 +6,29 @@ import {
   ParameterChange,
   Resource,
   ResourceSettings,
-  getPty
+  getPty,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 
-import schema from './pip-schema.json';
 import { PipInstallFilesParameter } from './install-files.js';
+
+export const schema = z.object({
+  virtualEnv: z.string().optional().describe('A virtual env to activate before issuing pip commands.'),
+  install: z.array(z.union([z.string(), z.looseObject({
+    name: z.string().describe('The package name.'),
+    version: z.string().optional().describe('The version to install. Omit for the latest version.'),
+  })])).describe('Packages to install.'),
+  installFiles: z.array(z.string()).optional().describe('A list of requirement files to install.'),
+})
+  .describe('Install and manage packages using pip');
 
 interface PipListResult {
   name: string;
   version?: string;
 }
 
-export interface PipResourceConfig extends ResourceConfig {
-  install: Array<PipListResult | string>;
-  installFiles: string[];
-  virtualEnv?: string;
-}
+export type PipResourceConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<PipResourceConfig> = {
   install: [],
@@ -84,7 +90,7 @@ export class Pip extends Resource<PipResourceConfig> {
           filterInStatelessMode: (desired, current) =>
             current.filter((c) => desired.find((d) => this.isSame(c, d)))
         },
-        installFiles: { type: 'stateful', definition: new PipInstallFilesParameter(), },
+        installFiles: { stateful: new PipInstallFilesParameter(), },
         virtualEnv: { type: 'directory', setting: true }
       },
       allowMultiple: {

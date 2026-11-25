@@ -1,16 +1,18 @@
-import { ApplyNotes, CodifyCliSender, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils } from '@codifycli/plugin-core';
+import { ApplyNotes, CodifyCliSender, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
 
 import { FileUtils } from '../../../utils/file-utils.js';
 import { NvmGlobalParameter } from './global-parameter.js';
 import { NvmNodeVersionsParameter } from './node-versions-parameter.js';
-import Schema from './nvm-schema.json';
 
-export interface NvmConfig extends ResourceConfig {
-  global?: string,
-  nodeVersions?: string[],
-}
+export const schema = z.object({
+  nodeVersions: z.array(z.string()).optional().describe('An array of node versions to install using nvm. Partial matching is supported (20 instead of 20.15.1)'),
+  global: z.string().optional().describe('The global Node version set by nvm.'),
+})
+  .describe('Install and manage Node versions using nvm.');
+
+export type NvmConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<NvmConfig> = {
   nodeVersions: [],
@@ -47,10 +49,10 @@ export class NvmResource extends Resource<NvmConfig> {
         example2: exampleMultiVersion,
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
-        global: { type: 'stateful', definition: new NvmGlobalParameter(), order: 2 },
-        nodeVersions: { type: 'stateful', definition: new NvmNodeVersionsParameter(), order: 1 },
+        global: { stateful: new NvmGlobalParameter(), order: 2 },
+        nodeVersions: { stateful: new NvmNodeVersionsParameter(), order: 1 },
       },
     }
   }

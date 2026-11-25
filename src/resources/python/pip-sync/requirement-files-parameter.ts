@@ -1,9 +1,9 @@
-import { ArrayParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
+import { ParameterSetting, Plan, StatefulParameter, getPty } from '@codifycli/plugin-core';
 
 import { PipSyncConfig } from './pip-sync.js';
 
 export class RequirementFilesParameter extends StatefulParameter<PipSyncConfig, string[]> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       itemType: 'directory',

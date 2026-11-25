@@ -2,7 +2,8 @@ import {
   ExampleConfig,
   getPty,
   Resource,
-  ResourceSettings
+  ResourceSettings,
+  z
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
@@ -11,9 +12,26 @@ import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';
 import { SshConfigHostsParameter } from './ssh-config-hosts-parameter.js';
-import Schema from './ssh-config-schema.json';
 import { SshKeyConfig } from './ssh-key.js';
 import { exampleSshConfigs } from './examples.js';
+
+export const schema = z.object({
+  hosts: z.array(z.looseObject({
+    Host: z.string().optional().describe('The host is usually the hostname argument given on the command line. Can accept ! and *'),
+    Match: z.string().optional().describe('Restricts the following declarations (up to the next Host or Match keyword) to be used only when the conditions following the Match keyword are satisfied'),
+    AddKeysToAgent: z.boolean().optional().describe('Specifies whether keys should be automatically added to a running ssh-agent(1)'),
+    User: z.string().optional().describe('Specifies the user to log in as. This can be useful when a different user name is used on different machines'),
+    UseKeychain: z.boolean().optional().describe('A UseKeychain option was introduced in macOS Sierra allowing users to specify whether they would like for the passphrase to be stored in the keychain'),
+    IgnoreUnknown: z.string().optional().describe('Specifies a pattern-list of unknown options to be ignored if they are encountered in configuration parsing'),
+    Port: z.number().optional().describe('Specifies the port number to connect on the remote host. The default is 22.'),
+    IdentityFile: z.string().optional().describe('Specifies a file from which the user\'s ECDSA, authenticator-hosted ECDSA, Ed25519, authenticator-hosted Ed25519 or RSA authentication identity is read'),
+    LogLevel: z.string().optional().describe('Gives the verbosity level that is used when logging messages from ssh(1).'),
+    Compression: z.boolean().optional().describe('Specifies whether to use compression. The argument must be yes or no (the default).'),
+    PreferredAuthentications: z.string().optional().describe('Specifies the order in which the client should try authentication methods.'),
+    PasswordAuthentication: z.boolean().optional().describe('Specifies whether to use password authentication.'),
+  }).describe('The individual host blocks inside of the ~/.ssh/config file')).describe('The host blocks inside of the ~/.ssh/config file. See http://man.openbsd.org/OpenBSD-current/man5/ssh_config.5 '),
+})
+  .describe('Configures the ssh config file.');
 
 export type SshConfigOptions = Partial<{
   Host: string;
@@ -31,9 +49,7 @@ export type SshConfigOptions = Partial<{
   PasswordAuthentication: boolean;
 }>
 
-export interface SshConfig extends StringIndexedObject {
-  hosts: Array<Partial<SshConfigOptions>>;
-}
+export type SshConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<SshConfig> = {
   hosts: [{
@@ -69,10 +85,10 @@ export class SshConfigFileResource extends Resource<SshConfig> {
         ...exampleSshConfigs
       },
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       isSensitive: true,
       parameterSettings: {
-        hosts: { type: 'stateful', definition: new SshConfigHostsParameter() }
+        hosts: { stateful: new SshConfigHostsParameter() }
       },
       importAndDestroy: {
         refreshKeys: ['hosts'],

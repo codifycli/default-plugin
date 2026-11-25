@@ -5,7 +5,8 @@ import {
   ModifyPlan,
   ParameterChange,
   Resource,
-  ResourceSettings
+  ResourceSettings,
+  z
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
@@ -13,19 +14,21 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';
-import Schema from './ssh-key-schema.json';
 import { exampleSshConfigs } from './examples.js';
+
+export const schema = z.object({
+  keyType: z.enum(['ecdsa', 'ecdsa-sk', 'ed25519', 'ed25519-sk', 'rsa']).optional().describe('The type of key to create (the encryption algorithm used). This corresponds to the -t flag of ssh-keygen. This value defaults to ed25519.'),
+  comment: z.string().optional().describe('Comment to add to the ssh key. Changing this value will not re-create the ssh key'),
+  fileName: z.string().optional().describe('Specifies the filename of the key file. This corresponds to the -f flag of ssh-keygen'),
+  bits: z.number().optional().describe('Specifies the number of bits in the key to create. This corresponds to the -b flag of ssh-keygen.'),
+  passphrase: z.string().describe('The passphrase to use. This parameter is required. To set an empty password set the value to the empty string: ""'),
+  folder: z.string().optional().describe('The folder to generate the ssh key in. Defaults to `$HOME/.ssh`'),
+})
+  .describe('Generate and manage a ssh private/public key.');
 
 export type SshKeyType = 'ecdsa' | 'ecdsa-sk' | 'ed25519' | 'ed25519-sk' | 'rsa';
 
-export interface SshKeyConfig extends StringIndexedObject {
-  keyType: SshKeyType;
-  comment?: string;
-  fileName: string;
-  bits?: number;
-  passphrase: string;
-  folder: string;
-}
+export type SshKeyConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<SshKeyConfig> = {
   keyType: 'ed25519',
@@ -41,7 +44,7 @@ export class SshKeyResource extends Resource<SshKeyConfig> {
       defaultConfig: defaultConfig,
       exampleConfigs: exampleSshConfigs,
       operatingSystems: [OS.Darwin, OS.Linux],
-      schema: Schema,
+      schema,
       parameterSettings: {
         comment: { canModify: true },
         passphrase: { canModify: true, isSensitive: true },

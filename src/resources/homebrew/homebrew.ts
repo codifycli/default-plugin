@@ -7,6 +7,7 @@ import {
   SpawnStatus,
   Utils,
   getPty,
+  z
 } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
@@ -17,17 +18,19 @@ import { nanoid } from 'nanoid';
 import { untildify } from '../../utils/untildify.js';
 import { CasksParameter } from './casks-parameter.js'
 import { FormulaeParameter } from './formulae-parameter.js';
-import HomebrewSchema from './homebrew-schema.json'
 import { TapsParameter } from './tap-parameter.js';
 
-export interface HomebrewConfig extends ResourceConfig {
-  casks?: string[];
-  directory?: string;
-  formulae?: string[];
-  taps?: string[];
-  skipAlreadyInstalledCasks: boolean;
-  onlyPlanUserInstalled: boolean
-}
+export const schema = z.object({
+  formulae: z.array(z.string()).optional().describe('A list of Homebrew formulae (command-line packages) to install.'),
+  casks: z.array(z.string()).optional().describe('A list of Homebrew casks (GUI applications) to install.'),
+  taps: z.array(z.string()).optional().describe('A list of Homebrew taps (third-party repositories) to add.'),
+  directory: z.string().optional().describe('The directory where Homebrew is installed. Defaults to the standard Homebrew prefix for your platform.'),
+  skipAlreadyInstalledCasks: z.boolean().optional().describe('Skips installing an casks which has already been installed externally. This prevents homebrew from conflicting with the existing install. Defaults to true.'),
+  onlyPlanUserInstalled: z.boolean().optional().describe('Only consider packages that the user has explicitly specified in the plan and ignore any dependent packages'),
+})
+  .describe('Installs Homebrew and declaratively manages formulae, casks, and taps.');
+
+export type HomebrewConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<HomebrewConfig> = {
   formulae: [],
@@ -58,7 +61,7 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
 
   override getSettings(): ResourceSettings<HomebrewConfig> {
     return {
-      schema: HomebrewSchema,
+      schema,
       operatingSystems: [OS.Darwin, OS.Linux],
       id: 'homebrew',
       defaultConfig,
@@ -67,9 +70,9 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
         example2: exampleWithCasks,
       },
       parameterSettings: {
-        taps: { type: 'stateful', definition: new TapsParameter(), order: 1 },
-        formulae: { type: 'stateful', definition: new FormulaeParameter(), order: 2 },
-        casks: { type: 'stateful', definition: new CasksParameter(), order: 3 },
+        taps: { stateful: new TapsParameter(), order: 1 },
+        formulae: { stateful: new FormulaeParameter(), order: 2 },
+        casks: { stateful: new CasksParameter(), order: 3 },
         directory: { type: 'directory' },
         skipAlreadyInstalledCasks: { type: 'boolean', default: true, setting: true },
         onlyPlanUserInstalled: { type: 'boolean', default: true, setting: true },

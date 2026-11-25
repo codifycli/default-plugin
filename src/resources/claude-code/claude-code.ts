@@ -136,8 +136,10 @@ export class ClaudeCodeResource extends Resource<ClaudeCodeConfig> {
       schema,
       parameterSettings: {
         globalClaudeMd: { canModify: true },
-        settings: { type: 'stateful', definition: new SettingsParameter(), order: 1 },
-        mcpServers: { type: 'stateful', definition: new McpServersParameter(), order: 2 },
+        settings: { stateful: new SettingsParameter(), order: 1 },
+        mcpServers: { stateful: new McpServersParameter(), order: 2 },
+        'mcpServers[*].env.*': { isSensitive: true },
+        'mcpServers[*].headers.*': { isSensitive: true },
       },
     };
   }

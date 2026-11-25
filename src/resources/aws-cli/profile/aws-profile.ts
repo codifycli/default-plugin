@@ -7,7 +7,8 @@ import {
   Resource,
   ResourceSettings,
   SpawnStatus,
-  getPty
+  getPty,
+  z
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import * as fs from 'node:fs/promises';
@@ -15,19 +16,22 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { exampleAwsCliConfigs } from '../examples.js';
-import Schema from './aws-profile-schema.json'
 import { CSVCredentialsTransformation } from './csv-credentials-transformation.js';
 
-export interface AwsProfileConfig extends StringIndexedObject {
-  awsAccessKeyId: string;
-  awsSecretAccessKey: string;
-  csvCredentials: string,
-  metadataServiceNumAttempts?: number;
-  metadataServiceTimeout?: number;
-  output?: string;
-  profile: string;
-  region: string;
-}
+export const schema = z.object({
+  profile: z.string().default('default').describe('The aws profile that is being configured'),
+  awsAccessKeyId: z.string().optional().describe('The access key id from AWS'),
+  awsSecretAccessKey: z.string().optional().describe('The access key secret from AWS'),
+  csvCredentials: z.string().optional().describe('An AWS credentials file with access credentials'),
+  region: z.string().optional().describe('The region from AWS'),
+  output: z.string().optional().describe('The output format secret from AWS'),
+  metadataServiceTimeout: z.string().optional().describe('The metadata service timeout'),
+  metadataServiceNumAttempts: z.string().optional().describe('The metadata service num attempts'),
+})
+  .meta({ oneOf: [{"required": ["awsAccessKeyId", "awsSecretAccessKey"]}, {"required": ["csvCredentials"]}] })
+  .describe('Configures AWS profiles.');
+
+export type AwsProfileConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<AwsProfileConfig> = {
   profile: 'default',
@@ -61,7 +65,7 @@ export class AwsProfileResource extends Resource<AwsProfileConfig> {
       },
       operatingSystems: [OS.Darwin, OS.Linux],
       dependencies: ['aws-cli'],
-      schema: Schema,
+      schema,
       parameterSettings: {
         awsAccessKeyId: { canModify: true },
         awsSecretAccessKey: { canModify: true, isSensitive: true },
@@ -140,14 +144,14 @@ export class AwsProfileResource extends Resource<AwsProfileConfig> {
     if (parameters.metadataServiceTimeout) {
       const metadataServiceTimeout = await this.getAwsConfigureValueOrNull('metadata_service_timeout', profile);
       if (metadataServiceTimeout) {
-        result.metadataServiceTimeout = Number.parseInt(metadataServiceTimeout, 10);
+        result.metadataServiceTimeout = metadataServiceTimeout;
       }
     }
 
     if (parameters.metadataServiceNumAttempts) {
       const metadataServiceNumAttempts = await this.getAwsConfigureValueOrNull('metadata_service_num_attempts', profile);
       if (metadataServiceNumAttempts) {
-        result.metadataServiceNumAttempts = Number.parseInt(metadataServiceNumAttempts, 10);
+        result.metadataServiceNumAttempts = metadataServiceNumAttempts;
       }
     }
 
@@ -170,9 +174,9 @@ export class AwsProfileResource extends Resource<AwsProfileConfig> {
       region
     } = plan.desiredConfig;
 
-    await this.setAwsConfigureValue('aws_access_key_id', awsAccessKeyId, profile);
-    await this.setAwsConfigureValue('aws_secret_access_key', awsSecretAccessKey, profile);
-    await this.setAwsConfigureValue('region', region, profile);
+    await this.setAwsConfigureValue('aws_access_key_id', awsAccessKeyId!, profile);
+    await this.setAwsConfigureValue('aws_secret_access_key', awsSecretAccessKey!, profile);
+    await this.setAwsConfigureValue('region', region!, profile);
     await this.setAwsConfigureValue('output', output!, profile);
 
     if (metadataServiceTimeout) {

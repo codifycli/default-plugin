@@ -1,12 +1,14 @@
-import { ExampleConfig, Resource, ResourceSettings, getPty } from '@codifycli/plugin-core';
+import { ExampleConfig, Resource, ResourceSettings, getPty, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas'
 
 import { NpmInstallParameter } from './global-install.js';
-import schema from './npm-schema.json'
 
-export interface NpmConfig extends ResourceConfig {
-  globalInstall: string[]
-}
+export const schema = z.object({
+  globalInstall: z.array(z.string().describe('Package name, optionally with a version specifier (e.g. "typescript" or "typescript@5.4.0")')).optional().describe('An array of npm packages to install globally. Use the npm@version syntax to pin a specific version (e.g. "nodemon@3.1.10").'),
+})
+  .describe('Install and manage packages using NPM.');
+
+export type NpmConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<NpmConfig> = {
   globalInstall: [],
@@ -49,7 +51,7 @@ export class Npm extends Resource<NpmConfig> {
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
-        globalInstall: { type: 'stateful', definition: new NpmInstallParameter() },
+        globalInstall: { stateful: new NpmInstallParameter() },
       },
       importAndDestroy: {
         preventDestroy: true,

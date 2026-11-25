@@ -1,10 +1,10 @@
-import { ArrayParameterSetting, ArrayStatefulParameter, Plan, getPty } from '@codifycli/plugin-core';
+import { ParameterSetting, ArrayStatefulParameter, Plan, getPty } from '@codifycli/plugin-core';
 
 import { XcodesConfig } from './xcodes-resource.js';
 import { LATEST_VERSION_KEYWORD, parseInstalledVersions, resolveInstalledVersion } from './xcodes-utils.js';
 
 export class XcodeVersionsParameter extends ArrayStatefulParameter<XcodesConfig, string> {
-  getSettings(): ArrayParameterSetting {
+  getSettings(): ParameterSetting {
     return {
       type: 'array',
       // "latest" never matches a real version string returned by refresh() on its own;

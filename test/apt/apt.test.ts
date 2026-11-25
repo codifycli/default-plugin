@@ -26,11 +26,11 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
         modifiedConfigs: [{
           type: 'apt',
           install: [
-            'tilix'
+            'figlet'
           ],
         }],
         validateModify: async () => {
-          expect(await testSpawn('which tilix')).toMatchObject({ status: SpawnStatus.SUCCESS });
+          expect(await testSpawn('which figlet')).toMatchObject({ status: SpawnStatus.SUCCESS });
         }
       }
     });
@@ -41,7 +41,7 @@ describe('Apt resource integration tests', { skip: !Utils.isLinux() }, () => {
         install: [
           'redis',
           'redis-tools',
-          'tilix'
+          'figlet'
         ]
       }]);
     } catch (e) {

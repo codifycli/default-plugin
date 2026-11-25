@@ -1,15 +1,20 @@
-import { CreatePlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus } from '@codifycli/plugin-core';
+import { CreatePlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, z } from '@codifycli/plugin-core';
 import { LinuxDistro, OS, ResourceConfig, ResourceOs } from '@codifycli/schemas';
 
 import { YumInstallParameter, YumPackage } from './install-parameter.js';
-import schema from './yum-schema.json';
 
-export interface YumConfig extends ResourceConfig {
-  install: Array<YumPackage | string>;
-  update?: boolean;
-}
+export const schema = z.object({
+  install: z.array(z.union([z.string(), z.looseObject({
+    name: z.string().describe('The package name.'),
+    version: z.string().optional().describe('The version to install. Omit for the latest version.'),
+  })])).optional().describe('Installs packages using yum.'),
+  update: z.boolean().optional().describe('Whether to run yum check-update before installing packages. Defaults to true.'),
+})
+  .describe('Manage yum packages on Red Hat-based systems.');
 
-const defaultConfig: Partial<YumConfig> = {
+export type YumConfig = z.infer<typeof schema>;
+
+const defaultConfig: Partial<YumConfig & ResourceConfig> = {
   install: [],
   distro: [LinuxDistro.RPM_BASED],
   os: [ResourceOs.LINUX]
@@ -53,7 +58,7 @@ export class YumResource extends Resource<YumConfig> {
       operatingSystems: [OS.Linux],
       schema,
       parameterSettings: {
-        install: { type: 'stateful', definition: new YumInstallParameter() },
+        install: { stateful: new YumInstallParameter() },
         update: { type: 'boolean', default: true, setting: true }
       }
     };
