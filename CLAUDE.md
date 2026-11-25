@@ -383,7 +383,8 @@ The Codify Editor supports auto-complete for certain resource parameters (e.g. H
 
 ```bash
 npm run build:completions   # regenerate completions-cron/src/__generated__/completions-index.ts
-npm run deploy:completions  # build + deploy to Cloudflare Workers
+npm run deploy:completions       # build + deploy the production worker, then the beta worker
+npm run deploy:completions:beta  # build + deploy only the beta worker (never touches production)
 ```
 
 ### How it fits together

@@ -49,9 +49,18 @@ All commands are run from the **plugin root** (`codify-homebrew-plugin/`):
 # Regenerate src/__generated__/completions-index.ts
 npm run build:completions
 
-# Build + deploy to Cloudflare Workers
+# Build + deploy the production worker, then the beta worker with the same code
 npm run deploy:completions
+
+# Build + deploy only the beta worker (production is left untouched)
+npm run deploy:completions:beta
 ```
+
+The production and beta workers are separate deployments (`resource-completions-cron` and
+`resource-completions-cron-beta`, see `[env.beta]` in `wrangler.toml`). They write the `prerelease = false` and
+`prerelease = true` completions respectively. Deploying production always redeploys beta too so beta never falls
+behind a release; deploying beta never touches production. The beta deploy runs only after the production deploy
+succeeds.
 
 To run/test locally (from this directory):
 
