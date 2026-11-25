@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   compareVersions,
+  globalVersionSchema,
   isClaimedBy,
   matchVersionPrefix,
   newestVersion,
@@ -85,5 +86,15 @@ describe('versionsArraySchema', () => {
     const schema = versionsArraySchema(['latest', 'lts'], 'Versions.');
     expect(schema.safeParse(['latest', 'lts', '22']).success).toBe(true);
     expect(schema.description).toContain('"lts"');
+  });
+});
+
+describe('globalVersionSchema', () => {
+  it('rejects keywords the resource does not support', () => {
+    const schema = globalVersionSchema(['latest'], 'Global version.');
+    expect(schema.safeParse('latest').success).toBe(true);
+    expect(schema.safeParse('3.12').success).toBe(true);
+    expect(schema.safeParse('lts').success).toBe(false);
+    expect(globalVersionSchema(['latest', 'lts'], 'Global.').safeParse('lts').success).toBe(true);
   });
 });

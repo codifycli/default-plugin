@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
 
+import { newestVersion, parseNodeReleaseList } from '../../../src/utils/version-aliases.js';
 import { expectConverged } from '../../version-alias-utils.js';
 
 describe('nvm latest / lts keywords', () => {
@@ -11,8 +12,9 @@ describe('nvm latest / lts keywords', () => {
   it('Installs the latest and LTS releases and converges', { timeout: 500000 }, async () => {
     await PluginTester.fullTest(pluginPath, [config], {
       validateApply: async () => {
-        const lts = (await testSpawn('nvm version-remote --lts')).data.trim();
-        const latest = (await testSpawn('nvm version-remote node')).data.trim();
+        const remote = parseNodeReleaseList((await testSpawn('nvm ls-remote --no-colors')).data);
+        const latest = `v${newestVersion(remote.map((r) => r.version))}`;
+        const lts = `v${newestVersion(remote.filter((r) => r.isLts).map((r) => r.version))}`;
 
         const installed = (await testSpawn('nvm ls --no-colors')).data;
         expect(installed).toContain(lts);

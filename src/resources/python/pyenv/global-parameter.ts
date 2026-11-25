@@ -1,19 +1,17 @@
-import { getPty, ParameterSetting, SpawnStatus, StatefulParameter } from '@codifycli/plugin-core';
+import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
+import { GlobalVersionParameter } from '../../../utils/global-version-parameter.js';
 import { PyenvConfig } from './pyenv.js';
+import { PythonVersionsParameter } from './python-versions-parameter.js';
 
-export class PyenvGlobalParameter extends StatefulParameter<PyenvConfig, string>{
-
-  getSettings(): ParameterSetting {
-    return {
-      type: 'version'
-    }
+export class PyenvGlobalParameter extends GlobalVersionParameter<PyenvConfig> {
+  constructor() {
+    super(new PythonVersionsParameter());
   }
 
-  override async refresh(): Promise<null | string> {
+  protected async readGlobal(): Promise<null | string> {
     const $ = getPty();
-
-    const { data, status } = await $.spawnSafe('pyenv global')
+    const { data, status } = await $.spawnSafe('pyenv global');
     if (status === SpawnStatus.ERROR) {
       return null;
     }
@@ -21,18 +19,13 @@ export class PyenvGlobalParameter extends StatefulParameter<PyenvConfig, string>
     return data.trim();
   }
 
-  override async add(valueToAdd: string): Promise<void> {
+  protected async setGlobal(version: string): Promise<void> {
     const $ = getPty();
-    await $.spawn(`pyenv global ${valueToAdd}`, { interactive: true })
-  }
-
-  override async modify(newValue: string): Promise<void> {
-    const $ = getPty();
-    await $.spawn(`pyenv global ${newValue}`, { interactive: true })
+    await $.spawn(`pyenv global ${version}`, { interactive: true });
   }
 
   override async remove(): Promise<void> {
     const $ = getPty();
-    await $.spawn('pyenv global system', { interactive: true })
+    await $.spawn('pyenv global system', { interactive: true });
   }
 }

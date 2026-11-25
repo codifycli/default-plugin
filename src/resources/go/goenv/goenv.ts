@@ -13,7 +13,7 @@ import { OS } from '@codifycli/schemas';
 import os from 'node:os';
 import path from 'node:path';
 
-import { versionsArraySchema } from '../../../utils/version-aliases.js';
+import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
 import { GoenvGlobalParameter } from './global-parameter.js';
 import { GoVersionsParameter } from './go-versions-parameter.js';
 
@@ -26,9 +26,7 @@ const schema = z
   .object({
     goVersions: versionsArraySchema(['latest'], 'Go versions to install via goenv (e.g. ["1.22.0", "1.21.5"]).')
       .optional(),
-    global: z
-      .string()
-      .describe('The global Go version set by goenv.')
+    global: globalVersionSchema(['latest'], 'The global Go version set by goenv.')
       .optional(),
   })
   .describe('goenv resource — install and manage multiple Go versions');

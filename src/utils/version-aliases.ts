@@ -131,3 +131,48 @@ export function versionsArraySchema(supported: readonly VersionAlias[], descript
       + (unsupported.length > 0 ? ` ${unsupported.map((a) => `"${a}"`).join(', ')} is not supported.` : ''),
     );
 }
+
+/**
+ * Builds the schema for a global / default version parameter that resolves keywords through its versions list.
+ */
+export function globalVersionSchema(supported: readonly VersionAlias[], description: string) {
+  const unsupported = VERSION_ALIASES.filter((a) => !supported.includes(a));
+  const keywords = supported.map((a) => `"${a}"`).join(' or ');
+
+  return z.string()
+    .refine(
+      (version) => !(unsupported as string[]).includes(version),
+      { message: `Unsupported version keyword. Supported keywords: ${keywords}` },
+    )
+    .describe(
+      `${description} Use ${keywords} to follow the version that keyword resolves to in the versions list.`
+      + (unsupported.length > 0 ? ` ${unsupported.map((a) => `"${a}"`).join(', ')} is not supported.` : ''),
+    );
+}
+
+export interface NodeReleaseLine {
+  version: string;
+  /** Text after the version: aliases for `fnm list` ("default, lts-latest"), LTS codename for remote lists */
+  annotations: string;
+  /** Remote lists mark LTS releases with their codename in parentheses: fnm `(Jod)`, nvm `(LTS: Jod)` */
+  isLts: boolean;
+}
+
+/**
+ * Parses Node.js version lists printed by nvm and fnm (`nvm ls-remote`, `fnm list`, `fnm list-remote`).
+ * Prereleases (v27.0.0-alpha.0) and non version lines (system, N/A) are skipped.
+ */
+export function parseNodeReleaseList(output: string): NodeReleaseLine[] {
+  return output
+    .split('\n')
+    .map((line) => {
+      const match = line.match(/v(\d+\.\d+\.\d+)(?=\s|$)(.*)$/);
+      if (!match) {
+        return null;
+      }
+
+      const annotations = match[2].trim();
+      return { version: match[1], annotations, isLts: /\(.+\)/.test(annotations) };
+    })
+    .filter((l): l is NodeReleaseLine => l !== null);
+}

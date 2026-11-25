@@ -1,10 +1,11 @@
 import { getPty, SpawnStatus } from '@codifycli/plugin-core';
 
-import { VersionAlias, stripV } from '../../../utils/version-aliases.js';
+import { newestVersion, parseNodeReleaseList, stripV, VersionAlias } from '../../../utils/version-aliases.js';
 import { VersionsParameter } from '../../../utils/versions-parameter.js';
 import { NvmConfig } from './nvm.js';
 
-const VERSION_REGEX = /v?(\d+\.\d+\.\d+)/;
+// Requires whitespace or end of line after the version so prereleases (v27.0.0-alpha.0) never match
+const VERSION_REGEX = /v?(\d+\.\d+\.\d+)(?=\s|$)/m;
 
 export class NvmNodeVersionsParameter extends VersionsParameter<NvmConfig> {
   protected readonly supportedAliases = ['latest', 'lts'] as const;
@@ -27,11 +28,21 @@ export class NvmNodeVersionsParameter extends VersionsParameter<NvmConfig> {
     return this.nvmVersion(`nvm version ${desired}`);
   }
 
+  // `nvm ls-remote` marks LTS releases with "(LTS: <codename>)". Prereleases are skipped by the parser.
+  // Falls back to nvm's local aliases when the remote can't be reached.
   protected async resolveAlias(alias: VersionAlias): Promise<null | string> {
-    const remote = alias === 'lts' ? 'nvm version-remote --lts' : 'nvm version-remote node';
-    const local = alias === 'lts' ? 'nvm version "lts/*"' : 'nvm version node';
+    const $ = getPty();
+    const { data, status } = await $.spawnSafe('nvm ls-remote --no-colors');
 
-    return (await this.nvmVersion(remote)) ?? this.nvmVersion(local);
+    if (status === SpawnStatus.SUCCESS) {
+      const remote = parseNodeReleaseList(data).filter((r) => alias !== 'lts' || r.isLts);
+      const resolved = newestVersion(remote.map((r) => r.version));
+      if (resolved) {
+        return resolved;
+      }
+    }
+
+    return this.nvmVersion(alias === 'lts' ? 'nvm version "lts/*"' : 'nvm version node');
   }
 
   protected async installVersion(version: string): Promise<void> {

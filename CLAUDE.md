@@ -524,9 +524,12 @@ export class MyVersionsParameter extends VersionsParameter<MyConfig> {
   rejects keywords the resource doesn't support and documents them.
 - Pure helpers (`normalizeVersions`, `newestVersion`, `isStableVersion`, `matchVersionPrefix`) are unit tested in
   `src/utils/version-aliases.test.ts`; add parsing tests next to them rather than in integration tests.
-- A sibling global/default parameter can accept the keywords by calling `versionsParameter.resolveKeyword()` (see
-  `javascript/nvm/global-parameter.ts`) so both parameters always agree on what a keyword means.
-- Add the keywords as hardcoded first entries in the parameter's completions file.
+- The sibling global/default parameter extends `GlobalVersionParameter` (`src/utils/global-version-parameter.ts`) and
+  only implements `readGlobal` / `setGlobal` / `remove`. It resolves keywords through the versions parameter so both
+  always agree on what a keyword means. Build its schema with `globalVersionSchema(supportedAliases, description)`.
+- Add the keywords as hardcoded first entries in the versions parameter's completions file. The global's completions
+  should mirror the versions parameter (`{ mirrorParameter: '$.<versions>' }`) so the keywords carry over.
+- Completion filenames must start with the resource **id** (`fnm.$.nodeVersions.ts`), not the folder name.
 
 ### defaultConfig and exampleConfigs
 

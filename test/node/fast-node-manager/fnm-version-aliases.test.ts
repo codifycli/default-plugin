@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PluginTester, testSpawn } from '@codifycli/plugin-test';
 import path from 'node:path';
 
+import { newestVersion, parseNodeReleaseList } from '../../../src/utils/version-aliases.js';
 import { expectConverged } from '../../version-alias-utils.js';
 
 describe('fnm latest / lts keywords', () => {
@@ -11,9 +12,9 @@ describe('fnm latest / lts keywords', () => {
   it('Installs the latest and LTS releases and converges', { timeout: 500000 }, async () => {
     await PluginTester.fullTest(pluginPath, [config], {
       validateApply: async () => {
-        const remote = (await testSpawn('fnm list-remote')).data.split('\n').filter((l) => l.startsWith('v'));
-        const latest = remote.at(-1)!.split(' ')[0];
-        const lts = remote.filter((l) => l.includes('(')).at(-1)!.split(' ')[0];
+        const remote = parseNodeReleaseList((await testSpawn('fnm list-remote')).data);
+        const latest = `v${newestVersion(remote.map((r) => r.version))}`;
+        const lts = `v${newestVersion(remote.filter((r) => r.isLts).map((r) => r.version))}`;
 
         const installed = (await testSpawn('fnm list')).data;
         expect(installed).toContain(lts);

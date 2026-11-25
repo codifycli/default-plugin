@@ -26,21 +26,24 @@ import mod21 from '../../../src/resources/javascript/pnpm/completions/pnpm.$.glo
 import mod22 from '../../../src/resources/javascript/nvm/completions/nvm.$.nodeVersions.js';
 import mod23 from '../../../src/resources/javascript/nvm/completions/nvm.$.global.js';
 import mod24 from '../../../src/resources/javascript/npm/completions/npm.$.install.js';
-import mod25 from '../../../src/resources/javascript/fast-node-manager/completions/fast-node-manager.$.defaultVersion.js';
-import mod26 from '../../../src/resources/java/jenv/completions/jenv.$.global.js';
-import mod27 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.$.simulators[x].runtime.js';
-import mod28 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.$.simulators[x].deviceType.js';
-import mod29 from '../../../src/resources/homebrew/completions/homebrew.$.formulae.js';
-import mod30 from '../../../src/resources/homebrew/completions/homebrew.$.casks.js';
-import mod31 from '../../../src/resources/go/goenv/completions/goenv.$.global.js';
-import mod32 from '../../../src/resources/cursor/completions/cursor.$.extensions.js';
-import mod33 from '../../../src/resources/codex/completions/codex.$.config.model.js';
-import mod34 from '../../../src/resources/asdf/completions/asdf.$.plugins.js';
-import mod35 from '../../../src/resources/asdf/completions/asdf-plugin.$.plugin.js';
-import mod36 from '../../../src/resources/apt/completions/apt.$.install.js';
-import mod37 from '../../../src/resources/android/android-studios/completions/android-studio.$.version.js';
-import mod38 from '../../../src/resources/android/android-cli/completions/android-cli.$.sdkPackages.js';
-import mod39 from '../../../src/resources/android/android-cli/completions/android-cli.$.emulators.js';
+import mod25 from '../../../src/resources/javascript/fast-node-manager/completions/fnm.$.nodeVersions.js';
+import mod26 from '../../../src/resources/javascript/fast-node-manager/completions/fnm.$.defaultVersion.js';
+import mod27 from '../../../src/resources/java/jenv/completions/jenv.$.global.js';
+import mod28 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.$.simulators[x].runtime.js';
+import mod29 from '../../../src/resources/ios/ios-simulator/completions/ios-simulators.$.simulators[x].deviceType.js';
+import mod30 from '../../../src/resources/homebrew/completions/homebrew.$.formulae.js';
+import mod31 from '../../../src/resources/homebrew/completions/homebrew.$.casks.js';
+import mod32 from '../../../src/resources/go/goenv/completions/goenv.$.goVersions.js';
+import mod33 from '../../../src/resources/go/goenv/completions/goenv.$.global.js';
+import mod34 from '../../../src/resources/cursor/completions/cursor.$.extensions.js';
+import mod35 from '../../../src/resources/codex/completions/codex.$.config.model.js';
+import mod36 from '../../../src/resources/asdf/completions/asdf.$.plugins.js';
+import mod37 from '../../../src/resources/asdf/completions/asdf-plugin.$.versions.js';
+import mod38 from '../../../src/resources/asdf/completions/asdf-plugin.$.plugin.js';
+import mod39 from '../../../src/resources/apt/completions/apt.$.install.js';
+import mod40 from '../../../src/resources/android/android-studios/completions/android-studio.$.version.js';
+import mod41 from '../../../src/resources/android/android-cli/completions/android-cli.$.sdkPackages.js';
+import mod42 from '../../../src/resources/android/android-cli/completions/android-cli.$.emulators.js';
 
 export type CompletionModule =
   | { kind: 'fetch'; resourceType: string; parameterPath: string; fetch: () => Promise<string[]> }
@@ -123,48 +126,57 @@ export const completionModules: CompletionModule[] = [
     ? { kind: 'fetch', resourceType: 'npm', parameterPath: '$.install', fetch: mod24 }
     : { kind: 'mirror', resourceType: 'npm', parameterPath: '$.install', mirrorParameter: (mod24 as any).mirrorParameter },
   typeof mod25 === 'function'
-    ? { kind: 'fetch', resourceType: 'fast-node-manager', parameterPath: '$.defaultVersion', fetch: mod25 }
-    : { kind: 'mirror', resourceType: 'fast-node-manager', parameterPath: '$.defaultVersion', mirrorParameter: (mod25 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'fnm', parameterPath: '$.nodeVersions', fetch: mod25 }
+    : { kind: 'mirror', resourceType: 'fnm', parameterPath: '$.nodeVersions', mirrorParameter: (mod25 as any).mirrorParameter },
   typeof mod26 === 'function'
-    ? { kind: 'fetch', resourceType: 'jenv', parameterPath: '$.global', fetch: mod26 }
-    : { kind: 'mirror', resourceType: 'jenv', parameterPath: '$.global', mirrorParameter: (mod26 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'fnm', parameterPath: '$.defaultVersion', fetch: mod26 }
+    : { kind: 'mirror', resourceType: 'fnm', parameterPath: '$.defaultVersion', mirrorParameter: (mod26 as any).mirrorParameter },
   typeof mod27 === 'function'
-    ? { kind: 'fetch', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].runtime', fetch: mod27 }
-    : { kind: 'mirror', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].runtime', mirrorParameter: (mod27 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'jenv', parameterPath: '$.global', fetch: mod27 }
+    : { kind: 'mirror', resourceType: 'jenv', parameterPath: '$.global', mirrorParameter: (mod27 as any).mirrorParameter },
   typeof mod28 === 'function'
-    ? { kind: 'fetch', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].deviceType', fetch: mod28 }
-    : { kind: 'mirror', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].deviceType', mirrorParameter: (mod28 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].runtime', fetch: mod28 }
+    : { kind: 'mirror', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].runtime', mirrorParameter: (mod28 as any).mirrorParameter },
   typeof mod29 === 'function'
-    ? { kind: 'fetch', resourceType: 'homebrew', parameterPath: '$.formulae', fetch: mod29 }
-    : { kind: 'mirror', resourceType: 'homebrew', parameterPath: '$.formulae', mirrorParameter: (mod29 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].deviceType', fetch: mod29 }
+    : { kind: 'mirror', resourceType: 'ios-simulators', parameterPath: '$.simulators[*].deviceType', mirrorParameter: (mod29 as any).mirrorParameter },
   typeof mod30 === 'function'
-    ? { kind: 'fetch', resourceType: 'homebrew', parameterPath: '$.casks', fetch: mod30 }
-    : { kind: 'mirror', resourceType: 'homebrew', parameterPath: '$.casks', mirrorParameter: (mod30 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'homebrew', parameterPath: '$.formulae', fetch: mod30 }
+    : { kind: 'mirror', resourceType: 'homebrew', parameterPath: '$.formulae', mirrorParameter: (mod30 as any).mirrorParameter },
   typeof mod31 === 'function'
-    ? { kind: 'fetch', resourceType: 'goenv', parameterPath: '$.global', fetch: mod31 }
-    : { kind: 'mirror', resourceType: 'goenv', parameterPath: '$.global', mirrorParameter: (mod31 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'homebrew', parameterPath: '$.casks', fetch: mod31 }
+    : { kind: 'mirror', resourceType: 'homebrew', parameterPath: '$.casks', mirrorParameter: (mod31 as any).mirrorParameter },
   typeof mod32 === 'function'
-    ? { kind: 'fetch', resourceType: 'cursor', parameterPath: '$.extensions', fetch: mod32 }
-    : { kind: 'mirror', resourceType: 'cursor', parameterPath: '$.extensions', mirrorParameter: (mod32 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'goenv', parameterPath: '$.goVersions', fetch: mod32 }
+    : { kind: 'mirror', resourceType: 'goenv', parameterPath: '$.goVersions', mirrorParameter: (mod32 as any).mirrorParameter },
   typeof mod33 === 'function'
-    ? { kind: 'fetch', resourceType: 'codex', parameterPath: '$.config.model', fetch: mod33 }
-    : { kind: 'mirror', resourceType: 'codex', parameterPath: '$.config.model', mirrorParameter: (mod33 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'goenv', parameterPath: '$.global', fetch: mod33 }
+    : { kind: 'mirror', resourceType: 'goenv', parameterPath: '$.global', mirrorParameter: (mod33 as any).mirrorParameter },
   typeof mod34 === 'function'
-    ? { kind: 'fetch', resourceType: 'asdf', parameterPath: '$.plugins', fetch: mod34 }
-    : { kind: 'mirror', resourceType: 'asdf', parameterPath: '$.plugins', mirrorParameter: (mod34 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'cursor', parameterPath: '$.extensions', fetch: mod34 }
+    : { kind: 'mirror', resourceType: 'cursor', parameterPath: '$.extensions', mirrorParameter: (mod34 as any).mirrorParameter },
   typeof mod35 === 'function'
-    ? { kind: 'fetch', resourceType: 'asdf-plugin', parameterPath: '$.plugin', fetch: mod35 }
-    : { kind: 'mirror', resourceType: 'asdf-plugin', parameterPath: '$.plugin', mirrorParameter: (mod35 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'codex', parameterPath: '$.config.model', fetch: mod35 }
+    : { kind: 'mirror', resourceType: 'codex', parameterPath: '$.config.model', mirrorParameter: (mod35 as any).mirrorParameter },
   typeof mod36 === 'function'
-    ? { kind: 'fetch', resourceType: 'apt', parameterPath: '$.install', fetch: mod36 }
-    : { kind: 'mirror', resourceType: 'apt', parameterPath: '$.install', mirrorParameter: (mod36 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'asdf', parameterPath: '$.plugins', fetch: mod36 }
+    : { kind: 'mirror', resourceType: 'asdf', parameterPath: '$.plugins', mirrorParameter: (mod36 as any).mirrorParameter },
   typeof mod37 === 'function'
-    ? { kind: 'fetch', resourceType: 'android-studio', parameterPath: '$.version', fetch: mod37 }
-    : { kind: 'mirror', resourceType: 'android-studio', parameterPath: '$.version', mirrorParameter: (mod37 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'asdf-plugin', parameterPath: '$.versions', fetch: mod37 }
+    : { kind: 'mirror', resourceType: 'asdf-plugin', parameterPath: '$.versions', mirrorParameter: (mod37 as any).mirrorParameter },
   typeof mod38 === 'function'
-    ? { kind: 'fetch', resourceType: 'android-cli', parameterPath: '$.sdkPackages', fetch: mod38 }
-    : { kind: 'mirror', resourceType: 'android-cli', parameterPath: '$.sdkPackages', mirrorParameter: (mod38 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'asdf-plugin', parameterPath: '$.plugin', fetch: mod38 }
+    : { kind: 'mirror', resourceType: 'asdf-plugin', parameterPath: '$.plugin', mirrorParameter: (mod38 as any).mirrorParameter },
   typeof mod39 === 'function'
-    ? { kind: 'fetch', resourceType: 'android-cli', parameterPath: '$.emulators', fetch: mod39 }
-    : { kind: 'mirror', resourceType: 'android-cli', parameterPath: '$.emulators', mirrorParameter: (mod39 as any).mirrorParameter },
+    ? { kind: 'fetch', resourceType: 'apt', parameterPath: '$.install', fetch: mod39 }
+    : { kind: 'mirror', resourceType: 'apt', parameterPath: '$.install', mirrorParameter: (mod39 as any).mirrorParameter },
+  typeof mod40 === 'function'
+    ? { kind: 'fetch', resourceType: 'android-studio', parameterPath: '$.version', fetch: mod40 }
+    : { kind: 'mirror', resourceType: 'android-studio', parameterPath: '$.version', mirrorParameter: (mod40 as any).mirrorParameter },
+  typeof mod41 === 'function'
+    ? { kind: 'fetch', resourceType: 'android-cli', parameterPath: '$.sdkPackages', fetch: mod41 }
+    : { kind: 'mirror', resourceType: 'android-cli', parameterPath: '$.sdkPackages', mirrorParameter: (mod41 as any).mirrorParameter },
+  typeof mod42 === 'function'
+    ? { kind: 'fetch', resourceType: 'android-cli', parameterPath: '$.emulators', fetch: mod42 }
+    : { kind: 'mirror', resourceType: 'android-cli', parameterPath: '$.emulators', mirrorParameter: (mod42 as any).mirrorParameter },
 ]

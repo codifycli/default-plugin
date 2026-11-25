@@ -1,8 +1,8 @@
 import { Plan } from '@codifycli/plugin-core';
 import { describe, expect, it } from 'vitest';
 
-import { parseFnmList } from '../resources/javascript/fast-node-manager/node-versions-parameter.js';
-import { matchVersionPrefix, newestVersion, VersionAlias } from './version-aliases.js';
+import { matchVersionPrefix, newestVersion, parseNodeReleaseList, VersionAlias } from './version-aliases.js';
+import { GlobalVersionParameter } from './global-version-parameter.js';
 import { VersionsParameter } from './versions-parameter.js';
 
 type FakeConfig = { versions?: string[] };
@@ -85,12 +85,57 @@ describe('VersionsParameter', () => {
   });
 });
 
-describe('parseFnmList', () => {
+describe('parseNodeReleaseList', () => {
   it('parses fnm list and list-remote output', () => {
-    expect(parseFnmList('* v22.11.0 default, lts-latest\n* v25.2.1\n* system')).toEqual([
+    expect(parseNodeReleaseList('* v22.11.0 default, lts-latest\n* v25.2.1\n* system')).toEqual([
       { version: '22.11.0', annotations: 'default, lts-latest', isLts: false },
       { version: '25.2.1', annotations: '', isLts: false },
     ]);
-    expect(parseFnmList('v22.11.0 (Jod)\nv23.0.0').map((l) => l.isLts)).toEqual([true, false]);
+    expect(parseNodeReleaseList('v22.11.0 (Jod)\nv23.0.0').map((l) => l.isLts)).toEqual([true, false]);
+  });
+
+  it('parses nvm ls-remote output', () => {
+    const output = [
+      '        v22.11.0   (LTS: Jod)',
+      '->      v24.11.1   (Latest LTS: Krypton)',
+      '        v26.13.1',
+      '        v27.0.0-alpha.0.1.1',
+    ].join('\n');
+
+    const parsed = parseNodeReleaseList(output);
+    expect(parsed.map((l) => l.version)).toEqual(['22.11.0', '24.11.1', '26.13.1']);
+    expect(parsed.map((l) => l.isLts)).toEqual([true, true, false]);
+  });
+
+  it('skips prereleases', () => {
+    expect(parseNodeReleaseList('v27.0.0-alpha.0.1.1\nv27.0.0-rc.1 (Foo)')).toEqual([]);
+  });
+});
+
+class FakeGlobalParameter extends GlobalVersionParameter<FakeConfig> {
+  sets: string[] = [];
+
+  constructor(versions: FakeVersionsParameter, public current: null | string) {
+    super(versions);
+  }
+
+  protected async readGlobal() { return this.current; }
+  protected async setGlobal(version: string) { this.sets.push(version); this.current = version; }
+  override async remove() {}
+}
+
+describe('GlobalVersionParameter', () => {
+  it('converges when the global is the version the keyword resolves to', async () => {
+    const versions = new FakeVersionsParameter(['24.11.1'], { latest: '25.2.1', lts: '24.11.1' });
+    expect(await new FakeGlobalParameter(versions, '24.11.1').refresh('lts', {})).toBe('lts');
+    expect(await new FakeGlobalParameter(versions, '24.11.1').refresh('latest', {})).toBe('24.11.1');
+  });
+
+  it('sets the concrete version, never the keyword', async () => {
+    const versions = new FakeVersionsParameter(['24.11.1', '25.2.1'], { latest: '25.2.1', lts: '24.11.1' });
+    const global = new FakeGlobalParameter(versions, '24.11.1');
+    await global.modify('latest', 'lts', { desiredConfig: {} } as unknown as Plan<FakeConfig>);
+    await global.add('22', { desiredConfig: {} } as unknown as Plan<FakeConfig>);
+    expect(global.sets).toEqual(['25.2.1', '22']);
   });
 });
