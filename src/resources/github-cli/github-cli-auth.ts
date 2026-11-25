@@ -138,14 +138,14 @@ export class GithubCliAuthResource extends Resource<GithubCliAuthConfig> {
     const $ = getPty();
     const hostname = plan.currentConfig.hostname ?? 'github.com';
 
-    const { data: statusData } = await $.spawnSafe(`gh auth status --hostname "${hostname}"`);
+    const { data: statusData } = await $.spawnSafe(`gh auth status --hostname "${hostname}"`, { interactive: true });
     const userMatch = statusData.match(/Logged in to \S+ account (\S+)/);
     const username = userMatch?.[1];
 
     if (username) {
-      await $.spawnSafe(`gh auth logout --hostname "${hostname}" --user "${username}"`);
+      await $.spawnSafe(`gh auth logout --hostname "${hostname}" --user "${username}"`, { interactive: true });
     } else {
-      await $.spawnSafe(`gh auth logout --hostname "${hostname}"`);
+      await $.spawnSafe(`gh auth logout --hostname "${hostname}"`, { interactive: true });
     }
   }
 
