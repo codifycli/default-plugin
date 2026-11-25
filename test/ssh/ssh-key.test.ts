@@ -85,4 +85,42 @@ describe('Ssh key tests', () => {
       }
     })
   })
+
+  it('Creates the folder, and handles comments with spaces and a passphrase', { timeout: 300000 }, async () => {
+    const folder = path.join(os.homedir(), 'codify-ssh-key-test');
+    const keyPath = path.join(folder, 'id_test');
+    fs.rmSync(folder, { recursive: true, force: true });
+
+    await PluginTester.fullTest(pluginPath, [
+      {
+        type: 'ssh-key',
+        fileName: 'id_test',
+        folder,
+        comment: 'Ada Lovelace (laptop)',
+        passphrase: "it's secret",
+      }
+    ], {
+      validateApply: async () => {
+        expect(fs.existsSync(keyPath)).to.be.true;
+        expect(fs.readFileSync(`${keyPath}.pub`, 'utf8')).to.include('Ada Lovelace (laptop)');
+      },
+      testModify: {
+        modifiedConfigs: [{
+          type: 'ssh-key',
+          fileName: 'id_test',
+          folder,
+          comment: 'ada@example.com',
+          passphrase: "it's secret",
+        }],
+        validateModify: () => {
+          expect(fs.readFileSync(`${keyPath}.pub`, 'utf8')).to.include('ada@example.com');
+        }
+      },
+      validateDestroy: () => {
+        expect(fs.existsSync(keyPath)).to.be.false;
+      }
+    })
+
+    fs.rmSync(folder, { recursive: true, force: true });
+  })
 })
