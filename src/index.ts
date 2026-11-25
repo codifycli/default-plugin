@@ -81,6 +81,8 @@ import { PhpStormResource } from './resources/jetbrains/phpstorm/phpstorm.js';
 import { GoLandResource } from './resources/jetbrains/goland/goland.js';
 import { RiderResource } from './resources/jetbrains/rider/rider.js';
 import { RubyMineResource } from './resources/jetbrains/rubymine/rubymine.js';
+import { ProjectInstallResource } from './resources/project-install/project-install.js';
+import { ProjectInstallsResource } from './resources/project-install/project-installs.js';
 import {AndroidStudioResource} from "./resources/android/android-studios/android-studio.js";
 
 export const MIN_SUPPORTED_CLI_VERSION: string | undefined = '1.1.0';
@@ -171,6 +173,8 @@ runPlugin(Plugin.create(
     new GithubCliAuthResource(),
     new GithubCliAliasResource(),
     new GithubCliSshKeyResource(),
+    new ProjectInstallResource(),
+    new ProjectInstallsResource(),
   ],
   { minSupportedCliVersion: MIN_SUPPORTED_CLI_VERSION }
 ))
