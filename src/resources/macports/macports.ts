@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { MacportsInstallParameter, PortPackage } from './install-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z.object({
   install: z.array(z.union([z.string(), z.looseObject({
@@ -35,6 +36,7 @@ export class MacportsResource extends Resource<MacportsConfig> {
   override getSettings(): ResourceSettings<MacportsConfig> {
     return {
       id: 'macports',
+      requires: requiresOnMacOS('xcode-tools'),
       operatingSystems: [OS.Darwin],
       schema,
       parameterSettings: {

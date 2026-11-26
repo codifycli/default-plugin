@@ -23,6 +23,7 @@ import {
   setCliConfigValue,
   waitForDaemon,
 } from './syncthing-utils.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const schema = z
   .object({
@@ -120,6 +121,7 @@ export class SyncthingResource extends Resource<SyncthingConfig> {
   getSettings(): ResourceSettings<SyncthingConfig> {
     return {
       id: 'syncthing',
+      requires: requiresOnMacOS('homebrew'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleConfig,

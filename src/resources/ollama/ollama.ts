@@ -13,6 +13,7 @@ import {
 import { OS } from '@codifycli/schemas';
 
 import { ModelsParameter } from './models-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const schema = z
   .object({
@@ -55,6 +56,7 @@ export class OllamaResource extends Resource<OllamaConfig> {
   getSettings(): ResourceSettings<OllamaConfig> {
     return {
       id: 'ollama',
+      requires: requiresOnMacOS('homebrew'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

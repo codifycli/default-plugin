@@ -77,7 +77,9 @@ export class NvmResource extends Resource<NvmConfig> {
       await FileUtils.addToStartupFile('unset npm_config_prefix');
     }
 
-    const { data: installResult } = await $.spawn('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash', { interactive: true })
+    // METHOD=script downloads nvm with curl. Otherwise the installer clones it with git whenever `command -v git`
+    // succeeds, which on a fresh Mac is the /usr/bin/git stub that needs the Xcode Command Line Tools.
+    const { data: installResult } = await $.spawn('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | METHOD=script bash', { interactive: true })
 
     // Nvm doesn't handle if the init string is commented out
     // This check first checks that nvm detects the init string is there but nvm itself is still not present

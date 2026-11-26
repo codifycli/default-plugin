@@ -6,6 +6,7 @@ import path from 'node:path';
 import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
 import { RbenvGlobalParameter } from './global-parameter.js';
 import { RubyVersionsParameter } from './ruby-versions-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const RBENV_ROOT = path.join(os.homedir(), '.rbenv');
 const RBENV_PATH_EXPORT = 'export PATH="$HOME/.rbenv/bin:$PATH"';
@@ -25,6 +26,7 @@ export class RbenvResource extends Resource<RbenvConfig> {
   getSettings(): ResourceSettings<RbenvConfig> {
     return {
       id: 'rbenv',
+      requires: requiresOnMacOS('homebrew', 'xcode-tools'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

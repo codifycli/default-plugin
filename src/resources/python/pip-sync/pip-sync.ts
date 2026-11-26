@@ -2,6 +2,7 @@ import { CreatePlan, DestroyPlan, ExampleConfig, getPty, RefreshContext, Resourc
 import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import { RequirementFilesParameter } from './requirement-files-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   virtualEnv: z.string().optional().describe('A virtual env to activate before issuing commands.'),
@@ -32,6 +33,7 @@ export class PipSync extends Resource<PipSyncConfig> {
   getSettings(): ResourceSettings<PipSyncConfig> {
     return {
       id: 'pip-sync',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleWithVirtualenv,

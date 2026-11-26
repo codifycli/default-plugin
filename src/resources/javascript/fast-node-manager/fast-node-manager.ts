@@ -6,6 +6,7 @@ import path from 'node:path';
 import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
 import { FnmDefaultVersionParameter } from './default-version-parameter.js';
 import { FnmNodeVersionsParameter } from './node-versions-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const FNM_DIR = path.join(os.homedir(), '.fnm');
 const FNM_MULTISHELL_EXPORT = 'export FNM_MULTISHELL_PATH="${TMPDIR:-/tmp}/fnm_multishells"';
@@ -48,6 +49,7 @@ export class FnmResource extends Resource<FnmConfig> {
   getSettings(): ResourceSettings<FnmConfig> {
     return {
       id: 'fnm',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

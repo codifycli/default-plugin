@@ -1,6 +1,7 @@
 import { ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import * as os from 'node:os';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({})
   .describe('Installs git-lfs. This resource will automatically activate git-lfs as well.');
@@ -28,6 +29,7 @@ export class GitLfsResource extends Resource<GitLfsConfig> {
   getSettings(): ResourceSettings<GitLfsConfig> {
     return {
       id: 'git-lfs',
+      requires: requiresOnMacOS('homebrew', 'xcode-tools'),
       exampleConfigs: {
         example1: exampleWithRepo,
       },

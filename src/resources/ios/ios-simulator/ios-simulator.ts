@@ -96,9 +96,9 @@ const exampleBasic: ExampleConfig = {
 
 const exampleMultiDevice: ExampleConfig = {
   title: 'iPhone and iPad simulator setup',
-  description: 'Install Xcode Command Line Tools and create an iPhone and iPad simulator for cross-device testing.',
+  description: 'Install the latest Xcode with xcodes and create an iPhone and iPad simulator for cross-device testing.',
   configs: [
-    { type: 'xcode-tools', os: ['macOS'] },
+    { type: 'xcodes', xcodeVersions: ['latest'], os: ['macOS'] },
     {
       type: 'ios-simulators',
       simulators: [
@@ -142,13 +142,14 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   getSettings(): ResourceSettings<IosSimulatorConfig> {
     return {
       id: 'ios-simulators',
+      // Needs the full Xcode app (the Command Line Tools don't include simctl). Applied after xcodes when it's declared.
+      dependencies: ['xcodes'],
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,
         example2: exampleMultiDevice,
       },
       operatingSystems: [OS.Darwin],
-      dependencies: ['xcode-tools'],
       schema,
       parameterSettings: {
         simulators: {
@@ -291,8 +292,22 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
 
   private async assertSimctlAvailable(): Promise<void> {
     const $ = getPty();
+
+    // xcrun is a stub on a fresh Mac (it opens an install dialog), and the Command Line Tools don't include simctl.
+    // Check that the selected developer directory is an Xcode app before running it.
+    const { data: developerDir, status: selectStatus } = await $.spawnSafe('xcode-select -p', { interactive: true });
+    if (selectStatus !== SpawnStatus.SUCCESS || !developerDir.includes('.app/Contents/Developer')) {
+      throw new Error(
+        'Xcode is required to manage iOS simulators (the Xcode Command Line Tools are not enough). ' +
+        'Add an xcodes resource (ex: { "type": "xcodes", "xcodeVersions": ["latest"] }) or install Xcode from the Mac App Store. ' +
+        (developerDir?.includes('CommandLineTools')
+          ? 'If Xcode is already installed, select it with: sudo xcode-select -s /Applications/Xcode.app'
+          : ''),
+      );
+    }
+
     // Use `xcrun -f simctl` to locate the binary without invoking it — avoids triggering the license prompt
-    const { status } = await $.spawnSafe('xcrun -f simctl');
+    const { status } = await $.spawnSafe('xcrun -f simctl', { interactive: true });
     if (status !== SpawnStatus.SUCCESS) {
       throw new Error(
         'xcrun simctl is not available. Xcode must be installed to manage iOS simulators. ' +

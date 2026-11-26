@@ -17,6 +17,7 @@ import { globalVersionSchema, versionsArraySchema } from '../../../utils/version
 import { GoenvGlobalParameter } from './global-parameter.js';
 import { GoPackagesParameter, goPackageSchema } from './go-packages-parameter.js';
 import { GoVersionsParameter } from './go-versions-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const GOENV_ROOT = path.join(os.homedir(), '.goenv');
 const GOENV_ROOT_EXPORT = 'export GOENV_ROOT="$HOME/.goenv"';
@@ -75,6 +76,7 @@ export class GoenvResource extends Resource<GoenvConfig> {
   getSettings(): ResourceSettings<GoenvConfig> {
     return {
       id: 'goenv',
+      requires: requiresOnMacOS('homebrew'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

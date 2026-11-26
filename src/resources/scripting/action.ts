@@ -9,7 +9,7 @@ export const schema = z.object({
   requiresRoot: z.boolean().optional().describe('When true, the action is executed with root privileges (sudo). Codify handles privilege escalation — do not add sudo to the action command directly.'),
   requiresStdin: z.boolean().optional().describe('When true, the action is run in interactive mode so it can read from stdin (e.g. for prompts or password input).'),
 })
-  .describe('Run custom scripts using the action resource. A condition can be specified to conditionally trigger a script.');
+  .describe('Run custom scripts using the action resource. A condition can be specified to conditionally trigger a script. On macOS, a script that needs git, make or a compiler should depend on an xcode-tools resource.');
 
 
 export type ActionConfig = z.infer<typeof schema>;

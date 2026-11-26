@@ -8,6 +8,7 @@ import { FileUtils } from '../../../utils/file-utils.js';
 import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
 import { PyenvGlobalParameter } from './global-parameter.js';
 import { PythonVersionsParameter } from './python-versions-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   pythonVersions: versionsArraySchema(['latest'], 'An array of Python versions to install using pyenv. Partial matching is supported (3.9 instead of 3.9.11).').optional(),
@@ -45,6 +46,7 @@ export class PyenvResource extends Resource<PyenvConfig> {
   getSettings(): ResourceSettings<PyenvConfig> {
     return {
       id: 'pyenv',
+      requires: requiresOnMacOS('homebrew', 'xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

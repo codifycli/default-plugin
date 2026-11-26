@@ -19,6 +19,7 @@ import {
   JetBrainsPluginsParameter,
   JetBrainsProductInfo,
 } from '../common/jetbrains-common.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const PRODUCT: JetBrainsProductInfo = {
   macAppName: 'CLion',
@@ -100,6 +101,7 @@ export class ClionResource extends Resource<ClionConfig> {
   getSettings(): ResourceSettings<ClionConfig> {
     return {
       id: 'clion',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

@@ -13,6 +13,7 @@ import { OS } from '@codifycli/schemas';
 import { installDirectory, isDirectoryInSync } from './package-managers.js';
 import { sameManagers, samePath } from './project-install.js';
 import { DEPENDENCIES, sharedInstallOptions } from './schema.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z.object({
   directories: z.array(z.string()).describe('The project directories to install dependencies in. Each directory is detected separately.'),
@@ -55,6 +56,7 @@ export class ProjectInstallsResource extends Resource<ProjectInstallsConfig> {
   getSettings(): ResourceSettings<ProjectInstallsConfig> {
     return {
       id: 'project-installs',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

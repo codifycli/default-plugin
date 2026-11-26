@@ -13,6 +13,7 @@ import * as fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { FileUtils } from '../../utils/file-utils.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const schema = z.object({
   plugin: z
@@ -71,6 +72,7 @@ export class AsdfInstallResource extends Resource<AsdfInstallConfig> {
   getSettings(): ResourceSettings<AsdfInstallConfig> {
     return {
       id: 'asdf-install',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: examplePluginInstall,
