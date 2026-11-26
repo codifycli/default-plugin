@@ -19,6 +19,7 @@ import {
   JetBrainsPluginsParameter,
   JetBrainsProductInfo,
 } from '../common/jetbrains-common.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const PRODUCT: JetBrainsProductInfo = {
   macAppName: 'Rider',
@@ -100,6 +101,7 @@ export class RiderResource extends Resource<RiderConfig> {
   getSettings(): ResourceSettings<RiderConfig> {
     return {
       id: 'rider',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

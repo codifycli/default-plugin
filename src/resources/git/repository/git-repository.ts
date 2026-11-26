@@ -12,6 +12,7 @@ import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
 import { exampleSshConfigs } from '../../ssh/examples.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   repository: z.string().optional().describe('Remote repository URL to clone from.'),
@@ -44,6 +45,7 @@ export class GitRepositoryResource extends Resource<GitRepositoryConfig> {
   getSettings(): ResourceSettings<GitRepositoryConfig> {
     return {
       id: 'git-repository',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleDirectory,

@@ -13,6 +13,7 @@ import { OS } from '@codifycli/schemas';
 import { versionsArraySchema } from '../../utils/version-aliases.js';
 import { XcodesSelectedParameter } from './selected-parameter.js';
 import { XcodeVersionsParameter } from './xcode-versions-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const schema = z
   .object({
@@ -81,6 +82,7 @@ export class XcodesResource extends Resource<XcodesConfig> {
   getSettings(): ResourceSettings<XcodesConfig> {
     return {
       id: 'xcodes',
+      requires: requiresOnMacOS('homebrew'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleStandardSetup,

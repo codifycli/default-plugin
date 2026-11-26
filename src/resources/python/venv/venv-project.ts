@@ -12,6 +12,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   envDir: z.string().describe('A directory to create the environment in.'),
@@ -73,6 +74,7 @@ export class VenvProject extends Resource<VenvProjectConfig> {
   getSettings(): ResourceSettings<VenvProjectConfig> {
     return {
       id: 'venv-project',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

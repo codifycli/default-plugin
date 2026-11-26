@@ -11,6 +11,7 @@ import path from 'node:path';
 
 import { installDirectory, isDirectoryInSync } from './package-managers.js';
 import { DEPENDENCIES, sharedInstallOptions } from './schema.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z.object({
   directory: z.string().describe('The project directory to install dependencies in.'),
@@ -49,6 +50,7 @@ export class ProjectInstallResource extends Resource<ProjectInstallConfig> {
   getSettings(): ResourceSettings<ProjectInstallConfig> {
     return {
       id: 'project-install',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleNode,

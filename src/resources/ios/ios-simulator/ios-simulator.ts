@@ -11,6 +11,7 @@ import {
   z,
 } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const simulatorSchema = z.object({
   name: z.string().describe('Name for the simulator instance (e.g. "iPhone 15 Dev")'),
@@ -142,13 +143,13 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   getSettings(): ResourceSettings<IosSimulatorConfig> {
     return {
       id: 'ios-simulators',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,
         example2: exampleMultiDevice,
       },
       operatingSystems: [OS.Darwin],
-      dependencies: ['xcode-tools'],
       schema,
       parameterSettings: {
         simulators: {

@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { AsdfPluginsParameter } from './plugins-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const schema = z.object({
   plugins: z
@@ -55,6 +56,7 @@ export class AsdfResource extends Resource<AsdfConfig> {
   getSettings(): ResourceSettings<AsdfConfig> {
     return {
       id: 'asdf',
+      requires: requiresOnMacOS('homebrew'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleNodePython,

@@ -17,6 +17,7 @@ import path from 'node:path';
 import { UvGlobalParameter } from './global-parameter.js';
 import { UvPythonVersionsParameter } from './python-versions-parameter.js';
 import { UvToolsParameter } from './tools-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const UV_LOCAL_BIN = path.join(os.homedir(), '.local', 'bin');
 const UV_LOCAL_BIN_PATH_EXPORT = `export PATH="$HOME/.local/bin:$PATH"`;
@@ -70,6 +71,7 @@ export class UvResource extends Resource<UvConfig> {
   getSettings(): ResourceSettings<UvConfig> {
     return {
       id: 'uv',
+      requires: requiresOnMacOS('homebrew'),
       defaultConfig,
       exampleConfigs: {
         example1: examplePython,

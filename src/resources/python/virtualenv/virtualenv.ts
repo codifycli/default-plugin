@@ -1,5 +1,6 @@
 import { CreatePlan, DestroyPlan, ExampleConfig, getPty, Resource, ResourceSettings, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({})
   .describe('Install and manage local packages with virtualenv');
@@ -29,6 +30,7 @@ export class Virtualenv extends Resource<VirtualenvConfig> {
   getSettings(): ResourceSettings<VirtualenvConfig> {
     return {
       id: 'virtualenv',
+      requires: requiresOnMacOS('homebrew'),
       exampleConfigs: {
         example1: exampleWithProject,
       },

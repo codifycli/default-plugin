@@ -19,6 +19,7 @@ import {
   JetBrainsPluginsParameter,
   JetBrainsProductInfo,
 } from '../common/jetbrains-common.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const PRODUCT: JetBrainsProductInfo = {
   macAppName: 'RubyMine',
@@ -100,6 +101,7 @@ export class RubyMineResource extends Resource<RubyMineConfig> {
   getSettings(): ResourceSettings<RubyMineConfig> {
     return {
       id: 'rubymine',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

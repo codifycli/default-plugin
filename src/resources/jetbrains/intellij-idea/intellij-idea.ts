@@ -19,6 +19,7 @@ import {
   JetBrainsPluginsParameter,
   JetBrainsProductInfo,
 } from '../common/jetbrains-common.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const PRODUCT: JetBrainsProductInfo = {
   macAppName: 'IntelliJ IDEA',
@@ -100,6 +101,7 @@ export class IntellijIdeaResource extends Resource<IntellijIdeaConfig> {
   getSettings(): ResourceSettings<IntellijIdeaConfig> {
     return {
       id: 'intellij-idea',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

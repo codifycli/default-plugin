@@ -9,6 +9,7 @@ import {
   JAVA_VERSION_INTEGER,
 } from './java-versions-parameter.js';
 import os from 'node:os';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   add: z.array(z.string()).optional().describe('The java_home path to add to jenv. Jenv does not directly install Java. This resources optionally allows users to specify a LTS version instead of a path (8, 11, 17, 21, 22) and install it via Homebrew'),
@@ -22,6 +23,7 @@ export class JenvResource extends Resource<JenvConfig> {
   getSettings(): ResourceSettings<JenvConfig> {
     return {
       id: 'jenv',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       dependencies: Utils.isMacOS() ? ['homebrew'] : [],

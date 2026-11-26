@@ -11,6 +11,7 @@ import {
 import { OS } from '@codifycli/schemas';
 
 import { AsdfPluginVersionsParameter } from './version-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const schema = z
   .object({
@@ -67,6 +68,7 @@ export class AsdfPluginResource extends Resource<AsdfPluginConfig> {
   getSettings(): ResourceSettings<AsdfPluginConfig> {
     return {
       id: 'asdf-plugin',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleNodejs,

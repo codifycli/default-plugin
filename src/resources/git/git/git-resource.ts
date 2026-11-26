@@ -3,6 +3,7 @@ import { OS, StringIndexedObject } from '@codifycli/schemas';
 
 import { GitEmailParameter } from './git-email-paramater.js';
 import { GitNameParameter } from './git-name-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   email: z.string().optional().describe('The global email to set for git'),
@@ -26,6 +27,7 @@ export class GitResource extends Resource<GitConfig> {
   getSettings(): ResourceSettings<GitConfig> {
     return {
       id: 'git',
+      requires: requiresOnMacOS('xcode-tools'),
       exampleConfigs: {
         example1: exampleConfig,
       },

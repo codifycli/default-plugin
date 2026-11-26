@@ -7,6 +7,7 @@ import {
 } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const CODEX_APP_PATH = '/Applications/Codex.app';
 
@@ -32,6 +33,7 @@ export class CodexAppResource extends Resource<CodexAppConfig> {
   getSettings(): ResourceSettings<CodexAppConfig> {
     return {
       id: 'codex-app',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin],
       schema,
       exampleConfigs: {

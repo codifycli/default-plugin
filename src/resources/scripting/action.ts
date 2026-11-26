@@ -1,6 +1,7 @@
 import { CreatePlan, DestroyPlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, z } from '@codifycli/plugin-core';
 import { RefreshContext } from '@codifycli/plugin-core/src/resource/resource.js';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z.object({
   condition: z.string().optional().describe('A bash condition that decides whether the action needs to run. Exit code 0 means the action is already done — skip it. Any non-zero exit code means the action should run. Think of it as a check for the desired end-state: if the check passes (exit 0), the work is done; if it fails (non-zero), run the action. Example: \'command -v mytool\' exits 0 when mytool is already installed (skip), and non-zero when it is absent (run the install action).'),
@@ -43,6 +44,7 @@ export class ActionResource extends Resource<ActionConfig> {
   getSettings(): ResourceSettings<ActionConfig> {
     return {
       id: 'action',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleConditional,

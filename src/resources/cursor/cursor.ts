@@ -19,6 +19,7 @@ import path from 'node:path';
 import { ExtensionsParameter } from './extensions-parameter.js';
 import { McpServersParameter } from './mcp-servers-parameter.js';
 import { SettingsParameter } from './settings-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const CURSOR_APPLICATION_NAME = 'Cursor.app';
 export const CURSOR_LOCAL_BIN = path.join(os.homedir(), '.local', 'bin');
@@ -96,6 +97,7 @@ export class CursorResource extends Resource<CursorConfig> {
   getSettings(): ResourceSettings<CursorConfig> {
     return {
       id: 'cursor',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

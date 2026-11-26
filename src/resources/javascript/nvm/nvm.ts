@@ -6,6 +6,7 @@ import { FileUtils } from '../../../utils/file-utils.js';
 import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
 import { NvmGlobalParameter } from './global-parameter.js';
 import { NvmNodeVersionsParameter } from './node-versions-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   nodeVersions: versionsArraySchema(['latest', 'lts'], 'An array of node versions to install using nvm. Partial matching is supported (20 instead of 20.15.1).').optional(),
@@ -44,6 +45,7 @@ export class NvmResource extends Resource<NvmConfig> {
   getSettings(): ResourceSettings<NvmConfig> {
     return {
       id: 'nvm',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleLts,

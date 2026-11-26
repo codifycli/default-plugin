@@ -12,6 +12,7 @@ import {
 import { OS } from '@codifycli/schemas';
 
 import { CargoPackagesParameter } from './cargo-packages-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const schema = z
   .object({
@@ -57,6 +58,7 @@ export class RustResource extends Resource<RustConfig> {
   getSettings(): ResourceSettings<RustConfig> {
     return {
       id: 'rust',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,
@@ -68,7 +70,6 @@ export class RustResource extends Resource<RustConfig> {
       parameterSettings: {
         cargoPackages: { stateful: new CargoPackagesParameter(), order: 1 },
       },
-      dependencies: [...(Utils.isMacOS() ? ['xcode-tools'] : [])],
     };
   }
 
