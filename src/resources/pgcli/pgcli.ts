@@ -1,5 +1,6 @@
 import { Resource, ResourceSettings, SpawnStatus, getPty, Utils, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z.object({})
   .describe('Installs pgcli.');
@@ -11,6 +12,7 @@ export class PgcliResource extends Resource<PgcliConfig> {
   getSettings(): ResourceSettings<PgcliConfig> {
     return {
       id: 'pgcli',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       dependencies: [...Utils.isMacOS() ? ['homebrew'] : []],

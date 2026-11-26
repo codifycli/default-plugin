@@ -40,4 +40,35 @@ describe('Rbenv resource integration tests', () => {
       },
     });
   });
+
+  it('Installs gems into the rbenv Ruby', { timeout: 900000 }, async () => {
+    await PluginTester.fullTest(pluginPath, [
+      {
+        type: 'rbenv',
+        rubyVersions: ['latest'],
+        global: 'latest',
+        gems: ['rake'],
+      }
+    ], {
+      validateApply: async () => {
+        const { data: gemPath } = await testSpawn('gem which rake');
+        expect(gemPath).toContain('.rbenv');
+
+        const rakeCheck = await testSpawn('rake --version');
+        expect(rakeCheck.status).toBe(SpawnStatus.SUCCESS);
+      },
+      testModify: {
+        modifiedConfigs: [{
+          type: 'rbenv',
+          rubyVersions: ['latest'],
+          global: 'latest',
+          gems: ['rake', 'tty-which@0.5.0'],
+        }],
+        validateModify: async () => {
+          const { data } = await testSpawn('gem list --local tty-which');
+          expect(data).toContain('tty-which (0.5.0)');
+        },
+      },
+    });
+  });
 });

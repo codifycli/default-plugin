@@ -9,6 +9,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { FileUtils } from '../../../utils/file-utils.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   dest: z.string().describe('The directory to create virtualenv at'),
@@ -62,6 +63,7 @@ export class VirtualenvProject extends Resource<VirtualenvProjectConfig> {
   getSettings(): ResourceSettings<VirtualenvProjectConfig> {
     return {
       id: 'virtualenv-project',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

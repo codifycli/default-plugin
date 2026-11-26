@@ -13,6 +13,7 @@ import {
 import { OS } from '@codifycli/schemas';
 
 import { exampleGithubCliBasic, exampleGithubCliFull } from './examples.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z
   .object({
@@ -63,6 +64,7 @@ export class GithubCliResource extends Resource<GithubCliConfig> {
   getSettings(): ResourceSettings<GithubCliConfig> {
     return {
       id: 'github-cli',
+      requires: requiresOnMacOS('homebrew'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleGithubCliBasic,

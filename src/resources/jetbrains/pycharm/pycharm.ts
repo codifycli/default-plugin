@@ -19,6 +19,7 @@ import {
   JetBrainsPluginsParameter,
   JetBrainsProductInfo,
 } from '../common/jetbrains-common.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const PRODUCT: JetBrainsProductInfo = {
   macAppName: 'PyCharm',
@@ -100,6 +101,7 @@ export class PyCharmResource extends Resource<PyCharmConfig> {
   getSettings(): ResourceSettings<PyCharmConfig> {
     return {
       id: 'pycharm',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

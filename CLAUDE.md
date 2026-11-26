@@ -611,7 +611,32 @@ getSettings() {
 }
 ```
 
-The framework automatically validates dependencies exist and orders execution.
+The framework automatically validates dependencies exist and orders execution. `dependencies` are soft: they only order
+resources that are already in the config.
+
+### Requires (Homebrew and Xcode Command Line Tools)
+
+Use `requires` for prerequisites that must exist. The CLI adds a default config for every required type the user didn't
+declare (transitively), so on macOS `xcode-tools` is only installed when something needs it (ex: `macos-settings` alone
+doesn't install it).
+
+```typescript
+import { requiresOnMacOS } from '../../utils/requires.js';
+
+getSettings() {
+  return {
+    id: 'cursor',
+    requires: requiresOnMacOS('homebrew'), // homebrew requires xcode-tools, so both are added
+  }
+}
+```
+
+- `requiresOnMacOS('homebrew')`: the resource installs/uninstalls with brew on macOS (`Utils.installViaPkgMgr`, `PackageManager.BREW`).
+- `requiresOnMacOS('xcode-tools')`: the resource runs `git`, `make`, a compiler or `/usr/bin/python3`, builds native
+  code, or installs project dependencies (`project-install`). `action` requires nothing: a script that needs the Command Line Tools must add an `xcode-tools` resource itself (and `dependsOn` it). On a fresh Mac these are stubs that open an install dialog.
+- Resources that only write files, run `defaults` or download binaries/dmg/pkg require nothing.
+- Always use the helper (or an `Utils.isMacOS()` conditional): `xcode-tools` doesn't exist on Linux.
+- `src/utils/requires.test.ts` scans the resource sources and fails if a resource uses brew or git without declaring it.
 
 ### Return Semantics in refresh()
 

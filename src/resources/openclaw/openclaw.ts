@@ -16,6 +16,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import { OpenClawSettingsParameter } from './settings-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 // ── Per-section schemas matching docs.openclaw.ai/gateway/configuration-reference ──
 
@@ -445,6 +446,7 @@ export class OpenClawResource extends Resource<OpenClawConfig> {
   getSettings(): ResourceSettings<OpenClawConfig> {
     return {
       id: 'openclaw',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

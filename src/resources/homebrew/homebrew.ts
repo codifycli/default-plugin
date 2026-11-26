@@ -19,6 +19,7 @@ import { untildify } from '../../utils/untildify.js';
 import { CasksParameter } from './casks-parameter.js'
 import { FormulaeParameter } from './formulae-parameter.js';
 import { TapsParameter } from './tap-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z.object({
   formulae: z.array(z.string()).optional().describe('A list of Homebrew formulae (command-line packages) to install.'),
@@ -64,6 +65,7 @@ export class HomebrewResource extends Resource<HomebrewConfig> {
       schema,
       operatingSystems: [OS.Darwin, OS.Linux],
       id: 'homebrew',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleFormulae,

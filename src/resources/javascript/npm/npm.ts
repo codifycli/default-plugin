@@ -2,6 +2,7 @@ import { ExampleConfig, Resource, ResourceSettings, getPty, z } from '@codifycli
 import { OS, ResourceConfig } from '@codifycli/schemas'
 
 import { NpmInstallParameter } from './global-install.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   globalInstall: z.array(z.string().describe('Package name, optionally with a version specifier (e.g. "typescript" or "typescript@5.4.0")')).optional().describe('An array of npm packages to install globally. Use the npm@version syntax to pin a specific version (e.g. "nodemon@3.1.10").'),
@@ -43,6 +44,7 @@ export class Npm extends Resource<NpmConfig> {
   getSettings(): ResourceSettings<NpmConfig> {
     return {
       id: 'npm',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleGlobalTools,

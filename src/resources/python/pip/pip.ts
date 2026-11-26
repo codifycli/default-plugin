@@ -12,6 +12,7 @@ import {
 import { OS, ResourceConfig } from '@codifycli/schemas';
 
 import { PipInstallFilesParameter } from './install-files.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   virtualEnv: z.string().optional().describe('A virtual env to activate before issuing pip commands.'),
@@ -74,6 +75,7 @@ export class Pip extends Resource<PipResourceConfig> {
   getSettings(): ResourceSettings<PipResourceConfig> {
     return {
       id: 'pip',
+      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

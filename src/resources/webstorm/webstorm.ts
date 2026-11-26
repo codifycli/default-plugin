@@ -17,6 +17,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { MACOS_APP_PATH, MACOS_BINARY, PluginsParameter, findConfigDir, getOrCreateConfigDir } from './plugins-parameter.js';
+import { requiresOnMacOS } from '../../utils/requires.js';
 
 const schema = z
   .object({
@@ -89,6 +90,7 @@ export class WebStormResource extends Resource<WebStormConfig> {
   getSettings(): ResourceSettings<WebStormConfig> {
     return {
       id: 'webstorm',
+      requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

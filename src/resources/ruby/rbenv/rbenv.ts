@@ -1,11 +1,13 @@
-import { FileUtils, getPty, Resource, ResourceSettings, SpawnStatus, Utils, PackageManager, z } from '@codifycli/plugin-core';
+import { ExampleConfig, FileUtils, getPty, Resource, ResourceSettings, SpawnStatus, Utils, PackageManager, z } from '@codifycli/plugin-core';
 import { OS } from '@codifycli/schemas';
 import os from 'node:os';
 import path from 'node:path';
 
 import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
+import { GemsParameter } from './gems-parameter.js';
 import { RbenvGlobalParameter } from './global-parameter.js';
 import { RubyVersionsParameter } from './ruby-versions-parameter.js';
+import { requiresOnMacOS } from '../../../utils/requires.js';
 
 const RBENV_ROOT = path.join(os.homedir(), '.rbenv');
 const RBENV_PATH_EXPORT = 'export PATH="$HOME/.rbenv/bin:$PATH"';
@@ -16,20 +18,62 @@ const schema = z.object({
     .optional(),
   global: globalVersionSchema(['latest'], 'The global Ruby version set by rbenv.')
     .optional(),
+  gems: z
+    .array(z.string().describe('Gem name, optionally with a version: "apiaryio", "rails@7.2.0". Without a version (or with @latest) the newest version is installed and any installed version counts as installed.'))
+    .optional()
+    .describe('Ruby gems to install with gem install into the global rbenv Ruby, e.g. ["apiaryio", "cocoapods", "rails@7.2.0"]. Only the listed gems are managed.'),
 })
   .describe('rbenv resource — install and manage multiple Ruby versions');
 
 export type RbenvConfig = z.infer<typeof schema>;
 
+const defaultConfig: Partial<RbenvConfig> = {
+  rubyVersions: ['latest'],
+  global: 'latest',
+  gems: [],
+};
+
+const exampleBasic: ExampleConfig = {
+  title: 'Install rbenv with a global Ruby version',
+  description: 'Install rbenv, download the newest stable Ruby, and set it as the default global version.',
+  configs: [
+    {
+      type: 'rbenv',
+      rubyVersions: ['latest'],
+      global: 'latest',
+    },
+  ],
+};
+
+const exampleGems: ExampleConfig = {
+  title: 'Ruby with command-line gems',
+  description: 'Install the newest Ruby with rbenv along with gem-based CLIs such as the Apiary CLI and CocoaPods, without touching the system Ruby.',
+  configs: [
+    {
+      type: 'rbenv',
+      rubyVersions: ['latest'],
+      global: 'latest',
+      gems: ['apiaryio', 'cocoapods'],
+    },
+  ],
+};
+
 export class RbenvResource extends Resource<RbenvConfig> {
   getSettings(): ResourceSettings<RbenvConfig> {
     return {
       id: 'rbenv',
+      requires: requiresOnMacOS('homebrew', 'xcode-tools'),
+      defaultConfig,
+      exampleConfigs: {
+        example1: exampleBasic,
+        example2: exampleGems,
+      },
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {
         rubyVersions: { stateful: new RubyVersionsParameter(), order: 1 },
         global: { stateful: new RbenvGlobalParameter(), order: 2 },
+        gems: { stateful: new GemsParameter(), order: 3 },
       },
     };
   }
