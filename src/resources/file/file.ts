@@ -48,6 +48,7 @@ export class FileResource extends Resource<FileConfig> {
   getSettings(): ResourceSettings<FileConfig> {
     return {
       id: 'file',
+      description: 'Creates a file at a path with the given contents, and keeps the contents in sync (or only creates the file if it is missing).',
       defaultConfig,
       exampleConfigs: {
         example1: exampleDotfile,

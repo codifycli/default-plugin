@@ -76,7 +76,7 @@ const schema = z
       .describe('MCP servers to register globally in ~/.claude.json.'),
   })
   .meta({ $comment: 'https://codifycli.com/docs/resources/claude-code/claude-code' })
-  .describe('Claude Code installation and configuration management');
+  .describe('Installs Claude Code, the Anthropic AI coding agent CLI, and manages its global CLAUDE.md, settings and MCP servers.');
 
 export type ClaudeCodeConfig = z.infer<typeof schema>;
 

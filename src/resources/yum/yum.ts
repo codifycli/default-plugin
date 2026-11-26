@@ -10,7 +10,7 @@ export const schema = z.object({
   })])).optional().describe('Installs packages using yum.'),
   update: z.boolean().optional().describe('Whether to run yum check-update before installing packages. Defaults to true.'),
 })
-  .describe('Manage yum packages on Red Hat-based systems.');
+  .describe('Installs packages with yum on Red Hat-based Linux (RHEL, CentOS, Amazon Linux).');
 
 export type YumConfig = z.infer<typeof schema>;
 

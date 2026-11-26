@@ -9,7 +9,7 @@ export const schema = z.object({
   email: z.string().optional().describe('The global email to set for git'),
   username: z.string().optional().describe('The global username to set for git'),
 })
-  .describe('Set and manage global git settings (email and username)');
+  .describe('Configures global git settings: the user name and email used for commits (git config --global user.name and user.email).');
 
 export type GitConfig = z.infer<typeof schema>;
 

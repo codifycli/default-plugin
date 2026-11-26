@@ -3,7 +3,7 @@ import { OS, ResourceConfig } from '@codifycli/schemas';
 import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z.object({})
-  .describe('Installs pgcli.');
+  .describe('Installs pgcli, a PostgreSQL command-line client with auto-completion and syntax highlighting.');
 
 
 export type PgcliConfig = z.infer<typeof schema>;

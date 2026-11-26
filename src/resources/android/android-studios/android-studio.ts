@@ -37,6 +37,7 @@ export class AndroidStudioResource extends Resource<AndroidStudioConfig> {
     const defaultDir = Utils.isMacOS() ? MACOS_INSTALL_DIR : LINUX_INSTALL_DIR;
     return {
       id: 'android-studio',
+      description: 'Installs Android Studio, the IDE for Android app development, optionally a specific version.',
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       parameterSettings: {

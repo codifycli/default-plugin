@@ -21,7 +21,7 @@ export const schema = z.object({
   directory: z.string().optional().describe('The directory to install Terraform. Defaults to /usr/local/bin.'),
   version: z.string().optional().describe('The specific version of Terraform to install. Defaults to latest.'),
 })
-  .describe('Installs Terraform.');
+  .describe('Installs the Terraform CLI from HashiCorp for infrastructure as code, optionally a specific version.');
 
 const TERRAFORM_RELEASES_API_URL = 'https://api.releases.hashicorp.com/v1/releases/terraform';
 const TERRAFORM_RELEASE_INFO_API_URL = (version: string) => `https://api.releases.hashicorp.com/v1/releases/terraform/${version}`;

@@ -218,6 +218,8 @@ async function uploadResources(prerelease: boolean) {
       prerelease,
       schema: JSON.stringify(resource),
       documentation_url: docUrlMap.get(type) ?? null,
+      // Shown by the MCP/agent and embedded for semantic search (search_resources)
+      description: resource.description ?? null,
       allow_multiple: metadata?.allowMultiple ?? false,
       os: metadata?.operatingSystems ?? [],
       default_config: metadata?.defaultConfig ? JSON.stringify(metadata.defaultConfig) : null,

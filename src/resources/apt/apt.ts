@@ -7,7 +7,7 @@ export const schema = z.object({
   install: z.array(z.string()).optional().describe('Installs packages using apt. Use \'name=version\' syntax to pin a version (e.g. \'nodejs=20.*\').'),
   update: z.boolean().optional().describe('Whether to run apt-get update before installing packages. Defaults to true.'),
 })
-  .describe('Manage apt packages on Debian-based systems.');
+  .describe('Installs packages with apt on Debian and Ubuntu Linux.');
 
 export type AptConfig = z.infer<typeof schema>;
 

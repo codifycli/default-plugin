@@ -9,7 +9,7 @@ export const schema = z.object({
   requirementFiles: z.array(z.string()).describe('A list of requirement files to supply pip-sync.'),
   cwd: z.string().optional().describe('The working directory to run commands from. If cwd is supplied, the other parameters can be specified as relative to cwd.'),
 })
-  .describe('Install and manage though pip-tools by installing + uninstalling packages using pip-sync');
+  .describe('Syncs a Python environment to requirements files with pip-tools (pip-sync): installs missing packages and removes ones that are not listed.');
 
 export type PipSyncConfig = z.infer<typeof schema>;
 

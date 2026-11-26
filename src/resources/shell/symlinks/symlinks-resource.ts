@@ -28,7 +28,7 @@ export const schema = z.object({
     .describe('Symlinks to create')
     .optional(),
 })
-  .describe('Symlinks resource. Can be used to manage multiple symlinks.');
+  .describe('Manages several symbolic links (symlinks) in one block, for example to link dotfiles from a dotfiles repository into the home directory.');
 
 export type SymlinksConfig = z.infer<typeof schema>;
 

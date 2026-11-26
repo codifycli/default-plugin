@@ -48,7 +48,7 @@ const schema = z
         'Runs `sudo xcodebuild -license accept`. Only applies when `selected` is set. Defaults to true.'
       ),
   })
-  .describe('xcodes resource — install and manage multiple Xcode versions via the xcodes CLI');
+  .describe('Installs and switches between multiple Xcode versions with the xcodes CLI and selects the active Xcode. macOS only.');
 
 export type XcodesConfig = z.infer<typeof schema>;
 

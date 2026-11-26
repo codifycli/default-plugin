@@ -29,7 +29,7 @@ const schema = z.object({
     .describe('The directory to run the install command')
     .optional(),
 })
-  .describe('Install specific version of tools using asdf.');
+  .describe('Installs specific versions of tools with asdf, either listed directly or read from a project\'s .tool-versions file.');
 
 export type AsdfInstallConfig = z.infer<typeof schema>;
 

@@ -90,6 +90,7 @@ export class TartResource extends Resource<TartConfig> {
   getSettings(): ResourceSettings<TartConfig> {
     return {
       id: 'tart',
+      description: 'Installs Tart, the macOS and Linux virtual machine tool for Apple Silicon from Cirrus Labs, and can clone VM images. macOS only.',
       defaultConfig,
       exampleConfigs: {
         example1: exampleWithVm,

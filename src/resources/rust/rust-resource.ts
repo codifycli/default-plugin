@@ -24,7 +24,7 @@ const schema = z
       )
       .optional(),
   })
-  .describe('rust resource — install Rust via rustup and manage global cargo packages');
+  .describe('Installs Rust and cargo with rustup, and installs Rust CLIs with cargo install (cargoPackages, e.g. ripgrep, bat, fd-find).');
 
 export type RustConfig = z.infer<typeof schema>;
 

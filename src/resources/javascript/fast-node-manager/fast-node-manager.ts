@@ -17,7 +17,7 @@ const schema = z.object({
   defaultVersion: globalVersionSchema(['latest', 'lts'], 'The default (global) Node.js version set by fnm.')
     .optional(),
 })
-  .describe('fast-node-manager resource — install and manage multiple Node.js versions via fnm');
+  .describe('Installs fnm (Fast Node Manager), a fast Node.js version manager written in Rust, installs Node.js versions with it and sets the default version.');
 
 export type FnmConfig = z.infer<typeof schema>;
 

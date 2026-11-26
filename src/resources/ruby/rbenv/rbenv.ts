@@ -23,7 +23,7 @@ const schema = z.object({
     .optional()
     .describe('Ruby gems to install with gem install into the global rbenv Ruby, e.g. ["apiaryio", "cocoapods", "rails@7.2.0"]. Only the listed gems are managed.'),
 })
-  .describe('rbenv resource — install and manage multiple Ruby versions');
+  .describe('Installs rbenv, the Ruby version manager, installs Ruby versions with it, sets the global Ruby version, and installs Ruby gems and gem-based CLIs with gem install (gems, e.g. bundler, rails, cocoapods).');
 
 export type RbenvConfig = z.infer<typeof schema>;
 

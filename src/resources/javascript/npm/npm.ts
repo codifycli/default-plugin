@@ -7,7 +7,7 @@ import { requiresOnMacOS } from '../../../utils/requires.js';
 export const schema = z.object({
   globalInstall: z.array(z.string().describe('Package name, optionally with a version specifier (e.g. "typescript" or "typescript@5.4.0")')).optional().describe('An array of npm packages to install globally. Use the npm@version syntax to pin a specific version (e.g. "nodemon@3.1.10").'),
 })
-  .describe('Install and manage packages using NPM.');
+  .describe('Installs global npm packages and Node.js CLIs (npm install -g), e.g. typescript, eslint, prettier.');
 
 export type NpmConfig = z.infer<typeof schema>;
 

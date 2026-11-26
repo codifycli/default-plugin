@@ -26,7 +26,7 @@ const schema = z
       .optional(),
   })
   
-  .describe('Ollama resource for installing and managing the Ollama LLM runtime and its models');
+  .describe('Installs Ollama for running large language models (LLMs) locally and pulls models (e.g. llama, mistral, qwen).');
 
 export type OllamaConfig = z.infer<typeof schema>;
 

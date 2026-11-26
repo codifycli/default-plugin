@@ -3,8 +3,7 @@ import {
   CodifyCliSender,
   Resource,
   ResourceSettings,
-  getPty
-} from '@codifycli/plugin-core';
+  getPty, z } from '@codifycli/plugin-core';
 import { OS, ResourceConfig } from '@codifycli/schemas';
 import { exampleSshConfigs } from '../../ssh/examples.js';
 import fs from 'node:fs/promises';
@@ -17,6 +16,8 @@ export class WaitGithubSshKey extends Resource<WaitGithubSshKeyConfig> {
   getSettings(): ResourceSettings<WaitGithubSshKeyConfig> {
     return {
       id: 'wait-github-ssh-key',
+      description: 'Pauses the apply until the user has added their SSH public key to their GitHub account, then checks that ssh -T git@github.com authenticates. Use after ssh-key, ssh-add and ssh-config when setting up GitHub SSH access.',
+      schema: z.object({}),
       exampleConfigs: {
         example1: exampleSshConfigs.example2,
       },

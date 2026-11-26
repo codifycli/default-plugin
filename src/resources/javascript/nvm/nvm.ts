@@ -11,7 +11,7 @@ export const schema = z.object({
   nodeVersions: versionsArraySchema(['latest', 'lts'], 'An array of node versions to install using nvm. Partial matching is supported (20 instead of 20.15.1).').optional(),
   global: globalVersionSchema(['latest', 'lts'], 'The global Node version set by nvm.').optional(),
 })
-  .describe('Install and manage Node versions using nvm.');
+  .describe('Installs nvm (Node Version Manager), installs one or more Node.js versions with it (including lts and latest) and sets the global Node.js version.');
 
 export type NvmConfig = z.infer<typeof schema>;
 

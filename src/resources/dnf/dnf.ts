@@ -10,7 +10,7 @@ export const schema = z.object({
   })])).optional().describe('Installs packages using dnf.'),
   update: z.boolean().optional().describe('Whether to run dnf check-update before installing packages. Defaults to true.'),
 })
-  .describe('Manage dnf packages on modern Red Hat-based systems.');
+  .describe('Installs packages with dnf on Fedora and modern Red Hat-based Linux (RHEL, Rocky, AlmaLinux).');
 
 export type DnfConfig = z.infer<typeof schema>;
 

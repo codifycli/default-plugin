@@ -13,7 +13,7 @@ export const schema = z.object({
     version: z.string().optional().describe('The version to install. Omit for the latest version.'),
   })])).optional().describe('Installs packages.'),
 })
-  .describe('Install macports and manage packages.');
+  .describe('Installs MacPorts, the macOS package manager, and installs ports (packages) with it. macOS only.');
 
 const MACPORTS_DOWNLOAD_LINKS: Record<string, string> = {
   '26': 'https://github.com/macports/macports-base/releases/download/v2.11.6/MacPorts-2.11.6-26-Tahoe.pkg',

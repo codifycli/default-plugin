@@ -10,7 +10,7 @@ export const schema = z.object({
   acceptLicense: z.boolean().optional().describe('Accepts the license agreement. Defaults to true'),
   useCurrentUser: z.boolean().optional().describe('Use the current user to install docker. Defaults to true'),
 })
-  .describe('Installs docker.');
+  .describe('Installs Docker (Docker Desktop on macOS, Docker Engine on Linux) for building and running containers.');
 
 export type DockerConfig = z.infer<typeof schema>;
 

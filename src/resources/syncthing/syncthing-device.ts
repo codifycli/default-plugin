@@ -54,7 +54,7 @@ const schema = z
       .describe('Per-device incoming rate limit in KiB/s; 0 = unlimited'),
   })
   
-  .describe('A remote Syncthing peer device');
+  .describe('Adds a remote device (peer) to Syncthing by device ID so folders can be shared with it.');
 
 export type SyncthingDeviceConfig = z.infer<typeof schema>;
 
