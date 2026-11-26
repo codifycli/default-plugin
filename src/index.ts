@@ -48,6 +48,9 @@ import { Virtualenv } from './resources/python/virtualenv/virtualenv.js';
 import { VirtualenvProject } from './resources/python/virtualenv/virtualenv-project.js';
 import { RbenvResource } from './resources/ruby/rbenv/rbenv.js';
 import { RustResource } from './resources/rust/rust-resource.js';
+import { CloudflareWorkerResource } from './resources/cloudflare/cloudflare-worker.js';
+import { WranglerResource } from './resources/cloudflare/wrangler.js';
+import { WranglerAuthResource } from './resources/cloudflare/wrangler-auth.js';
 import { ActionResource } from './resources/scripting/action.js';
 import { AliasResource } from './resources/shell/alias/alias-resource.js';
 import { AliasesResource } from './resources/shell/aliases/aliases-resource.js';
@@ -177,6 +180,9 @@ runPlugin(Plugin.create(
     new GithubCliSshKeyResource(),
     new ProjectInstallResource(),
     new ProjectInstallsResource(),
+    new WranglerResource(),
+    new WranglerAuthResource(),
+    new CloudflareWorkerResource(),
   ],
   { minSupportedCliVersion: MIN_SUPPORTED_CLI_VERSION }
 ))
