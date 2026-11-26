@@ -1,5 +1,5 @@
 import { Ajv } from 'ajv';
-import { SudoError, VerbosityLevel, Utils } from '@codifycli/plugin-core';
+import { CommandOutput, SudoError, Utils } from '@codifycli/plugin-core';
 import {
   CommandRequestResponseData, CommandRequestResponseDataSchema,
   IpcMessageV2,
@@ -131,21 +131,15 @@ async function internalSpawn(
 
     stdout.on('data', (data) => {
       output.push(data.toString());
+      CommandOutput.write(data);
     })
 
     stderr.on('data', (data) => {
       output.push(data.toString());
+      CommandOutput.write(data);
     })
 
     _process.on('error', (data) => {})
-
-    // please node that this is not a full replacement for 'inherit'
-    // the child process can and will detect if stdout is a pty and change output based on it
-    // the terminal context is lost & ansi information (coloring) etc will be lost
-    if (stdout && stderr && VerbosityLevel.get() > 0) {
-      stdout.pipe(process.stdout)
-      stderr.pipe(process.stderr)
-    }
 
     _process.on('close', (code) => {
       resolve({
