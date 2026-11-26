@@ -8,7 +8,7 @@ import { SpawnStatus } from '../../utils/codify-spawn.js';
 
 export const schema = z.object({
   acceptLicense: z.boolean().optional().describe('Accepts the license agreement. Defaults to true'),
-  useCurrentUser: z.boolean().optional().describe('Use the current user to install docker. Defaults to true'),
+  useCurrentUser: z.boolean().optional().describe('Use the current user to install docker. On macOS Docker Desktop is installed for the current user; on Linux the current user is added to the docker group so docker runs without sudo. Defaults to true'),
 })
   .describe('Installs docker.');
 
@@ -106,6 +106,10 @@ export class DockerResource extends Resource<DockerConfig> {
       } else {
         throw new Error('Unsupported Linux distribution. Only Debian-based (Ubuntu, Debian) and RedHat-based (RHEL, CentOS, Fedora) systems are supported.');
       }
+
+      if (plan.desiredConfig.useCurrentUser) {
+        await this.addUserToDockerGroup($);
+      }
     } else {
       throw new Error('Unsupported operating system');
     }
@@ -145,6 +149,22 @@ export class DockerResource extends Resource<DockerConfig> {
     return new Promise(resolve => {
       setTimeout(resolve, ms);
     });
+  }
+
+  /**
+   * Lets the current user talk to the docker daemon without root (the Linux post-install step from
+   * https://docs.docker.com/engine/install/linux-postinstall/). The membership applies to new login sessions;
+   * until then `sg docker -c '<command>'` runs a command with the group.
+   */
+  private async addUserToDockerGroup($: ReturnType<typeof getPty>): Promise<void> {
+    const user = Utils.getUser();
+    if (user === 'root') {
+      return;
+    }
+
+    await $.spawnSafe('groupadd -f docker', { requiresRoot: true });
+    await $.spawn(`usermod -aG docker ${user}`, { requiresRoot: true });
+    console.log(`Added ${user} to the docker group. Log out and back in (or run "newgrp docker") to use docker without sudo.`);
   }
 
   private async isDebianBased($: ReturnType<typeof getPty>): Promise<boolean> {

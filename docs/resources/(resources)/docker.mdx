@@ -16,7 +16,7 @@ display logs during the process.
 
 - **acceptLicense**: *(boolean)* Automatically accepts the license agreement. Corresponds to the `--accept-license` flag. Defaults to true
 
-- **useCurrentUser**: *(boolean)* Use the current user to install docker. Corresponds to the `--username=<user>` flag. Defaults to true
+- **useCurrentUser**: *(boolean)* Use the current user to install docker. On macOS this is the `--user=<user>` flag of the Docker Desktop installer. On Linux the current user is added to the `docker` group so `docker` runs without sudo (takes effect on the next login, or right away with `newgrp docker`). Defaults to true
 
 ## Example usage:
 
