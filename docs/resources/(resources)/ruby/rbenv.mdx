@@ -11,6 +11,8 @@ The rbenv resource installs [rbenv](https://github.com/rbenv/rbenv), a Ruby vers
 
 - **global**: *(string)* The Ruby version to set as the global default (equivalent to running `rbenv global <version>`). The version must be in `rubyVersions` or already installed on the system.
 
+- **gems**: *(array[string])* Ruby gems to install with `gem install` into the global rbenv Ruby (e.g. `["apiaryio", "cocoapods", "rails@7.2.0"]`). Add `@<version>` to pin a version; without one, the newest version is installed and any installed version counts as installed. Gems are installed through `rbenv exec`, so they never touch the system Ruby. Only the listed gems are managed: other installed gems are left alone.
+
 ## Example usage:
 
 ### Install rbenv with a single Ruby version
@@ -37,6 +39,19 @@ The rbenv resource installs [rbenv](https://github.com/rbenv/rbenv), a Ruby vers
 ]
 ```
 
+### Install Ruby with command-line gems
+
+```json title="codify.jsonc"
+[
+  {
+    "type": "rbenv",
+    "rubyVersions": ["latest"],
+    "global": "latest",
+    "gems": ["apiaryio", "cocoapods"]
+  }
+]
+```
+
 ### Install rbenv without installing any Ruby versions
 
 ```json title="codify.jsonc"
@@ -53,4 +68,5 @@ The rbenv resource installs [rbenv](https://github.com/rbenv/rbenv), a Ruby vers
 - On Linux, building Ruby requires several system dependencies (`curl`, `autoconf`, `patch`, `build-essential`, `rustc`, `libssl-dev`, `libyaml-dev`, `libreadline6-dev`, `zlib1g-dev`, and others). Codify installs these automatically via the system package manager.
 - On Linux, rbenv is cloned to `~/.rbenv` and added to `PATH` in your shell RC file. On macOS, Homebrew manages the installation path.
 - After applying, open a new terminal session (or source your shell RC file) for the `rbenv` shims to become active.
+- Gems are installed into whichever Ruby `rbenv global` points to, so set `global` (or have a global Ruby already) when using `gems`.
 - To find available Ruby versions, run `rbenv install --list` after installing rbenv.
