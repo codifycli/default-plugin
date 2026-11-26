@@ -16,7 +16,7 @@ const CODEX_APP_PATH = '/Applications/Codex.app';
 const schema = z
   .object({})
   .meta({ $comment: 'https://codifycli.com/docs/resources/codex/codex-app' })
-  .describe('Codex desktop app installation');
+  .describe('Installs the OpenAI Codex desktop app.');
 
 export type CodexAppConfig = z.infer<typeof schema> & StringIndexedObject;
 

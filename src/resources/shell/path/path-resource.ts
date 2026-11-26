@@ -27,7 +27,7 @@ export const schema = z.object({
   prepend: z.boolean().optional().describe('Whether or not to prepend to the path.'),
   declarationsOnly: z.boolean().default(false).describe('Only plan and manage explicitly declared paths found in shell startup scripts. This value is forced to true for stateful mode'),
 })
-  .describe('Manages user paths. It will permanently save paths by adding them to the shell startup script.');
+  .describe('Adds directories to $PATH permanently by writing an export line to the shell startup file (.zshrc, .bashrc).');
 
 export type PathConfig = z.infer<typeof schema>;
 

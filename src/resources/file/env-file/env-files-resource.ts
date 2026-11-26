@@ -110,6 +110,7 @@ export class EnvFilesResource extends Resource<EnvFilesConfig> {
   getSettings(): ResourceSettings<EnvFilesConfig> {
     return {
       id: 'env-files',
+      description: 'Creates and manages several env files (.env, .env.local, .dev.vars...) in one project directory.',
       defaultConfig,
       exampleConfigs: {
         example1: exampleCloudflare,

@@ -3,7 +3,7 @@ import { OS, ResourceConfig } from '@codifycli/schemas';
 import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({})
-  .describe('Install and manage local packages with virtualenv');
+  .describe('Installs virtualenv, the tool for creating isolated Python virtual environments.');
 
 
 export type VirtualenvConfig = z.infer<typeof schema>;

@@ -35,7 +35,7 @@ const schema = z
       .optional()
       .describe('Programs to install with go install using the global Go version, e.g. ["golang.org/x/tools/gopls@latest", "github.com/go-delve/delve/cmd/dlv@latest"]. Only the listed programs are managed.'),
   })
-  .describe('goenv resource — install and manage multiple Go versions');
+  .describe('Installs goenv, the Go version manager, installs Go versions with it, sets the global Go version, and installs Go programs and CLIs with go install (packages, e.g. gopls, delve, golangci-lint).');
 
 export type GoenvConfig = z.infer<typeof schema>;
 

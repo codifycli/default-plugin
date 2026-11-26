@@ -20,7 +20,7 @@ export const schema = z.object({
   cwd: z.string().optional().describe('The cwd to create virtualenv from. This allows a relative path to be used for dest.'),
   automaticallyInstallRequirementsTxt: z.boolean().optional().describe('If an requirements.txt is available in the cwd, automatically install it when a virtual env is first created.'),
 })
-  .describe('Install and manage local packages for a project with virtualenv');
+  .describe('Creates a Python virtual environment for a project with virtualenv and can install its requirements.txt.');
 
 export type VirtualenvProjectConfig = z.infer<typeof schema>;
 

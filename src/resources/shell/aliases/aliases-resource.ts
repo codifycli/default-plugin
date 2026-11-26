@@ -39,7 +39,7 @@ export const schema = z.object({
     .optional(),
   declarationsOnly: z.boolean().optional().describe('Only plan and manage explicitly declared aliases found in shell startup scripts.'),
 })
-  .describe('Aliases resource. Can be used to manage multiple aliases');
+  .describe('Manages several shell aliases (shortcuts for commands) in one block, saved permanently in the shell startup file (.zshrc, .bashrc).');
 
 export type AliasesConfig = z.infer<typeof schema>;
 

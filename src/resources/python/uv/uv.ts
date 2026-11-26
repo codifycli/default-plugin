@@ -37,7 +37,7 @@ const schema = z.object({
     .optional(),
 })
   
-  .describe('uv resource — fast Python package and project manager from Astral');
+  .describe('Installs uv, the fast Python package and project manager from Astral. Manages Python versions installed with uv, the default Python, and global Python CLI tools installed with uv tool install (e.g. ruff, black, httpie).');
 
 export type UvConfig = z.infer<typeof schema>;
 

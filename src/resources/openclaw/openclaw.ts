@@ -384,7 +384,7 @@ const schema = z
     settings: settingsSchema.optional(),
   })
   .meta({ $comment: 'https://codifycli.com/docs/resources/openclaw/openclaw' })
-  .describe('OpenClaw installation and gateway configuration management');
+  .describe('Installs OpenClaw and manages its gateway configuration settings.');
 
 export type OpenClawConfig = z.infer<typeof schema>;
 

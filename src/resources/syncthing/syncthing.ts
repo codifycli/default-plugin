@@ -74,7 +74,7 @@ const schema = z
       .describe('Usage-reporting consent level; set -1 to opt out'),
   })
   
-  .describe('Syncthing continuous file-synchronisation daemon');
+  .describe('Installs Syncthing, the open-source continuous file synchronization tool, and configures its daemon (startup, GUI address, discovery, relays, bandwidth limits).');
 
 export type SyncthingConfig = z.infer<typeof schema>;
 

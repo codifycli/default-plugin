@@ -88,6 +88,7 @@ export class EnvFileResource extends Resource<EnvFileConfig> {
   getSettings(): ResourceSettings<EnvFileConfig> {
     return {
       id: 'env-file',
+      description: 'Creates and manages a .env file (environment variables as KEY=value pairs) in a project directory.',
       defaultConfig,
       exampleConfigs: {
         example1: exampleContents,

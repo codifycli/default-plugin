@@ -14,7 +14,7 @@ export const schema = z.object({
   pythonVersions: versionsArraySchema(['latest'], 'An array of Python versions to install using pyenv. Partial matching is supported (3.9 instead of 3.9.11).').optional(),
   global: globalVersionSchema(['latest'], 'The global Python version set by pyenv.').optional(),
 })
-  .describe('Install and manage Python versions using pyenv.');
+  .describe('Installs pyenv, the Python version manager, installs one or more Python versions with it and sets the global Python version.');
 
 export type PyenvConfig = z.infer<typeof schema>;
 

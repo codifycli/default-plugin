@@ -11,7 +11,7 @@ export const schema = z.object({
   version: z.string().optional().describe('A specific version of pnpm to install. (defaults to the latest)'),
   globalEnvNodeVersion: z.string().optional().describe('Set the global node version. Corresponds to pnpm env --global use'),
 })
-  .describe('Install and manage Node dependencies and versions using pnpm.');
+  .describe('Installs pnpm, the fast, disk-efficient Node.js package manager, and can manage the Node.js version pnpm uses globally (pnpm env).');
 
 export type PnpmConfig = z.infer<typeof schema>;
 

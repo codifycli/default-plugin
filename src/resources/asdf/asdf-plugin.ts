@@ -25,7 +25,7 @@ const schema = z
       .describe('The gitUrl of the plugin')
       .optional()
   })
-    .describe('Asdf plugin resource for installing asdf plugins.');
+    .describe('Adds an asdf plugin (e.g. nodejs, python, ruby) and installs versions of that tool with asdf.');
 export type AsdfPluginConfig = z.infer<typeof schema>;
 
 const defaultConfig: Partial<AsdfPluginConfig> = {

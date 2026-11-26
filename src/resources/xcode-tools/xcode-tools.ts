@@ -1,4 +1,4 @@
-import { Resource, ResourceSettings, SpawnStatus, getPty } from '@codifycli/plugin-core';
+import { Resource, ResourceSettings, SpawnStatus, getPty, z } from '@codifycli/plugin-core';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -11,6 +11,8 @@ export class XcodeToolsResource extends Resource<XCodeToolsConfig> {
   getSettings(): ResourceSettings<XCodeToolsConfig> {
     return {
       id: 'xcode-tools',
+      description: 'Installs the Xcode Command Line Tools on macOS (xcode-select --install), which provide git, clang, make and other compilers and build tools.',
+      schema: z.object({}),
       operatingSystems: [OS.Darwin],
       importAndDestroy: {
         preventImport: true,

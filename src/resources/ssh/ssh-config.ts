@@ -31,7 +31,7 @@ export const schema = z.object({
     PasswordAuthentication: z.boolean().optional().describe('Specifies whether to use password authentication.'),
   }).describe('The individual host blocks inside of the ~/.ssh/config file')).describe('The host blocks inside of the ~/.ssh/config file. See http://man.openbsd.org/OpenBSD-current/man5/ssh_config.5 '),
 })
-  .describe('Configures the ssh config file.');
+  .describe('Manages Host entries in the SSH config file (~/.ssh/config): host names, users, identity files and other ssh options.');
 
 export type SshConfigOptions = Partial<{
   Host: string;

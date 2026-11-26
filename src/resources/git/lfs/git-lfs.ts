@@ -4,7 +4,7 @@ import * as os from 'node:os';
 import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({})
-  .describe('Installs git-lfs. This resource will automatically activate git-lfs as well.');
+  .describe('Installs Git LFS (Large File Storage) for versioning large binary files in git, and runs git lfs install to activate it.');
 
 
 export type GitLfsConfig = z.infer<typeof schema>;

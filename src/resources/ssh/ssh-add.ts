@@ -8,7 +8,7 @@ export const schema = z.object({
   path: z.string().describe('The path to the ssh key to add'),
   appleUseKeychain: z.boolean().optional().describe('Corresponds to the --apple-use-keychain parameter. Controls whether the key should be loaded into the apple keychain. Only keys with a passphrase can be loaded'),
 })
-  .describe('Adds ssh private keys to the ssh agent.');
+  .describe('Adds an SSH private key to the ssh-agent with ssh-add, optionally storing the passphrase in the macOS Keychain.');
 
 export type SshAddConfig = z.infer<typeof schema>;
 

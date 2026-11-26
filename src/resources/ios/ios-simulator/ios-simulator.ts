@@ -142,6 +142,7 @@ export class IosSimulatorResource extends Resource<IosSimulatorConfig> {
   getSettings(): ResourceSettings<IosSimulatorConfig> {
     return {
       id: 'ios-simulators',
+      description: 'Creates and manages iOS simulators (Xcode Simulator devices) for a chosen device type and iOS runtime with xcrun simctl, and can download the simulator runtimes. Needs the full Xcode app (install it with the xcodes resource). macOS only.',
       // Needs the full Xcode app (the Command Line Tools don't include simctl). Applied after xcodes when it's declared.
       dependencies: ['xcodes'],
       defaultConfig,

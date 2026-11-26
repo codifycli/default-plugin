@@ -29,7 +29,7 @@ export const schema = z.object({
   metadataServiceNumAttempts: z.string().optional().describe('The metadata service num attempts'),
 })
   .meta({ oneOf: [{"required": ["awsAccessKeyId", "awsSecretAccessKey"]}, {"required": ["csvCredentials"]}] })
-  .describe('Configures AWS profiles.');
+  .describe('Configures an AWS CLI profile in ~/.aws/credentials and ~/.aws/config: access keys, default region and output format.');
 
 export type AwsProfileConfig = z.infer<typeof schema>;
 

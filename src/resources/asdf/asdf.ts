@@ -15,7 +15,7 @@ const schema = z.object({
     )
     .optional()
 })
-  .describe('Asdf resource for installing asdf, a tool version manager');
+  .describe('Installs asdf, the multiple-runtime version manager (Node.js, Python, Ruby, Java, Go and more through plugins), and adds asdf plugins.');
 
 export type AsdfConfig = z.infer<typeof schema>
 

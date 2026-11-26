@@ -79,6 +79,7 @@ export class VscodeResource extends Resource<VscodeConfig> {
   getSettings(): ResourceSettings<VscodeConfig> {
     return {
       id: 'vscode',
+      description: 'Installs Visual Studio Code (VS Code) and manages its extensions and settings.json.',
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,
       defaultConfig,

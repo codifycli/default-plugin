@@ -22,7 +22,7 @@ export const schema = z.object({
   alias: z.string().regex(new RegExp('^[^ 	\n/\\$`=|&;()<>\'"]*$')).describe('The name of the alias'),
   value: z.string().optional().describe('The alias value'),
 })
-  .describe('Manages user aliases. It permanently saves the alias by adding it to the shell startup script.');
+  .describe('Creates a shell alias (a shortcut for a command) and saves it permanently in the shell startup file (.zshrc, .bashrc).');
 
 export type AliasConfig = z.infer<typeof schema>;
 

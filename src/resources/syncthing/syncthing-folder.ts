@@ -59,7 +59,7 @@ const schema = z
       .describe('Pause syncing this folder without removing it (default: false)'),
   })
   
-  .describe('A Syncthing shared folder');
+  .describe('Shares a folder with Syncthing: its path, label, sync type (send/receive) and the devices it syncs with.');
 
 export type SyncthingFolderConfig = z.infer<typeof schema>;
 

@@ -19,7 +19,7 @@ export const schema = z.object({
     classic: z.boolean().optional().describe('Install the snap in classic mode (with full system access)'),
   })])).optional().describe('Installs packages using snap.'),
 })
-  .describe('Manage snap packages on Linux systems.');
+  .describe('Installs snap packages on Linux (e.g. Ubuntu).');
 
 export type SnapConfig = z.infer<typeof schema>;
 

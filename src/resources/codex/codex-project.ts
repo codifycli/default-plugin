@@ -47,7 +47,7 @@ const schema = z
       .describe('MCP servers to register for this project under [mcp_servers] in <directory>/.codex/config.toml.'),
   })
   .meta({ $comment: 'https://codifycli.com/docs/resources/codex/codex-project' })
-  .describe('Per-project Codex configuration');
+  .describe('Configures the OpenAI Codex CLI for one project: the project\'s AGENTS.md, config and MCP servers.');
 
 export type CodexProjectConfig = z.infer<typeof schema>;
 

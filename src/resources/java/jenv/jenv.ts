@@ -15,7 +15,7 @@ export const schema = z.object({
   add: z.array(z.string()).optional().describe('The java_home path to add to jenv. Jenv does not directly install Java. This resources optionally allows users to specify a LTS version instead of a path (8, 11, 17, 21, 22) and install it via Homebrew'),
   global: z.string().optional().describe('Set the global Java version using Jenv.'),
 })
-  .describe('Install jenv and manage Java versions using jenv. Jenv cannot install Java directly, it needs to be installed separately and added to Jenv.');
+  .describe('Installs jenv, the Java version manager, registers installed JDKs with it and sets the global Java version. jenv does not install Java itself: install a JDK separately (e.g. with Homebrew) and add it to jenv.');
 
 export type JenvConfig = z.infer<typeof schema>;
 

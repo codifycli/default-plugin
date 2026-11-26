@@ -46,7 +46,7 @@ const schema = z
       .describe('MCP servers to register for this project in <directory>/.claude.json.'),
   })
   .meta({ $comment: 'https://codifycli.com/docs/resources/claude-code/claude-code-project' })
-  .describe('Per-project Claude Code configuration');
+  .describe('Configures Claude Code for one project: the project\'s CLAUDE.md, .claude/settings.json and MCP servers.');
 
 export type ClaudeCodeProjectConfig = z.infer<typeof schema>;
 

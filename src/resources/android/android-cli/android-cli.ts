@@ -42,7 +42,7 @@ export const schema = z
       )
       .optional(),
   })
-  .describe('Android CLI — installs the android command-line tool and manages the Android SDK environment');
+  .describe('Installs the Android SDK command-line tools (sdkmanager, avdmanager, adb), sets up the Android SDK environment, installs SDK packages and creates Android emulators.');
 
 export type AndroidCliConfig = z.infer<typeof schema>;
 

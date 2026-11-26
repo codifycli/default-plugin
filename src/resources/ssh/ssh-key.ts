@@ -26,7 +26,7 @@ export const schema = z.object({
   passphrase: z.string().describe('The passphrase to use. This parameter is required. To set an empty password set the value to the empty string: ""'),
   folder: z.string().optional().describe('The folder to generate the ssh key in. Defaults to `$HOME/.ssh`'),
 })
-  .describe('Generate and manage a ssh private/public key.');
+  .describe('Generates an SSH key pair (private and public key, e.g. ed25519 or rsa) with ssh-keygen, for GitHub or server access.');
 
 export type SshKeyType = 'ecdsa' | 'ecdsa-sk' | 'ed25519' | 'ed25519-sk' | 'rsa';
 

@@ -97,6 +97,7 @@ export class CursorResource extends Resource<CursorConfig> {
   getSettings(): ResourceSettings<CursorConfig> {
     return {
       id: 'cursor',
+      description: 'Installs the Cursor AI code editor and manages its extensions, settings.json and MCP servers.',
       requires: requiresOnMacOS('homebrew'),
       operatingSystems: [OS.Darwin, OS.Linux],
       schema,

@@ -79,6 +79,7 @@ export class TartVmResource extends Resource<TartVmConfig> {
   getSettings(): ResourceSettings<TartVmConfig> {
     return {
       id: 'tart-vm',
+      description: 'Creates a Tart virtual machine from an OCI image and sets its memory, CPU count, display size and disk size. macOS only.',
       defaultConfig,
       exampleConfigs: {
         example1: exampleBasic,

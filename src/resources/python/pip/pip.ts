@@ -22,7 +22,7 @@ export const schema = z.object({
   })])).describe('Packages to install.'),
   installFiles: z.array(z.string()).optional().describe('A list of requirement files to install.'),
 })
-  .describe('Install and manage packages using pip');
+  .describe('Installs Python packages with pip, globally or into a virtual environment, from a list of packages or requirements files.');
 
 interface PipListResult {
   name: string;

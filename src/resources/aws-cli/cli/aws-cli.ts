@@ -7,7 +7,7 @@ import path from 'node:path';
 import { exampleAwsCliConfigs } from '../examples.js';
 
 export const schema = z.object({})
-  .describe('Installs aws-cli.');
+  .describe('Installs the AWS CLI (aws command) for managing Amazon Web Services from the terminal.');
 
 export type AwsCliConfig = z.infer<typeof schema>;
 
