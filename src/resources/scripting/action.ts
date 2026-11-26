@@ -1,7 +1,6 @@
 import { CreatePlan, DestroyPlan, ExampleConfig, getPty, Resource, ResourceSettings, SpawnStatus, z } from '@codifycli/plugin-core';
 import { RefreshContext } from '@codifycli/plugin-core/src/resource/resource.js';
 import { OS, StringIndexedObject } from '@codifycli/schemas';
-import { requiresOnMacOS } from '../../utils/requires.js';
 
 export const schema = z.object({
   condition: z.string().optional().describe('A bash condition that decides whether the action needs to run. Exit code 0 means the action is already done — skip it. Any non-zero exit code means the action should run. Think of it as a check for the desired end-state: if the check passes (exit 0), the work is done; if it fails (non-zero), run the action. Example: \'command -v mytool\' exits 0 when mytool is already installed (skip), and non-zero when it is absent (run the install action).'),
@@ -10,7 +9,7 @@ export const schema = z.object({
   requiresRoot: z.boolean().optional().describe('When true, the action is executed with root privileges (sudo). Codify handles privilege escalation — do not add sudo to the action command directly.'),
   requiresStdin: z.boolean().optional().describe('When true, the action is run in interactive mode so it can read from stdin (e.g. for prompts or password input).'),
 })
-  .describe('Run custom scripts using the action resource. A condition can be specified to conditionally trigger a script.');
+  .describe('Run custom scripts using the action resource. A condition can be specified to conditionally trigger a script. On macOS, a script that needs git, make or a compiler should depend on an xcode-tools resource.');
 
 
 export type ActionConfig = z.infer<typeof schema>;
@@ -44,7 +43,6 @@ export class ActionResource extends Resource<ActionConfig> {
   getSettings(): ResourceSettings<ActionConfig> {
     return {
       id: 'action',
-      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleConditional,

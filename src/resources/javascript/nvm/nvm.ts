@@ -6,7 +6,6 @@ import { FileUtils } from '../../../utils/file-utils.js';
 import { globalVersionSchema, versionsArraySchema } from '../../../utils/version-aliases.js';
 import { NvmGlobalParameter } from './global-parameter.js';
 import { NvmNodeVersionsParameter } from './node-versions-parameter.js';
-import { requiresOnMacOS } from '../../../utils/requires.js';
 
 export const schema = z.object({
   nodeVersions: versionsArraySchema(['latest', 'lts'], 'An array of node versions to install using nvm. Partial matching is supported (20 instead of 20.15.1).').optional(),
@@ -45,7 +44,6 @@ export class NvmResource extends Resource<NvmConfig> {
   getSettings(): ResourceSettings<NvmConfig> {
     return {
       id: 'nvm',
-      requires: requiresOnMacOS('xcode-tools'),
       defaultConfig,
       exampleConfigs: {
         example1: exampleLts,
@@ -79,7 +77,9 @@ export class NvmResource extends Resource<NvmConfig> {
       await FileUtils.addToStartupFile('unset npm_config_prefix');
     }
 
-    const { data: installResult } = await $.spawn('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash', { interactive: true })
+    // METHOD=script downloads nvm with curl. Otherwise the installer clones it with git whenever `command -v git`
+    // succeeds, which on a fresh Mac is the /usr/bin/git stub that needs the Xcode Command Line Tools.
+    const { data: installResult } = await $.spawn('curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | METHOD=script bash', { interactive: true })
 
     // Nvm doesn't handle if the init string is commented out
     // This check first checks that nvm detects the init string is there but nvm itself is still not present

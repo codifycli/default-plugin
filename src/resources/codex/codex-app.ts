@@ -1,7 +1,9 @@
 import {
   ExampleConfig,
+  PackageManager,
   Resource,
   ResourceSettings,
+  Utils,
   getPty,
   z,
 } from '@codifycli/plugin-core';
@@ -53,18 +55,16 @@ export class CodexAppResource extends Resource<CodexAppConfig> {
   }
 
   async create(): Promise<void> {
-    const $ = getPty();
-    await $.spawn('brew install --cask codex-app', {
-      interactive: true,
-      env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-    });
+    await Utils.installViaPkgMgr('codex-app', { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
   }
 
   async destroy(): Promise<void> {
-    const $ = getPty();
-    await $.spawnSafe('brew uninstall --cask codex-app', {
-      env: { HOMEBREW_NO_AUTO_UPDATE: '1' },
-    });
-    await $.spawnSafe(`rm -rf "${CODEX_APP_PATH}"`);
+    try {
+      await Utils.uninstallViaPkgMgr('codex-app', { [PackageManager.BREW]: { cask: true } }, PackageManager.BREW);
+    } catch {
+      // Homebrew is gone: remove the app directly below
+    }
+
+    await getPty().spawnSafe(`rm -rf "${CODEX_APP_PATH}"`);
   }
 }
