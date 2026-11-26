@@ -1,0 +1,138 @@
+// ### Live desktop for macOS
+// Animated wallpaper, optional desktop widgets and a clean, icon-free desktop.
+[
+  {
+    "type": "variable",
+    "name": "wallpaperApp",
+    "valueType": "enum",
+    "label": "Which live wallpaper app do you want?",
+    "description": "phosphene: your own video loops on the desktop and lock screen (macOS 26+). wallpapermachine: plays Wallpaper Engine wallpapers (macOS 15+, Apple Silicon only). aerial: the Apple TV drone footage screensaver (macOS 15+).",
+    "options": ["phosphene", "wallpapermachine", "aerial"],
+    "default": "phosphene"
+  },
+  {
+    "type": "variable",
+    "name": "widgets",
+    "valueType": "boolean",
+    "label": "Add Übersicht for desktop widgets (clocks, weather, system stats)?",
+    "default": true
+  },
+  {
+    "type": "variable",
+    "name": "cleanDesktop",
+    "valueType": "boolean",
+    "label": "Hide desktop icons and the Dock so the wallpaper shows through?",
+    "default": true
+  },
+
+  {
+    "type": "notice",
+    "name": "requirements",
+    "stage": "plan",
+    "level": "warning",
+    "title": "Check your macOS version",
+    "message": "Phosphene needs macOS 26. WallpaperMachine needs macOS 15 on Apple Silicon. Aerial needs macOS 15. Homebrew will refuse to install an app your Mac can't run.",
+    "os": ["macOS"]
+  },
+  {
+    "type": "notice",
+    "name": "linux-unsupported",
+    "stage": "plan",
+    "level": "warning",
+    "title": "This template is for Macs",
+    "message": "These wallpaper apps only run on macOS, so this template installs nothing on Linux.",
+    "os": ["linux"]
+  },
+
+  // ### Apps
+  // Homebrew is installed first. Each app is installed in its own action because
+  // only the apps you picked should be installed.
+  {
+    "type": "homebrew",
+    "os": ["macOS"]
+  },
+  {
+    "type": "action",
+    "name": "wallpaper-app",
+    "condition": "brew list --cask ${{ wallpaperApp }} >/dev/null 2>&1",
+    "action": "brew install --cask ${{ wallpaperApp }}",
+    "os": ["macOS"],
+    "dependsOn": ["homebrew"]
+  },
+  {
+    "type": "action",
+    "name": "ubersicht",
+    "condition": "brew list --cask ubersicht >/dev/null 2>&1",
+    "action": "brew install --cask ubersicht",
+    "os": ["macOS"],
+    "when": { "widgets": true },
+    "dependsOn": ["homebrew"]
+  },
+
+  // ### Clean desktop
+  // Hides desktop icons, auto-hides the Dock and stops a click on the wallpaper
+  // from sweeping every window away (macOS 14+).
+  {
+    "type": "macos-settings",
+    "dock": {
+      "autohide": true,
+      "showRecents": false
+    },
+    "os": ["macOS"],
+    "when": { "cleanDesktop": true }
+  },
+  {
+    "type": "action",
+    "name": "hide-desktop-icons",
+    "condition": "[ \"$(defaults read com.apple.finder CreateDesktop 2>/dev/null)\" = \"0\" ]",
+    "action": "defaults write com.apple.finder CreateDesktop -bool false && killall Finder",
+    "os": ["macOS"],
+    "when": { "cleanDesktop": true }
+  },
+  {
+    "type": "action",
+    "name": "no-click-to-show-desktop",
+    "condition": "[ \"$(defaults read com.apple.WindowManager EnableStandardClickToShowDesktop 2>/dev/null)\" = \"0\" ]",
+    "action": "defaults write com.apple.WindowManager EnableStandardClickToShowDesktop -bool false",
+    "os": ["macOS"],
+    "when": { "cleanDesktop": true }
+  },
+
+  // ### What's next
+  {
+    "type": "notice",
+    "name": "phosphene-ready",
+    "level": "success",
+    "title": "Your desktop is about to start moving",
+    "message": "Phosphene is installed.\n\n1. Open Phosphene from Applications\n2. Drop in a video loop (MP4 or MOV) for the desktop and lock screen\n3. Allow it to open at login so the wallpaper comes back after a restart\n\nYou can bring the desktop icons back with `defaults write com.apple.finder CreateDesktop -bool true && killall Finder`.",
+    "os": ["macOS"],
+    "when": { "wallpaperApp": "phosphene" }
+  },
+  {
+    "type": "notice",
+    "name": "wallpapermachine-ready",
+    "level": "success",
+    "title": "Wallpaper Engine, but on a Mac",
+    "message": "WallpaperMachine is installed.\n\n1. Open WallpaperMachine from Applications\n2. Import a Wallpaper Engine wallpaper (scene, video or web)\n3. Allow it to open at login so the wallpaper comes back after a restart\n\nYou can bring the desktop icons back with `defaults write com.apple.finder CreateDesktop -bool true && killall Finder`.",
+    "os": ["macOS"],
+    "when": { "wallpaperApp": "wallpapermachine" }
+  },
+  {
+    "type": "notice",
+    "name": "aerial-ready",
+    "level": "success",
+    "title": "Cleared for takeoff",
+    "message": "The Aerial screensaver is installed.\n\n1. Open System Settings > Screen Saver and pick Aerial\n2. For a moving wallpaper too, open System Settings > Wallpaper and pick one of Apple's built-in Aerial wallpapers\n\nYou can bring the desktop icons back with `defaults write com.apple.finder CreateDesktop -bool true && killall Finder`.",
+    "os": ["macOS"],
+    "when": { "wallpaperApp": "aerial" }
+  },
+  {
+    "type": "notice",
+    "name": "widgets-ready",
+    "level": "info",
+    "title": "Add some widgets",
+    "message": "Open Übersicht from Applications, then download widgets from https://tracesof.net/uebersicht-widgets/ and drop them in the widgets folder (menu bar icon > Open Widgets Folder).",
+    "os": ["macOS"],
+    "when": { "widgets": true }
+  }
+]
